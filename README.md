@@ -1,2 +1,7 @@
-1. handler 的 增删改查针对的是 k8s 对象
-2. handler 的 GetPods, GetPVC 等方法针对的是某一个 k8s 对象, 用来获取其属性
+## Introduction
+
+
+
+The library implements various handlers to manipulate k8s resources such as pods, deployments, etc.
+
+For more examples on how to use this library, you can refer to the testCode folder or related test code.
