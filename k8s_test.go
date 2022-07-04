@@ -11,7 +11,7 @@ import (
 var (
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second*10)
 	kubeconfig  = filepath.Join(os.Getenv("HOME"), ".kube/config")
-	filename    = "./testData/examples/all.yaml.bak"
+	filename    = "./testData/examples/all.yaml"
 )
 
 func TestK8S(t *testing.T) {
