@@ -39,10 +39,10 @@ import (
 )
 
 // DeleteF like "kubectl delete -f filename"
-func DeleteF(ctx context.Context, kubeconfig, filename string) (err error) {
+func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 	k8sResourceFile, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return
+		return err
 	}
 	// remove all comments in the yaml file.
 	removeComments := regexp.MustCompile(`#.*`)
@@ -272,5 +272,5 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) (err error) {
 		}
 	}
 
-	return
+	return nil
 }
