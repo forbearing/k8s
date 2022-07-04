@@ -1,0 +1,187 @@
+package deployment
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"io/ioutil"
+
+	log "github.com/sirupsen/logrus"
+	appsv1 "k8s.io/api/apps/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	serializeryaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/restmapper"
+)
+
+// ApplyFromRaw apply deployment from map[string]interface{}.
+func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*appsv1.Deployment, error) {
+	deploy := &appsv1.Deployment{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, deploy)
+	if err != nil {
+		return nil, err
+	}
+
+	var namespace string
+	if len(deploy.Namespace) != 0 {
+		namespace = deploy.Namespace
+	} else {
+		namespace = h.namespace
+	}
+
+	deploy, err = h.clientset.AppsV1().Deployments(namespace).Create(h.ctx, deploy, h.Options.CreateOptions)
+	if k8serrors.IsAlreadyExists(err) {
+		deploy, err = h.clientset.AppsV1().Deployments(namespace).Update(h.ctx, deploy, h.Options.UpdateOptions)
+	}
+	return deploy, err
+}
+
+// ApplyFromBytes pply deployment from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (deploy *appsv1.Deployment, err error) {
+	deploy, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		deploy, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromFile apply deployment from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (deploy *appsv1.Deployment, err error) {
+	deploy, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) { // if deployment already exist, update it.
+		deploy, err = h.UpdateFromFile(filename)
+	}
+	return
+}
+
+// ApplyFromFile apply deployment from yaml file, alias to "ApplyFromFile".
+func (h *Handler) Apply(filename string) (*appsv1.Deployment, error) {
+	return h.ApplyFromFile(filename)
+}
+
+func (h *Handler) Apply2(filename string) (deploy *appsv1.Deployment, err error) {
+	var (
+		data            []byte
+		deployJson      []byte
+		namespace       string
+		bufferSize      = 500
+		unstructuredMap map[string]interface{}
+		unstructuredObj = &unstructured.Unstructured{}
+	)
+	deploy = &appsv1.Deployment{}
+	if data, err = ioutil.ReadFile(filename); err != nil {
+		return
+	}
+	if deployJson, err = yaml.ToJSON(data); err != nil {
+		return
+	}
+	if err = json.Unmarshal(deployJson, deploy); err != nil {
+		return
+	}
+	if len(deploy.Namespace) != 0 {
+		namespace = deploy.Namespace
+	} else {
+		namespace = h.namespace
+	}
+	_ = namespace
+	// NewYAMLOrJSONDecoder returns a decoder that will process YAML documents
+	// or JSON documents from the given reader as a stream. bufferSize determines
+	// how far into the stream the decoder will look to figure out whether this
+	// is a JSON stream (has whitespace followed by an open brace).
+	// yaml documents io.Reader  --> yaml decoder util/yaml.YAMLOrJSONDecoder
+	decoder := utilyaml.NewYAMLOrJSONDecoder(bytes.NewReader(data), bufferSize)
+	for {
+		// RawExtension is used to hold extensions in external versions.
+		var rawObject runtime.RawExtension
+		// Decode reads a YAML document as JSON from the stream or returns an error.
+		// The decoding rules match json.Unmarshal, not yaml.Unmarshal.
+		// 用来判断文件内容是不是 yaml 格式. 如果 decoder.Decode 返回了错误, 说明文件内容
+		// 不是 yaml 格式的. 如果返回 nil, 说明文件内容是 yaml 格式
+		// yaml decoder util/yaml.YAMLOrJSONDecoder --> json serializer runtime.Serializer
+		if err := decoder.Decode(&rawObject); err != nil {
+			break
+		}
+		if len(rawObject.Raw) == 0 {
+			// if the yaml object is empty just continue to the next one
+			continue
+		}
+		// NewDecodingSerializer adds YAML decoding support to a serializer that supports JSON.
+		// json serializer runtime.Serializer --> runtime.Object, *schema.GroupVersionKind
+		object, gvk, err := serializeryaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme).Decode(rawObject.Raw, nil, nil)
+		if err != nil {
+			log.Error("NewDecodingSerializer error")
+			log.Error(err)
+			return nil, err
+		}
+		// runtime.Object --> map[string]interface{}
+		unstructuredMap, err = runtime.DefaultUnstructuredConverter.ToUnstructured(object)
+		if err != nil {
+			return nil, err
+		}
+		// map[string]interface{} --> unstructured.Unstructured
+		unstructuredObj = &unstructured.Unstructured{Object: unstructuredMap}
+
+		// GetAPIGroupResources uses the provided discovery client to gather
+		// discovery information and populate a slice of APIGroupResources.
+		// DiscoveryInterface / DiscoveryClient --> []*APIGroupResources
+		apiGroupResources, err := restmapper.GetAPIGroupResources(h.clientset.Discovery())
+		if err != nil {
+			log.Error("GetAPIGroupResources error")
+			log.Error(err)
+			return nil, err
+		}
+
+		// NewDiscoveryRESTMapper returns a PriorityRESTMapper based on the discovered
+		// groups and resources passed in.
+		// []*APIGroupResources --> meta.RESTMapper
+		restMapper := restmapper.NewDiscoveryRESTMapper(apiGroupResources)
+
+		// meta.RESTMapper -> meta.RESTMapping
+		// RESTMapping identifies a preferred resource mapping for the provided group kind.
+		restMapping, err := restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+		if err != nil {
+			log.Error("RESTMapping error")
+			log.Error(err)
+			return nil, err
+		}
+
+		var dri dynamic.ResourceInterface
+		// Scope contains the information needed to deal with REST Resources that are in a resource hierarchy
+		// meta.RESTMapping.Resource --> shcema.GropuVersionResource
+		if restMapping.Scope.Name() == meta.RESTScopeNameNamespace { // meta.RESTScopeNameNamespace is a const, and value is default
+			if unstructuredObj.GetNamespace() == "" {
+				unstructuredObj.SetNamespace("default")
+			}
+			dri = h.dynamicClient.Resource(restMapping.Resource).Namespace(unstructuredObj.GetNamespace())
+		} else {
+			dri = h.dynamicClient.Resource(restMapping.Resource)
+		}
+		_, err = dri.Create(context.Background(), unstructuredObj, metav1.CreateOptions{})
+		if k8serrors.IsAlreadyExists(err) {
+			_, err = dri.Update(context.Background(), unstructuredObj, metav1.UpdateOptions{})
+		}
+		if err != nil {
+			log.Error("DynamicResourceInterface Apply error")
+			log.Error(err)
+			return nil, err
+		}
+	}
+	//if err != io.EOF {
+	//    log.Error("not io.EOF")
+	//    log.Error(err)
+	//    return nil, err
+	//}
+
+	if err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredObj.UnstructuredContent(), deploy); err != nil {
+		log.Error("FromUnstructured error")
+		log.Error(err)
+		return nil, err
+	}
+	return deploy, nil
+}
