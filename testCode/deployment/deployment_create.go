@@ -6,67 +6,25 @@ import (
 	"github.com/forbearing/k8s/deployment"
 )
 
-var rawName = "mydep-raw"
-var rawData = map[string]interface{}{
-	"apiVersion": "apps/v1",
-	"kind":       "Deployment",
-	"metadata": map[string]interface{}{
-		"name": rawName,
-		"labels": map[string]interface{}{
-			"type": "deployment",
-		},
-	},
-	"spec": map[string]interface{}{
-		// replicas type is int32, not string.
-		"replicas": 1,
-		"selector": map[string]interface{}{
-			"matchLabels": map[string]interface{}{
-				"app":  rawName,
-				"type": "deployment",
-			},
-		},
-		"template": map[string]interface{}{
-			"metadata": map[string]interface{}{
-				"labels": map[string]interface{}{
-					"app":  rawName,
-					"type": "deployment",
-				},
-			},
-			"spec": map[string]interface{}{
-				"containers": []map[string]interface{}{
-					{
-						"name":  "nginx",
-						"image": "nginx",
-						"resources": map[string]interface{}{
-							"limits": map[string]interface{}{
-								"cpu": "100m",
-							},
-						},
-					},
-				},
-			},
-		},
-	},
-}
-
 func Deployment_Create() {
+	// New returns a handler used to multiples deployment.
 	handler, err := deployment.New(ctx, namespace, kubeconfig)
 	if err != nil {
 		panic(err)
 	}
-	defer create(handler)
+	defer cleanup(handler)
 
-	// CreateFromRaw
+	// CreateFromRaw creates a deploymnt from map[string]interface.
 	_, err = handler.CreateFromRaw(rawData)
 	myerr("CreateFromRaw", err)
 	handler.Delete(name)
 
-	// CreateFromFile
+	// CreateFromFile creates a deploymnt from file.
 	_, err = handler.CreateFromFile(filename)
 	myerr("CreateFromFile", err)
 	handler.Delete(name)
 
-	// CreateFromBytes
+	// CreateFromBytes creates a deploymnt from bytes.
 	var data []byte
 	if data, err = ioutil.ReadFile(filename); err != nil {
 		panic(err)
@@ -75,8 +33,14 @@ func Deployment_Create() {
 	myerr("CreateFromBytes", err)
 	handler.Delete(name)
 
-	// Create
+	// Create creates a deploymnt from file, it's alias to "CreateFromFile".
 	_, err = handler.Create(filename)
 	myerr("Create", err)
 
+	// Output:
+
+	//2022/07/04 21:43:04 CreateFromRaw success.
+	//2022/07/04 21:43:04 CreateFromFile success.
+	//2022/07/04 21:43:04 CreateFromBytes success.
+	//2022/07/04 21:43:04 Create success.
 }
