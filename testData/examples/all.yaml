@@ -1,0 +1,362 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test1
+  labels:
+    type: namespace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test
+  namespace: test
+spec:
+  selector:
+    app: dep
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test
+  namespace: test
+  labels:
+    app: dep
+    type: deployment
+spec:
+  replicas: 3
+  selector: 
+    matchLabels:
+      app: dep
+      type: deployment
+  template:
+    metadata:
+      labels:
+        app: dep
+        type: deployment
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: nginx
+        image: nginx
+        resources:
+          limits:
+            cpu: 100m
+#---
+#apiVersion: v1
+#kind: Pod
+#metadata:
+#  name: test
+#  labels:
+#    app: nginx
+#    type: pod
+#spec:
+#  terminationGracePeriodSeconds: 1
+#  containers:
+#  - name: nginx
+#    image: nginx
+
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sts-headless
+  namespace: test
+  labels:
+    app: sts
+    type: statfulset
+spec:
+  selector:
+    app: sts
+    type: statfulset
+  clusterIP: None
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: test
+  namespace: test
+  labels:
+    app: sts
+    type: statefulset
+spec:
+  replicas: 3
+  serviceName: test-headless
+  selector:
+    matchLabels:
+      app: sts
+      type: statefulset
+  template:
+    metadata:
+      labels:
+        app: sts
+        type: statefulset
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: nginx
+        image: nginx
+
+---
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: test
+  namespace: test
+  labels:
+    app: ds
+    type: daemonset
+spec:
+  selector: 
+    matchLabels:
+      app: ds
+      type: daemonset
+  template:
+    metadata:
+      labels:
+        app: ds
+        type: daemonset
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: nginx
+        image: nginx
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test
+  namespace: test
+  labels:
+    type: configmap
+data:
+  name: hybfkuf
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test
+  namespace: test
+  labels:
+    type: secret
+stringData:
+  password: hybfkuf
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test
+  namespace: test
+  labels:
+    type: serviceaccount
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: test
+  labels:
+    type: clusterrole
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: test
+  labels:
+    type: clusterrolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: test
+subjects:
+- apiGroup: ""
+  kind: ServiceAccount
+  name: test
+  namespace: kube-backup
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: test
+  namespace: test
+  labels:
+    type: role
+rules:
+- apiGroups:
+  - "*"
+  resources:
+  - "*"
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test
+  namespace: test
+  labels:
+    type: rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: test
+subjects:
+- apiGroup: ""
+  kind: ServiceAccount
+  name: test
+  namespace: kube-backup
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: echo
+  namespace: test
+  labels:
+    job-name: echo
+spec:
+  ttlSecondsAfterFinished: 100
+  backoffLimit: 4
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: echo
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        command:
+        - echo
+        - hello, job
+        resources: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+  namespace: test
+  labels:
+    name: hello
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox
+            args: ["/bin/sh", "-c", "date; echo Hello from the Kubernetes cluster"]
+          restartPolicy: OnFailure
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: test
+  namespace: test
+  labels:
+    type: ingress
+spec:
+  rules:
+  - host: www.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: test
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  labels:
+    type: ingressclass
+  name: test
+spec:
+  controller: k8s.io/ingress-nginx
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test
+  namespace: test
+  labels:
+    type: networkpolicy
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app: test
+    ports:
+      - protocol: TCP
+        port: 80
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: test
+  labels:
+    type: persistentvolume
+spec:
+  capacity:
+    storage: 8G
+  accessModes: ["ReadWriteOnce", "ReadWriteMany", "ReadOnlyMany"]
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: nfs-sc
+  nfs:
+    server: 10.250.16.21
+    path: /src/nfs/kubedata
+
+
+
+
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test
+  namespace: test
+  labels:
+    type: persistentvolumeclaim
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: nfs-sc
+  resources:
+    requests:
+      storage: 6Gi
+
+
+
