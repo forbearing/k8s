@@ -6,7 +6,7 @@ import (
 	"github.com/forbearing/k8s/pod"
 )
 
-func Pod() {
+func Pod_Tools() {
 	handler, err := pod.New(ctx, namespace, kubeconfig)
 	if err != nil {
 		panic(err)
