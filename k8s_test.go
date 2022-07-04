@@ -15,6 +15,8 @@ var (
 )
 
 func TestK8S(t *testing.T) {
+	defer cancel()
+
 	err := ApplyF(ctx, kubeconfig, filename)
 	myerr(t, "ApplyF", err)
 
