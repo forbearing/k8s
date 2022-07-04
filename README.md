@@ -15,6 +15,10 @@ For more examples on how to use this library, you can refer to the [testCode](te
 ## How to execute command within pod by handler.
 
 ```golang
+import (
+	"github.com/forbearing/k8s/pod"
+)
+
 var (
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second*10)
 	namespace   = "test"
@@ -88,6 +92,10 @@ func Pod_Tools() {
 ## How to create k8s deployment by handler.
 
 ```golang
+import (
+  "github.com/forbearing/k8s/deployment"
+)
+
 var (
 	ctx, cancel = context.WithTimeout(context.Background(), time.Minute*10)
 	namespace   = "test"
