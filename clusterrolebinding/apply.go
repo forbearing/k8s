@@ -15,7 +15,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*rbacv1.ClusterRoleB
 		return nil, err
 	}
 
-	crb, err = h.clientset.RbacV1().ClusterRoleBindings().Create(h.ctx, crb, h.Options.CreateOptions)
+	_, err = h.clientset.RbacV1().ClusterRoleBindings().Create(h.ctx, crb, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		crb, err = h.clientset.RbacV1().ClusterRoleBindings().Update(h.ctx, crb, h.Options.UpdateOptions)
 	}

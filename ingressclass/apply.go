@@ -9,17 +9,17 @@ import (
 
 // ApplyFromRaw apply ingressclass from map[string]interface{}.
 func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*networkingv1.IngressClass, error) {
-	ingressclass := &networkingv1.IngressClass{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, ingressclass)
+	ingc := &networkingv1.IngressClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, ingc)
 	if err != nil {
 		return nil, err
 	}
 
-	ingressclass, err = h.clientset.NetworkingV1().IngressClasses().Create(h.ctx, ingressclass, h.Options.CreateOptions)
+	_, err = h.clientset.NetworkingV1().IngressClasses().Create(h.ctx, ingc, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
-		ingressclass, err = h.clientset.NetworkingV1().IngressClasses().Update(h.ctx, ingressclass, h.Options.UpdateOptions)
+		ingc, err = h.clientset.NetworkingV1().IngressClasses().Update(h.ctx, ingc, h.Options.UpdateOptions)
 	}
-	return ingressclass, err
+	return ingc, err
 }
 
 // ApplyFromBytes apply ingressclass from bytes.

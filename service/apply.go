@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.Service, err
 		namespace = h.namespace
 	}
 
-	service, err = h.clientset.CoreV1().Services(namespace).Create(h.ctx, service, h.Options.CreateOptions)
+	_, err = h.clientset.CoreV1().Services(namespace).Create(h.ctx, service, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		service, err = h.clientset.CoreV1().Services(namespace).Update(h.ctx, service, h.Options.UpdateOptions)
 	}

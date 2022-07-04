@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.PersistentVo
 		namespace = h.namespace
 	}
 
-	pvc, err = h.clientset.CoreV1().PersistentVolumeClaims(namespace).Create(h.ctx, pvc, h.Options.CreateOptions)
+	_, err = h.clientset.CoreV1().PersistentVolumeClaims(namespace).Create(h.ctx, pvc, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		pvc, err = h.clientset.CoreV1().PersistentVolumeClaims(namespace).Update(h.ctx, pvc, h.Options.UpdateOptions)
 	}

@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.Secret, erro
 		namespace = h.namespace
 	}
 
-	secret, err = h.clientset.CoreV1().Secrets(namespace).Create(h.ctx, secret, h.Options.CreateOptions)
+	_, err = h.clientset.CoreV1().Secrets(namespace).Create(h.ctx, secret, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		secret, err = h.clientset.CoreV1().Secrets(namespace).Update(h.ctx, secret, h.Options.UpdateOptions)
 	}

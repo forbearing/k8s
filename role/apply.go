@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*rbacv1.Role, error)
 		namespace = h.namespace
 	}
 
-	role, err = h.clientset.RbacV1().Roles(namespace).Create(h.ctx, role, h.Options.CreateOptions)
+	_, err = h.clientset.RbacV1().Roles(namespace).Create(h.ctx, role, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		role, err = h.clientset.RbacV1().Roles(namespace).Update(h.ctx, role, h.Options.UpdateOptions)
 	}

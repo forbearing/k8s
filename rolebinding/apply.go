@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*rbacv1.RoleBinding,
 		namespace = h.namespace
 	}
 
-	rolebinding, err = h.clientset.RbacV1().RoleBindings(namespace).Create(h.ctx, rolebinding, h.Options.CreateOptions)
+	_, err = h.clientset.RbacV1().RoleBindings(namespace).Create(h.ctx, rolebinding, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		rolebinding, err = h.clientset.RbacV1().RoleBindings(namespace).Update(h.ctx, rolebinding, h.Options.UpdateOptions)
 	}

@@ -15,7 +15,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.Namespace, e
 		return nil, err
 	}
 
-	namespace, err = h.clientset.CoreV1().Namespaces().Create(h.ctx, namespace, h.Options.CreateOptions)
+	_, err = h.clientset.CoreV1().Namespaces().Create(h.ctx, namespace, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		namespace, err = h.clientset.CoreV1().Namespaces().Update(h.ctx, namespace, h.Options.UpdateOptions)
 	}

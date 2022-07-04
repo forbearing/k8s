@@ -9,24 +9,24 @@ import (
 
 // ApplyFromRaw apply replicaset from map[string]interface{}.
 func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*appsv1.ReplicaSet, error) {
-	rs := &appsv1.ReplicaSet{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, rs)
+	replicaset := &appsv1.ReplicaSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, replicaset)
 	if err != nil {
 		return nil, err
 	}
 
 	var namespace string
-	if len(rs.Namespace) != 0 {
-		namespace = rs.Namespace
+	if len(replicaset.Namespace) != 0 {
+		namespace = replicaset.Namespace
 	} else {
 		namespace = h.namespace
 	}
 
-	rs, err = h.clientset.AppsV1().ReplicaSets(namespace).Create(h.ctx, rs, h.Options.CreateOptions)
+	_, err = h.clientset.AppsV1().ReplicaSets(namespace).Create(h.ctx, replicaset, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
-		rs, err = h.clientset.AppsV1().ReplicaSets(namespace).Update(h.ctx, rs, h.Options.UpdateOptions)
+		replicaset, err = h.clientset.AppsV1().ReplicaSets(namespace).Update(h.ctx, replicaset, h.Options.UpdateOptions)
 	}
-	return rs, err
+	return replicaset, err
 }
 
 // ApplyFromBytes apply replicaset from bytes.

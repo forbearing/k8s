@@ -15,7 +15,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.PersistentVo
 		return nil, err
 	}
 
-	pv, err = h.clientset.CoreV1().PersistentVolumes().Create(h.ctx, pv, h.Options.CreateOptions)
+	_, err = h.clientset.CoreV1().PersistentVolumes().Create(h.ctx, pv, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		pv, err = h.clientset.CoreV1().PersistentVolumes().Update(h.ctx, pv, h.Options.UpdateOptions)
 	}

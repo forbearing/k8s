@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.ServiceAccou
 		namespace = h.namespace
 	}
 
-	sa, err = h.clientset.CoreV1().ServiceAccounts(namespace).Create(h.ctx, sa, h.Options.CreateOptions)
+	_, err = h.clientset.CoreV1().ServiceAccounts(namespace).Create(h.ctx, sa, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		sa, err = h.clientset.CoreV1().ServiceAccounts(namespace).Update(h.ctx, sa, h.Options.UpdateOptions)
 	}
@@ -30,19 +30,19 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.ServiceAccou
 }
 
 // ApplyFromBytes apply serviceaccount from file.
-func (h *Handler) ApplyFromBytes(data []byte) (serviceaccount *corev1.ServiceAccount, err error) {
-	serviceaccount, err = h.CreateFromBytes(data)
+func (h *Handler) ApplyFromBytes(data []byte) (sa *corev1.ServiceAccount, err error) {
+	sa, err = h.CreateFromBytes(data)
 	if errors.IsAlreadyExists(err) {
-		serviceaccount, err = h.UpdateFromBytes(data)
+		sa, err = h.UpdateFromBytes(data)
 	}
 	return
 }
 
 // ApplyFromFile apply serviceaccount from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (serviceaccount *corev1.ServiceAccount, err error) {
-	serviceaccount, err = h.CreateFromFile(filename)
+func (h *Handler) ApplyFromFile(filename string) (sa *corev1.ServiceAccount, err error) {
+	sa, err = h.CreateFromFile(filename)
 	if errors.IsAlreadyExists(err) {
-		serviceaccount, err = h.UpdateFromFile(filename)
+		sa, err = h.UpdateFromFile(filename)
 	}
 	return
 }

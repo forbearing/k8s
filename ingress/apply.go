@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*networkingv1.Ingres
 		namespace = h.namespace
 	}
 
-	ingress, err = h.clientset.NetworkingV1().Ingresses(namespace).Create(h.ctx, ingress, h.Options.CreateOptions)
+	_, err = h.clientset.NetworkingV1().Ingresses(namespace).Create(h.ctx, ingress, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		ingress, err = h.clientset.NetworkingV1().Ingresses(namespace).Update(h.ctx, ingress, h.Options.UpdateOptions)
 	}

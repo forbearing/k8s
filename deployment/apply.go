@@ -35,7 +35,12 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*appsv1.Deployment, 
 		namespace = h.namespace
 	}
 
-	deploy, err = h.clientset.AppsV1().Deployments(namespace).Create(h.ctx, deploy, h.Options.CreateOptions)
+	// 这里不能再用 deploy 来接收 Create 的结果, 以为如果 Create 失败了, 返回的
+	// 是一个空的 deploy, 刚通过 runtime.DefaultUnstructuredConverter 转换获得
+	// 的 deployment 会被这个空的 deploy 覆盖掉.
+	// 这是我踩的一个大坑, 我调试了好久.
+	// 这种问题我需要将相关的代码重新排查一遍, 排查掉这种隐患.
+	_, err = h.clientset.AppsV1().Deployments(namespace).Create(h.ctx, deploy, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		deploy, err = h.clientset.AppsV1().Deployments(namespace).Update(h.ctx, deploy, h.Options.UpdateOptions)
 	}

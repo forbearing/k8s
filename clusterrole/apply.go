@@ -9,17 +9,17 @@ import (
 
 // ApplyFromRaw apply clusterrole from map[string]interface{}.
 func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*rbacv1.ClusterRole, error) {
-	cr := &rbacv1.ClusterRole{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, cr)
+	clusterrole := &rbacv1.ClusterRole{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, clusterrole)
 	if err != nil {
 		return nil, err
 	}
 
-	cr, err = h.clientset.RbacV1().ClusterRoles().Create(h.ctx, cr, h.Options.CreateOptions)
+	_, err = h.clientset.RbacV1().ClusterRoles().Create(h.ctx, clusterrole, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
-		cr, err = h.clientset.RbacV1().ClusterRoles().Update(h.ctx, cr, h.Options.UpdateOptions)
+		clusterrole, err = h.clientset.RbacV1().ClusterRoles().Update(h.ctx, clusterrole, h.Options.UpdateOptions)
 	}
-	return cr, err
+	return clusterrole, err
 }
 
 // ApplyFromBytes apply clusterrole from bytes.

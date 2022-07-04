@@ -15,7 +15,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*storagev1.StorageCl
 		return nil, err
 	}
 
-	sc, err = h.clientset.StorageV1().StorageClasses().Create(h.ctx, sc, h.Options.CreateOptions)
+	_, err = h.clientset.StorageV1().StorageClasses().Create(h.ctx, sc, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		sc, err = h.clientset.StorageV1().StorageClasses().Update(h.ctx, sc, h.Options.UpdateOptions)
 	}

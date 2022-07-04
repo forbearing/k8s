@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.ConfigMap, e
 		namespace = h.namespace
 	}
 
-	configmap, err = h.clientset.CoreV1().ConfigMaps(namespace).Create(h.ctx, configmap, h.Options.CreateOptions)
+	_, err = h.clientset.CoreV1().ConfigMaps(namespace).Create(h.ctx, configmap, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		configmap, err = h.clientset.CoreV1().ConfigMaps(namespace).Update(h.ctx, configmap, h.Options.UpdateOptions)
 	}

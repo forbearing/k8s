@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*batchv1.CronJob, er
 		namespace = h.namespace
 	}
 
-	cronjob, err = h.clientset.BatchV1().CronJobs(namespace).Create(h.ctx, cronjob, h.Options.CreateOptions)
+	_, err = h.clientset.BatchV1().CronJobs(namespace).Create(h.ctx, cronjob, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		cronjob, err = h.clientset.BatchV1().CronJobs(namespace).Update(h.ctx, cronjob, h.Options.UpdateOptions)
 	}

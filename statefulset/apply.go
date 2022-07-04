@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*appsv1.StatefulSet,
 		namespace = h.namespace
 	}
 
-	sts, err = h.clientset.AppsV1().StatefulSets(namespace).Create(h.ctx, sts, h.Options.CreateOptions)
+	_, err = h.clientset.AppsV1().StatefulSets(namespace).Create(h.ctx, sts, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		sts, err = h.clientset.AppsV1().StatefulSets(namespace).Update(h.ctx, sts, h.Options.UpdateOptions)
 	}
@@ -30,19 +30,19 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*appsv1.StatefulSet,
 }
 
 // ApplyFromBytes apply statefulset from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (statefulset *appsv1.StatefulSet, err error) {
-	statefulset, err = h.CreateFromBytes(data)
+func (h *Handler) ApplyFromBytes(data []byte) (sts *appsv1.StatefulSet, err error) {
+	sts, err = h.CreateFromBytes(data)
 	if errors.IsAlreadyExists(err) {
-		statefulset, err = h.UpdateFromBytes(data)
+		sts, err = h.UpdateFromBytes(data)
 	}
 	return
 }
 
 // ApplyFromFile apply statefulset from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (statefulset *appsv1.StatefulSet, err error) {
-	statefulset, err = h.CreateFromFile(filename)
+func (h *Handler) ApplyFromFile(filename string) (sts *appsv1.StatefulSet, err error) {
+	sts, err = h.CreateFromFile(filename)
 	if errors.IsAlreadyExists(err) {
-		statefulset, err = h.UpdateFromFile(filename)
+		sts, err = h.UpdateFromFile(filename)
 	}
 	return
 }

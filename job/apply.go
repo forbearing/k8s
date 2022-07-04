@@ -22,7 +22,7 @@ func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*batchv1.Job, error)
 		namespace = h.namespace
 	}
 
-	job, err = h.clientset.BatchV1().Jobs(namespace).Create(h.ctx, job, h.Options.CreateOptions)
+	_, err = h.clientset.BatchV1().Jobs(namespace).Create(h.ctx, job, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
 		job, err = h.clientset.BatchV1().Jobs(namespace).Update(h.ctx, job, h.Options.UpdateOptions)
 	}

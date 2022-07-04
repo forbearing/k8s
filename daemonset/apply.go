@@ -9,24 +9,24 @@ import (
 
 // ApplyFromRaw apply daemonset from map[string]interface{}.
 func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*appsv1.DaemonSet, error) {
-	pod := &appsv1.DaemonSet{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, pod)
+	daemonset := &appsv1.DaemonSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, daemonset)
 	if err != nil {
 		return nil, err
 	}
 
 	var namespace string
-	if len(pod.Namespace) != 0 {
-		namespace = pod.Namespace
+	if len(daemonset.Namespace) != 0 {
+		namespace = daemonset.Namespace
 	} else {
 		namespace = h.namespace
 	}
 
-	pod, err = h.clientset.AppsV1().DaemonSets(namespace).Create(h.ctx, pod, h.Options.CreateOptions)
+	_, err = h.clientset.AppsV1().DaemonSets(namespace).Create(h.ctx, daemonset, h.Options.CreateOptions)
 	if k8serrors.IsAlreadyExists(err) {
-		pod, err = h.clientset.AppsV1().DaemonSets(namespace).Update(h.ctx, pod, h.Options.UpdateOptions)
+		daemonset, err = h.clientset.AppsV1().DaemonSets(namespace).Update(h.ctx, daemonset, h.Options.UpdateOptions)
 	}
-	return pod, err
+	return daemonset, err
 }
 
 // ApplyFromBytes apply daemonset from bytes.
