@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mydep-2
+  name: mydep2
   labels:
-    app: mydep-2
+    app: mydep2
     type: deployment
 spec:
   replicas: 3
   selector: 
     matchLabels:
-      app: mydep-2
+      app: mydep2
       type: deployment
   template:
     metadata:
       labels:
-        app: mydep-2
+        app: mydep2
         type: deployment
     spec:
       #terminationGracePeriodSeconds: 1
