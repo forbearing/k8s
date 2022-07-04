@@ -1,0 +1,23 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: myds
+  labels:
+    app: myds
+    type: daemonset
+spec:
+  selector: 
+    matchLabels:
+      app: myds
+      type: daemonset
+  template:
+    metadata:
+      labels:
+        app: myds
+        type: daemonset
+    spec:
+      #terminationGracePeriodSeconds: 1
+      containers:
+      - name: nginx
+        image: nginx

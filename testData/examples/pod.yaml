@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+  labels:
+    app: mypod
+    type: pod
+spec:
+  #terminationGracePeriodSeconds: 1
+  initContainers:
+  - name: busybox
+    image: busybox
+    command:
+    - sh
+    - -c
+    - > 
+      echo "hello kubernetes."
+  containers:
+  - name: nginx
+    image: nginx

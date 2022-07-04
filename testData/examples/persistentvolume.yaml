@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mypv
+  labels:
+    type: persistentvolume
+spec:
+  capacity:
+    storage: 8G
+  accessModes: ["ReadWriteOnce", "ReadWriteMany", "ReadOnlyMany"]
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: nfs-sc
+  nfs:
+    server: 10.250.16.21
+    path: /src/nfs/kubedata

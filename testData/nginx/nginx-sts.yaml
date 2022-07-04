@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-sts
+  namespace: test
+spec:
+  selector:
+    app: nginx-sts
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-sts
+  namespace: test
+  labels:
+    app: nginx-sts
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-sts
+  serviceName: nginx-sts
+  template:
+    metadata:
+      labels:
+        app: nginx-sts
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - name: http
+          containerPort: 80
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: html
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ReadWriteOnce]
+      storageClassName: nfs-sc
+      resources:
+        requests:
+          storage: 8Gi
+  - metadata:
+      name: html
+    spec:
+      accessModes: [ReadWriteOnce]
+      storageClassName: nfs-sc
+      resources:
+        requests:
+          storage: 8Gi

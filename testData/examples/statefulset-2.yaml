@@ -1,0 +1,25 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysts-2
+  labels:
+    app: mysts-2
+    type: statefulset
+spec:
+  replicas: 3
+  serviceName: sts-headless
+  selector:
+    matchLabels:
+      app: mysts-2
+      type: statefulset
+  template:
+    metadata:
+      labels:
+        app: mysts-2
+        type: statefulset
+    spec:
+      #terminationGracePeriodSeconds: 1
+      containers:
+      - name: nginx
+        image: nginx

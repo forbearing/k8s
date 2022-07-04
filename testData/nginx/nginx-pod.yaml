@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pod-k8s-tools-data-nfs
+  namespace: test
+  labels:
+    app: nginx-pod
+spec:
+  accessModes: [ReadWriteOnce]
+  #storageClassName: nfs-sc
+  storageClassName: nfs-sc
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pod-k8s-tools-data-rbd
+  namespace: test
+  labels:
+    app: nginx-pod
+spec:
+  accessModes: [ReadWriteOnce]
+  #storageClassName: rook-ceph-block
+  storageClassName: nfs-sc
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pod-k8s-tools-data-cephfs
+  namespace: test
+  labels:
+    app: nginx-pod
+spec:
+  accessModes: [ReadWriteOnce]
+  #storageClassName: rook-cephfs
+  storageClassName: nfs-sc
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pod-nginx-data
+  namespace: test
+  labels:
+    app: nginx-pod
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: nfs-sc
+  #storageClassName: local-path
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pod-nginx-html
+  namespace: test
+  labels:
+    app: nginx-pod
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: nfs-sc
+  #storageClassName: local-path
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: test
+  labels:
+    app: nginx-pod
+spec:
+  terminationGracePeriodSeconds: 1
+  #initContainers:
+  #- name: busybox
+  #  image: busybox
+  #  command:
+  #  - sh
+  #  - -c
+  #  - sleep 30
+  containers:
+  - name: nginx
+    image: nginx
+    volumeMounts:
+    - name: data
+      mountPath: /data
+    - name: html
+      mountPath: /usr/share/nginx/html
+    - name: db1
+      mountPath: /db1
+    - name: db2
+      mountPath: /db2
+  - name: k8s-tools
+    image: registry.cn-shanghai.aliyuncs.com/hybfkuf/k8s-tools:latest
+    volumeMounts:
+    - name: data-rbd
+      mountPath: /data-rbd
+    - name: data-cephfs
+      mountPath: /data-cephfs
+    - name: data-nfs
+      mountPath: /data-nfs
+    - name: data-hostpath
+      mountPath: /data-hostpath
+  volumes:
+  - name: data-hostpath
+    hostPath:
+      path: /tmp/data
+  - name: data-rbd
+    persistentVolumeClaim:
+      claimName: pod-k8s-tools-data-rbd
+  - name: data-cephfs
+    persistentVolumeClaim:
+      claimName: pod-k8s-tools-data-cephfs
+  - name: data-nfs
+    persistentVolumeClaim:
+      claimName: pod-k8s-tools-data-nfs
+  - name: data
+    persistentVolumeClaim:
+      claimName: pod-nginx-data
+  - name: html
+    persistentVolumeClaim:
+      claimName: pod-nginx-html
+  - name: db1
+    hostPath:
+      path: /tmp/db1
+  - name: db2
+    hostPath:
+      path: /tmp/db2

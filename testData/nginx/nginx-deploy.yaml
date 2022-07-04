@@ -1,0 +1,133 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deploy-k8s-tools-data
+  namespace: test
+  labels:
+    app: nginx-deploy
+spec:
+  accessModes: [ReadWriteOnce]
+  #storageClassName: nfs-sc
+  storageClassName: nfs-sc
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deploy-nginx-data
+  namespace: test
+  labels:
+    app: nginx-deploy
+spec:
+  accessModes: [ReadWriteOnce]
+  #storageClassName: nfs-sc
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deploy-nginx-html
+  namespace: test
+  labels:
+    app: nginx-deploy
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: nfs-sc
+  #storageClassName: local-path
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deploy
+  namespace: test
+  labels:
+    app: nginx-deploy
+    type: deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-deploy
+      type: deployment
+  template:
+    metadata:
+      labels:
+        app: nginx-deploy
+        type: deployment
+    spec:
+      #initContainers:
+      #- name: busybox
+      #  image: busybox
+      #  command:
+      #  - sh
+      #  - -c
+      #  - sleep 30
+      terminationGracePeriodSeconds: 1
+      #securityContext:
+      #    privileged: true
+      containers:
+      - name: nginx
+        image: nginx
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: html
+          mountPath: /usr/share/nginx/html
+        - name: db1
+          mountPath: /db1
+        - name: db2
+          mountPath: /db2
+        - name: tmpdata
+          mountPath: /tmpdata
+      - name: busybox
+        image: busybox
+        command:
+        - sh
+        - -c
+        - >
+          while true; do sleep 1000; done
+        volumeMounts:
+        - name: data2
+          mountPath: /data
+      volumes:
+      - name: data2
+        persistentVolumeClaim:
+          claimName: deploy-k8s-tools-data
+      - name: data
+        persistentVolumeClaim:
+          claimName: deploy-nginx-data
+      - name: html
+        persistentVolumeClaim:
+          claimName: deploy-nginx-html
+      - name: db1
+        hostPath:
+          path: /tmp/db1
+      - name: db2
+        hostPath:
+          path: /tmp/db2
+      - name: tmpdata
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy
+  labels:
+    app: nginx-deploy
+spec:
+  selector:
+    app: nginx-deploy
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80

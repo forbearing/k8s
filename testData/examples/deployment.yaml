@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mydep
+  labels:
+    app: mydep
+    type: deployment
+spec:
+  replicas: 3
+  selector: 
+    matchLabels:
+      app: mydep
+      type: deployment
+  template:
+    metadata:
+      labels:
+        app: mydep
+        type: deployment
+    spec:
+      #terminationGracePeriodSeconds: 1
+      containers:
+      - name: nginx
+        image: nginx
+        resources:
+          limits:
+            cpu: 100m

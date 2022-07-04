@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  labels:
+    app: myrs
+    type: replicaset
+  name: myrs
+  namespace: test
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myrs
+      type: replicaset
+  template:
+    metadata:
+      labels:
+        app: myrs
+        type: replicaset
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources:
+          limits:
+            cpu: 100m

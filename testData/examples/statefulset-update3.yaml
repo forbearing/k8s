@@ -1,0 +1,32 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysts
+  labels:
+    app: mysts
+    type: statefulset
+spec:
+  replicas: 4
+  serviceName: sts-headless
+  selector:
+    matchLabels:
+      app: mysts
+      type: statefulset
+  template:
+    metadata:
+      labels:
+        app: mysts
+        type: statefulset
+    spec:
+      #terminationGracePeriodSeconds: 1
+      containers:
+      - name: nginx
+        image: nginx
+        resources:
+          requests:
+            cpu: "10m"
+            memroy: "10M"
+          limits:
+            cpu: "100m"
+            memory: "100M"
