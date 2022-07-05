@@ -12,6 +12,14 @@ For more examples on how to use this library, you can refer to the [testCode](te
 
 
 
+## Planning
+
+- 该库需要实现 client-go 的 Informer 等功能.
+- 完成测试代码的编写和使用示例, 使用示例放在 testCode 中.
+- 代码优化
+
+
+
 ## How to execute command within pod by handler.
 
 ```golang
