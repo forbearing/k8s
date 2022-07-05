@@ -3,6 +3,23 @@
 
 
 The library implements various handlers to more easy manipulate k8s resources such as pods, deployments, etc, inside or outside k8s cluster. A program that uses the library and runs in a k8s pod meant to be inside k8s cluster. If you simply run [test code](./testCode) in your pc/mac or server, it meant outside k8s cluster. Both of inside and outside k8s cluster is supported by the library.
+To create a handler for outside cluster just call `deployment.New(ctx, namespace, kubeconfig)`.
+To create a handler for the inside cluster just call `deployment.New(ctx, namespace, "")`.
+The Variable `namespace` is used to limit the scope of the handler. If `namespace=test`, the handler is only allowed to create/update/delete deployments in namespace/test. Of course, handler.WithNamespace(newNamespace) returns a new temporary handler that allowed to create/update/delete deployments in the new namespace, for examples:
+
+```go
+namespace1 := "test"
+namespace2 := "test2"
+handler, _ := deployment.New(ctx, namespace1) 
+// handler is only allowed to create/update/delete deployment in namespace/test
+handler.Create(filename)
+// handler is only allowed to create/update/delete deployment in namespace/test2
+handler.WithNamespace(namespace2).Create(filename)
+// handler is only allowed to create/update/delete deployment in namespace/test (not namespace/test2)
+handler.Create(filename)
+```
+
+
 
 For more examples on how to use this library, you can refer to the [testCode](testCode) folder or related test code.
 
@@ -14,11 +31,9 @@ For more examples on how to use this library, you can refer to the [testCode](te
 
 ## Planning
 
-- 该库需要实现 client-go 的 Informer 等功能.
-- 完成测试代码的编写和使用示例, 使用示例放在 testCode 中.
+- Simplify the use of client-go informer, lister
+- 完成测试代码的编写和使用示例, 使用示例放在 testCode 中
 - 代码优化
-
-
 
 ## How to execute command within pod by handler.
 
