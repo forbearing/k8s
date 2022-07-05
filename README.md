@@ -17,7 +17,7 @@ handler, _ := deployment.New(ctx, namespace1, "")
 // handler is only allowed to create/update/delete deployment in namespace/test.
 handler.Create(filename)
 // handler is only allowed to create/update/delete deployment in namespace/test2.
-handler.WithNamespace(namespace2).Create(filename, "")
+handler.WithNamespace(namespace2).Create(filename)
 // handler is only allowed to create/update/delete deployment in namespace/test (not namespace/test2).
 handler.Create(filename)
 ```
