@@ -19,6 +19,7 @@ var (
 	update1File = "../../testData/examples/deployment-update1.yaml"
 	update2File = "../../testData/examples/deployment-update2.yaml"
 	update3File = "../../testData/examples/deployment-update3.yaml"
+	nginxFile   = "../../testData/nginx/nginx-deploy.yaml"
 	name        = "mydep"
 	label       = "type=deployment"
 )
@@ -70,13 +71,14 @@ var (
 )
 
 func main() {
-	Deployment_Create()
-	Deployment_Update()
-	Deployment_Apply()
-	Deployment_Delete()
-	Deployment_Get()
-	Deployment_List()
-	Deployment_Watch()
+	//Deployment_Create()
+	//Deployment_Update()
+	//Deployment_Apply()
+	//Deployment_Delete()
+	//Deployment_Get()
+	//Deployment_List()
+	//Deployment_Watch()
+	Deployment_Tools()
 }
 
 func myerr(name string, err error) {
@@ -95,4 +97,5 @@ func cleanup(handler *deployment.Handler) {
 	handler.DeleteFromFile(update1File)
 	handler.DeleteFromFile(update2File)
 	handler.DeleteFromFile(update3File)
+	//k8s.DeleteF(ctx, kubeconfig, nginxFile)
 }

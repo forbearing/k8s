@@ -20,7 +20,7 @@ func Deployment_Apply() {
 	handler.Delete(rawName)
 
 	// ApplyFromRaw apply a deployment from map[string]interface.
-	// it wil updates the deployment, if already exist, or creates it.
+	// it will updates the deployment, if already exist, or creates it.
 	handler.CreateFromRaw(rawData)
 	_, err = handler.ApplyFromRaw(rawData)
 	myerr("ApplyFromRaw", err)
@@ -30,7 +30,7 @@ func Deployment_Apply() {
 	myerr("ApplyFromRaw", err)
 
 	// ApplyFromFile apply a deployment from file.
-	// it wil updates the deployment, if already exist, or creates it.
+	// it will updates the deployment, if already exist, or creates it.
 	handler.CreateFromFile(update1File)
 	_, err = handler.ApplyFromFile(update1File)
 	myerr("ApplyFromFile", err)
@@ -39,7 +39,7 @@ func Deployment_Apply() {
 	myerr("ApplyFromFile", err)
 
 	// ApplyFromBytes apply a deployment from bytes.
-	// it wil updates the deployment, if already exist, or creates it.
+	// it will updates the deployment, if already exist, or creates it.
 	var data []byte
 	if data, err = ioutil.ReadFile(update2File); err != nil {
 		panic(err)
@@ -52,7 +52,7 @@ func Deployment_Apply() {
 	myerr("ApplyFromBytes", err)
 
 	// Apply apply a deployment from file, it's alias to "ApplyFromFile".
-	// it wil updates the deployment, if already exist, or creates it.
+	// it will updates the deployment, if already exist, or creates it.
 	handler.CreateFromFile(update3File)
 	_, err = handler.Apply(update3File)
 	myerr("Apply", err)
