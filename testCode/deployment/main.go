@@ -78,7 +78,8 @@ func main() {
 	//Deployment_Get()
 	//Deployment_List()
 	//Deployment_Watch()
-	Deployment_Tools()
+	Deployment_Informer()
+	//Deployment_Tools()
 }
 
 func myerr(name string, err error) {
