@@ -21,7 +21,8 @@ var (
 func main() {
 	defer cancel()
 
-	Pod_Tools()
+	//Pod_Tools()
+	Pod_Informer()
 }
 
 func cleanup(handler *pod.Handler) {
