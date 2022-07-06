@@ -13,7 +13,7 @@ var (
 	ctx, cancel = context.WithTimeout(context.Background(), time.Minute*10)
 	namespace   = "test"
 	kubeconfig  = filepath.Join(os.Getenv("HOME"), ".kube/config")
-	filename    = "../../testData/examples/pod.yaml"
+	filename    = "../../testdata/examples/pod.yaml"
 	name        = "mypod"
 	label       = "type=pod"
 )

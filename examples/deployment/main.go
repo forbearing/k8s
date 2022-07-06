@@ -14,12 +14,12 @@ var (
 	ctx, cancel = context.WithTimeout(context.Background(), time.Minute*10)
 	namespace   = "test"
 	kubeconfig  = filepath.Join(os.Getenv("HOME"), ".kube/config")
-	filename    = "../../testData/examples/deployment.yaml"
-	filename2   = "../../testData/examples/deployment-2.yaml"
-	update1File = "../../testData/examples/deployment-update1.yaml"
-	update2File = "../../testData/examples/deployment-update2.yaml"
-	update3File = "../../testData/examples/deployment-update3.yaml"
-	nginxFile   = "../../testData/nginx/nginx-deploy.yaml"
+	filename    = "../../testdata/examples/deployment.yaml"
+	filename2   = "../../testdata/examples/deployment-2.yaml"
+	update1File = "../../testdata/examples/deployment-update1.yaml"
+	update2File = "../../testdata/examples/deployment-update2.yaml"
+	update3File = "../../testdata/examples/deployment-update3.yaml"
+	nginxFile   = "../../testdata/nginx/nginx-deploy.yaml"
 	name        = "mydep"
 	label       = "type=deployment"
 )
