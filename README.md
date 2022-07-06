@@ -2,7 +2,7 @@
 
 
 
-The library implements various handlers to more easy manipulate k8s resources such as pods, deployments, etc, inside or outside k8s cluster. A program that uses the library and runs in a k8s pod meant to be inside k8s cluster. If you simply run [test code](./testCode) in your pc/mac or server, it meant outside k8s cluster. Both of inside and outside k8s cluster is supported by the library.
+The library implements various handlers to more easy manipulate k8s resources such as pods, deployments, etc, inside or outside k8s cluster. A program that uses the library and runs in a k8s pod meant to be inside k8s cluster. If you simply run [examples](./examples) in your pc/mac or server, it meant outside k8s cluster. Both of inside and outside k8s cluster is supported by the library.
 
 To create a handler for outside cluster just call `deployment.New(ctx, namespace, kubeconfig)`.
 To create a handler for the inside cluster just call `deployment.New(ctx, namespace, "")`.
@@ -24,7 +24,7 @@ handler.Create(filename)
 
 The library is used by another open source project that used to backup pv/pvc data attached by deployments/statefulsets/daemosnets/pods running in k8s cluster.
 
-For more examples on how to use this library, you can refer to the [testCode](testCode) folder or related test code.
+For more examples on how to use this library, you can refer to the [examples](./examples) folder or related test code.
 
 ## Installation
 
@@ -35,7 +35,7 @@ For more examples on how to use this library, you can refer to the [testCode](te
 ## Planning
 
 - Simplify the use of client-go informer, lister
-- 完成测试代码的编写和使用示例, 使用示例放在 testCode 中
+- 完成测试代码的编写和使用示例, 使用示例放在 examples 中
 - 代码优化
 
 ## How to execute command within pod by handler.
