@@ -7,7 +7,7 @@ The library implements various handlers to more easy manipulate k8s resources su
 To create a handler for outside cluster just call `deployment.New(ctx, namespace, kubeconfig)`.
 To create a handler for the inside cluster just call `deployment.New(ctx, namespace, "")`.
 
-The Variable `namespace` is used to limit the scope of the handler. If `namespace=test`, the handler is only allowed to create/update/delete deployments in namespace/test. Of course, handler.WithNamespace(newNamespace) returns a new temporary handler that allowed to create/update/delete deployments in the new namespace, for examples:
+The variable `namespace` is used to limit the scope of the handler. If `namespace=test`, the handler is only allowed to create/update/delete deployments in namespace/test. Of course, handler.WithNamespace(newNamespace) returns a new temporary handler that allowed to create/update/delete deployments in the new namespace, for examples:
 
 ```go
 namespace1 := "test"
@@ -22,7 +22,7 @@ handler.WithNamespace(namespace2).Create(filename)
 handler.Create(filename)
 ```
 
-
+The library is used by another open source project that used to backup pv/pvc data attached by deployments/statefulsets/daemosnets/pods running in k8s cluster.
 
 For more examples on how to use this library, you can refer to the [testCode](testCode) folder or related test code.
 
