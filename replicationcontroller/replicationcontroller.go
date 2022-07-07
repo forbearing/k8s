@@ -33,7 +33,7 @@ type Handler struct {
 
 	Options *typed.HandlerOptions
 
-	sync.Mutex
+	l sync.Mutex
 }
 
 // New returns a replicationcontroller handler from kubeconfig or in-cluster config.
@@ -138,8 +138,8 @@ func (in *Handler) DeepCopy() *Handler {
 }
 
 func (h *Handler) resetNamespace(namespace string) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	h.namespace = namespace
 }
 func (h *Handler) WithNamespace(namespace string) *Handler {
@@ -157,18 +157,18 @@ func (h *Handler) WithDryRun() *Handler {
 	return handler
 }
 func (h *Handler) SetLimit(limit int64) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	h.Options.ListOptions.Limit = limit
 }
 func (h *Handler) SetTimeout(timeout int64) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	h.Options.ListOptions.TimeoutSeconds = &timeout
 }
 func (h *Handler) SetForceDelete(force bool) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	if force {
 		gracePeriodSeconds := int64(0)
 		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds

@@ -38,7 +38,7 @@ type Handler struct {
 
 	Options *typed.HandlerOptions
 
-	sync.Mutex
+	l sync.Mutex
 }
 
 // New returns a node handler from kubeconfig or in-cluster config
@@ -143,12 +143,12 @@ func (h *Handler) WithDryRun() *Handler {
 	return handler
 }
 func (h *Handler) SetTimeout(timeout int64) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	h.Options.ListOptions.TimeoutSeconds = &timeout
 }
 func (h *Handler) SetLimit(limit int64) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	h.Options.ListOptions.Limit = limit
 }
