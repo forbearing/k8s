@@ -135,14 +135,14 @@ func (in *Handler) DeepCopy() *Handler {
 
 	return out
 }
-func (h *Handler) setNamespace(namespace string) {
+func (h *Handler) resetNamespace(namespace string) {
 	h.Lock()
 	defer h.Unlock()
 	h.namespace = namespace
 }
 func (h *Handler) WithNamespace(namespace string) *Handler {
 	handler := h.DeepCopy()
-	handler.setNamespace(namespace)
+	handler.resetNamespace(namespace)
 	return handler
 }
 func (h *Handler) WithDryRun() *Handler {
