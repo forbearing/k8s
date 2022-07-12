@@ -23,20 +23,20 @@ func Deployment_Apply() {
 	// it will updates the deployment, if already exist, or creates it.
 	handler.CreateFromRaw(rawData)
 	_, err = handler.ApplyFromRaw(rawData)
-	myerr("ApplyFromRaw", err)
+	checkErr("ApplyFromRaw", "", err)
 
 	handler.Delete(rawName)
 	_, err = handler.ApplyFromRaw(rawData)
-	myerr("ApplyFromRaw", err)
+	checkErr("ApplyFromRaw", "", err)
 
 	// ApplyFromFile apply a deployment from file.
 	// it will updates the deployment, if already exist, or creates it.
 	handler.CreateFromFile(update1File)
 	_, err = handler.ApplyFromFile(update1File)
-	myerr("ApplyFromFile", err)
+	checkErr("ApplyFromFile", "", err)
 	handler.DeleteFromFile(update1File)
 	_, err = handler.ApplyFromFile(update1File)
-	myerr("ApplyFromFile", err)
+	checkErr("ApplyFromFile", "", err)
 
 	// ApplyFromBytes apply a deployment from bytes.
 	// it will updates the deployment, if already exist, or creates it.
@@ -46,18 +46,18 @@ func Deployment_Apply() {
 	}
 	handler.CreateFromFile(update2File)
 	_, err = handler.ApplyFromBytes(data)
-	myerr("ApplyFromBytes", err)
+	checkErr("ApplyFromBytes", "", err)
 	handler.DeleteFromFile(update2File)
 	_, err = handler.ApplyFromBytes(data)
-	myerr("ApplyFromBytes", err)
+	checkErr("ApplyFromBytes", "", err)
 
 	// Apply apply a deployment from file, it's alias to "ApplyFromFile".
 	// it will updates the deployment, if already exist, or creates it.
 	handler.CreateFromFile(update3File)
 	_, err = handler.Apply(update3File)
-	myerr("Apply", err)
+	checkErr("Apply", "", err)
 	handler.DeleteFromFile(update3File)
-	myerr("Apply", err)
+	checkErr("Apply", "", err)
 
 	// Output:
 

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"reflect"
+	"log"
 
 	"github.com/forbearing/k8s/pod"
-	log "github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -19,6 +19,9 @@ func Pod_Informer() {
 		panic(err)
 	}
 	defer cleanup(handler)
+
+	//stopCh := make(chan struct{}, 1)
+	//handler.TestInformer(stopCh)
 
 	addQueue := make(chan interface{}, 100)
 	updateQueue := make(chan updateObject, 100)
@@ -45,15 +48,19 @@ func Pod_Informer() {
 			myObj := obj.(metav1.Object)
 			log.Printf("New Pod Added to Store: %s\n", myObj.GetName())
 		case uo := <-updateQueue:
-			oObj := uo.oldObj.(metav1.Object)
-			nObj := uo.newObj.(metav1.Object)
-			_, _ = oObj, nObj
 			// OnUpdate is called with all existing objects on the specific resync interval
 			// OnUpdate is called with all existing objects when a watch connection
 			// is dropped by the server and a full relist is required
-			if !reflect.DeepEqual(oObj, nObj) {
-				log.Printf("Pod Updated to Store: %s\n", nObj.GetName())
+
+			oldPod := uo.oldObj.(*corev1.Pod)
+			newPod := uo.newObj.(*corev1.Pod)
+			if oldPod.ResourceVersion != newPod.ResourceVersion {
+				log.Printf("Pod Updated to Store: %s\n", newPod.Name)
 			}
+
+			//if !reflect.DeepEqual(uo.oldObj, uo.newObj) {
+			//    log.Printf("Pod Updated to Store: %s\n", uo.newObj.(*corev1.Pod).Name)
+			//}
 		case obj := <-deleteQueue:
 			myObj := obj.(metav1.Object)
 			log.Printf("Pod Deleted from Store: %s\n", myObj.GetName())

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/forbearing/k8s"
 	"github.com/forbearing/k8s/deployment"
 )
 
@@ -15,12 +16,12 @@ var (
 	namespace   = "test"
 	kubeconfig  = filepath.Join(os.Getenv("HOME"), ".kube/config")
 	filename    = "../../testdata/examples/deployment.yaml"
-	filename2   = "../../testdata/examples/deployment-2.yaml"
 	update1File = "../../testdata/examples/deployment-update1.yaml"
 	update2File = "../../testdata/examples/deployment-update2.yaml"
 	update3File = "../../testdata/examples/deployment-update3.yaml"
-	nginxFile   = "../../testdata/nginx/nginx-deploy.yaml"
+	filename2   = "../../testdata/nginx/nginx-deploy.yaml"
 	name        = "mydep"
+	name2       = "nginx-deploy"
 	label       = "type=deployment"
 )
 
@@ -82,11 +83,11 @@ func main() {
 	//Deployment_Tools()
 }
 
-func myerr(name string, err error) {
+func checkErr(name string, val interface{}, err error) {
 	if err != nil {
 		log.Printf("%s failed: %v\n", name, err)
 	} else {
-		log.Printf("%s success.\n", name)
+		log.Printf("%s success: %v\n", name, val)
 	}
 }
 
@@ -94,9 +95,8 @@ func myerr(name string, err error) {
 func cleanup(handler *deployment.Handler) {
 	handler.Delete(name)
 	handler.Delete(rawName)
-	handler.DeleteFromFile(filename2)
 	handler.DeleteFromFile(update1File)
 	handler.DeleteFromFile(update2File)
 	handler.DeleteFromFile(update3File)
-	//k8s.DeleteF(ctx, kubeconfig, nginxFile)
+	k8s.DeleteF(ctx, kubeconfig, filename2)
 }

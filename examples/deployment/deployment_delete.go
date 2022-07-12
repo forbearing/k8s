@@ -15,15 +15,15 @@ func Deployment_Delete() {
 
 	// DeleteByName delete a deployment by name.
 	handler.Apply(filename)
-	myerr("DeleteByName", handler.DeleteByName(name))
+	checkErr("DeleteByName", "", handler.DeleteByName(name))
 
 	// Delete delete a deployment by name, it's alias to "DeleteByName".
 	handler.Apply(filename)
-	myerr("Delete", handler.Delete(name))
+	checkErr("Delete", "", handler.Delete(name))
 
 	// DeleteFromFile delete a deployment from yaml file.
 	handler.Apply(filename)
-	myerr("DeleteFromFile", handler.DeleteFromFile(filename))
+	checkErr("DeleteFromFile", "", handler.DeleteFromFile(filename))
 
 	// DeleteFromBytes delete a deployment from bytes.
 	var data []byte
@@ -31,7 +31,7 @@ func Deployment_Delete() {
 		panic(err)
 	}
 	handler.Apply(filename)
-	myerr("DeleteFromBytes", handler.DeleteFromBytes(data))
+	checkErr("DeleteFromBytes", "", handler.DeleteFromBytes(data))
 
 	// Output:
 

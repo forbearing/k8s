@@ -18,11 +18,11 @@ func Deployment_Update() {
 
 	// UpdateFromRaw updates deployment from map[string]interface.
 	_, err = handler.UpdateFromRaw(rawData)
-	myerr("UpdateFromRaw", err)
+	checkErr("UpdateFromRaw", "", err)
 
 	// UpdateFromFile updates deployment from file.
 	_, err = handler.UpdateFromFile(update1File)
-	myerr("UpdateFromFile", err)
+	checkErr("UpdateFromFile", "", err)
 
 	// UpdateFromBytes updates deployment from bytes.
 	var data []byte
@@ -30,11 +30,11 @@ func Deployment_Update() {
 		panic(err)
 	}
 	_, err = handler.UpdateFromBytes(data)
-	myerr("UpdateFromBytes", err)
+	checkErr("UpdateFromBytes", "", err)
 
 	// Update updates deployment from file, it's alias to "UpdateFromFile".
 	_, err = handler.Update(update3File)
-	myerr("Update", err)
+	checkErr("Update", "", err)
 
 	// Output:
 

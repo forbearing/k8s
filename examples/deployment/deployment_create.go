@@ -16,12 +16,12 @@ func Deployment_Create() {
 
 	// CreateFromRaw creates a deploymnt from map[string]interface.
 	_, err = handler.CreateFromRaw(rawData)
-	myerr("CreateFromRaw", err)
+	checkErr("CreateFromRaw", "", err)
 	handler.Delete(name)
 
 	// CreateFromFile creates a deploymnt from file.
 	_, err = handler.CreateFromFile(filename)
-	myerr("CreateFromFile", err)
+	checkErr("CreateFromFile", "", err)
 	handler.Delete(name)
 
 	// CreateFromBytes creates a deploymnt from bytes.
@@ -30,12 +30,12 @@ func Deployment_Create() {
 		panic(err)
 	}
 	_, err = handler.CreateFromBytes(data)
-	myerr("CreateFromBytes", err)
+	checkErr("CreateFromBytes", "", err)
 	handler.Delete(name)
 
 	// Create creates a deploymnt from file, it's alias to "CreateFromFile".
 	_, err = handler.Create(filename)
-	myerr("Create", err)
+	checkErr("Create", "", err)
 
 	// Output:
 

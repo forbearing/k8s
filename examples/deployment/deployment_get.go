@@ -17,20 +17,20 @@ func Deployment_Get() {
 	handler.Apply(filename)
 
 	deploy1, err := handler.GetByName(name)
-	myerr("GetByName", err)
+	checkErr("GetByName", "", err)
 
 	deploy2, err := handler.Get(name)
-	myerr("Get", err)
+	checkErr("Get", "", err)
 
 	deploy3, err := handler.GetFromFile(filename)
-	myerr("GetFromFile", err)
+	checkErr("GetFromFile", "", err)
 
 	var data []byte
 	if data, err = ioutil.ReadFile(filename); err != nil {
 		panic(err)
 	}
 	deploy4, err := handler.GetFromBytes(data)
-	myerr("GetFromBytes", err)
+	checkErr("GetFromBytes", "", err)
 
 	log.Println(deploy1.Name, deploy2.Name, deploy3.Name, deploy4.Name)
 

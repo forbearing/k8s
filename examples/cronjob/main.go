@@ -7,36 +7,29 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/forbearing/k8s"
-	"github.com/forbearing/k8s/pod"
+	"github.com/forbearing/k8s/cronjob"
 )
 
 var (
 	ctx, cancel = context.WithTimeout(context.Background(), time.Minute*10)
 	namespace   = "test"
 	kubeconfig  = filepath.Join(os.Getenv("HOME"), ".kube/config")
-	filename    = "../../testdata/examples/pod.yaml"
-	filename2   = "../../testdata/nginx/nginx-pod.yaml"
-	name        = "mypod"
-	name2       = "nginx-pod"
-	label       = "type=pod"
+	filename    = "../../testdata/examples/cronjob.yaml"
+	name        = "mycj"
+	label       = "type=cronjob"
 )
 
 func main() {
-	defer cancel()
-
-	Pod_Tools()
-	//Pod_Informer()
+	Cronjob_Tools()
 }
 
-func cleanup(handler *pod.Handler) {
-	handler.Delete(name)
-	k8s.DeleteF(ctx, kubeconfig, filename2)
-}
 func checkErr(name string, val interface{}, err error) {
 	if err != nil {
 		log.Printf("%s failed: %v\n", name, err)
 	} else {
 		log.Printf("%s success: %v.\n", name, val)
 	}
+}
+func cleanup(handler *cronjob.Handler) {
+	handler.Delete(name)
 }

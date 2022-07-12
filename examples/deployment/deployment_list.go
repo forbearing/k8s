@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/forbearing/k8s"
 	"github.com/forbearing/k8s/deployment"
 	appsv1 "k8s.io/api/apps/v1"
 )
@@ -15,26 +16,26 @@ func Deployment_List() {
 	}
 	defer cleanup(handler)
 
-	handler.Apply(filename2)
+	k8s.ApplyF(ctx, kubeconfig, filename2)
 
 	// ListByLabel list deployment by label.
 	deployList1, err := handler.ListByLabel(label)
-	myerr("ListByLabel", err)
+	checkErr("ListByLabel", "", err)
 	outputDeploy(*deployList1)
 
 	// List list deployment by label, it's alias to "ListByLabel".
 	deployList2, err := handler.List(label)
-	myerr("List", err)
+	checkErr("List", "", err)
 	outputDeploy(*deployList2)
 
 	// ListByNamespace list all deployments in the namespace where the deployment is running.
 	deployList3, err := handler.ListByNamespace(namespace)
-	myerr("ListByNamespace", err)
+	checkErr("ListByNamespace", "", err)
 	outputDeploy(*deployList3)
 
 	// ListAll list all deployments in the k8s cluster.
 	deployList4, err := handler.ListAll()
-	myerr("ListAll", err)
+	checkErr("ListAll", "", err)
 	outputDeploy(*deployList4)
 
 	// Output:
