@@ -18,16 +18,19 @@ metadata:
   namespace: test
   labels:
     app: nginx-sts
+    type: statefulset
 spec:
   replicas: 3
   selector:
     matchLabels:
       app: nginx-sts
+      type: statefulset
   serviceName: nginx-sts
   template:
     metadata:
       labels:
         app: nginx-sts
+        type: statefulset
     spec:
       containers:
       - name: nginx

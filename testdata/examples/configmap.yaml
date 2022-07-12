@@ -5,4 +5,6 @@ metadata:
   labels:
     type: configmap
 data:
-  name: hybfkuf
+  name: kubernetes
+  welcome: hello
+  version: v1.24

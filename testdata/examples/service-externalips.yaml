@@ -1,10 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysvc
+  name: mysvc-externalip
   labels:
     type: service
 spec:
+  externalIPs:
+  - 1.1.1.1
+  - 2.2.2.2
   selector:
     app: mypod
   ports:

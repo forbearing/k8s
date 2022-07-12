@@ -81,6 +81,7 @@ metadata:
   namespace: test
   labels:
     app: nginx-pod
+    type: pod
 spec:
   terminationGracePeriodSeconds: 1
   #initContainers:

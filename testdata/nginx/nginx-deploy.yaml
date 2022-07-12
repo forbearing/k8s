@@ -53,7 +53,7 @@ metadata:
     app: nginx-deploy
     type: deployment
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: nginx-deploy

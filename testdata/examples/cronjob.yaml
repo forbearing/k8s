@@ -17,5 +17,5 @@ spec:
           containers:
           - name: hello
             image: busybox
-            args: ["/bin/sh", "-c", "date; echo Hello from the Kubernetes cluster"]
+            args: ["/bin/sh", "-c", "date; sleep 20; echo Hello from the Kubernetes cluster"]
           restartPolicy: OnFailure

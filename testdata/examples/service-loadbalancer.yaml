@@ -1,16 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysvc
+  name: mysvc-loadbalancer
   labels:
     type: service
 spec:
+  type: LoadBalancer
   selector:
     app: mypod
   ports:
   - name: http
     port: 80
     targetPort: 80
-  - name: https
+  - name: web
     port: 443
     targetPort: 443
+  loadBalancerIP: 3.3.3.3

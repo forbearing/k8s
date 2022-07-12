@@ -30,14 +30,17 @@ metadata:
   namespace: test
   labels:
     app: nginx-ds
+    type: daemonset
 spec:
   selector:
     matchLabels:
       app: nginx-ds
+      type: daemonset
   template:
     metadata:
       labels:
         app: nginx-ds
+        type: daemonset
     spec:
       #tolerations:
       #- key: node-role.kubernetes.io/master

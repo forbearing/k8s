@@ -6,15 +6,21 @@ metadata:
     type: networkpolicy
 spec:
   podSelector:
-    matchLabels:
-      app: nginx
+    #matchLabels:
+    #  app: nginx
+    matchExpressions:
+    - key: name
+      operator: NotIn
+      values: 
+      - mypod
   policyTypes:
   - Ingress
   ingress:
   - from:
     - namespaceSelector:
         matchLabels:
-          name: myns
+          name: mypod
+
     ports:
       - protocol: TCP
         port: 80

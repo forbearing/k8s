@@ -22,4 +22,6 @@ spec:
       #terminationGracePeriodSeconds: 1
       containers:
       - name: nginx
-        image: nginx
+        image: nginx:v1.20
+      - name: busybox
+        image: busybox
