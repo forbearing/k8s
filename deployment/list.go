@@ -18,21 +18,6 @@ func (h *Handler) List(label string) (*appsv1.DeploymentList, error) {
 	return h.ListByLabel(label)
 }
 
-//// ListByNode list deployments by k8s node name
-//// deployment not support list by k8s node name
-//func (h *Handler) ListByNode(name string) (*appsv1.DeploymentList, error) {
-//    // ParseSelector takes a string representing a selector and returns an
-//    // object suitable for matching, or an error.
-//    fieldSelector, err := fields.ParseSelector(fmt.Sprintf("spec.nodeName=%s", name))
-//    if err != nil {
-//        return nil, err
-//    }
-//    listOptions := h.Options.ListOptions.DeepCopy()
-//    listOptions.FieldSelector = fieldSelector.String()
-
-//    return h.clientset.AppsV1().Deployments(metav1.NamespaceAll).List(h.ctx, *listOptions)
-//}
-
 // ListByNamespace list all deployments in the specified namespace.
 func (h *Handler) ListByNamespace(namespace string) (*appsv1.DeploymentList, error) {
 	return h.WithNamespace(namespace).ListByLabel("")

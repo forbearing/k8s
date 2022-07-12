@@ -1,49 +1,34 @@
 package persistentvolume
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	"fmt"
+	"reflect"
+	"strings"
+	"time"
 
-// GetPVC get the pvc name of the persistentvolume.
-func (h *Handler) GetPVC(name string) (pvc string, err error) {
-	pv, err := h.Get(name)
-	if err != nil {
-		return
-	}
-	if pv.Spec.ClaimRef != nil {
-		if pv.Spec.ClaimRef.Kind == "PersistentVolumeClaim" {
-			pvc = pv.Spec.ClaimRef.Name
-		}
-	}
-	return
-}
+	corev1 "k8s.io/api/core/v1"
+)
 
-// GetStorageClass get the storageclass name of the persistentvolume.
-func (h *Handler) GetStorageClass(name string) (sc string, err error) {
-	pv, err := h.Get(name)
-	if err != nil {
-		return
-	}
-	sc = pv.Spec.StorageClassName
-	return
-}
-
-// GetAccessModes get the accessModes of the persistentvolume.
-func (h *Handler) GetAccessModes(name string) (accessModes []string, err error) {
-	pv, err := h.Get(name)
-	if err != nil {
-		return
-	}
-	for _, accessMode := range pv.Spec.AccessModes {
-		accessModes = append(accessModes, string(accessMode))
-	}
-	return
-}
+var ERR_TYPE = fmt.Errorf("type must be *corev1.PersistentVolume, corev1.PersistentVolume or string")
 
 // GetCapacity get the the storage capacity of the persistentvolume.
-func (h *Handler) GetCapacity(name string) (capacity int64, err error) {
-	pv, err := h.Get(name)
-	if err != nil {
-		return
+func (h *Handler) GetCapacity(object interface{}) (int64, error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return 0, err
+		}
+		return h.getCapacity(pv), nil
+	case *corev1.PersistentVolume:
+		return h.getCapacity(val), nil
+	case corev1.PersistentVolume:
+		return h.getCapacity(&val), nil
+	default:
+		return 0, ERR_TYPE
 	}
+}
+func (h *Handler) getCapacity(pv *corev1.PersistentVolume) int64 {
 	storage := pv.Spec.Capacity[corev1.ResourceName(corev1.ResourceStorage)]
 	//capacity = storage.Value()
 	//capacity = storage.MilliValue()
@@ -53,26 +38,197 @@ func (h *Handler) GetCapacity(name string) (capacity int64, err error) {
 	//capacity = storage.ScaledValue(resource.Tera)
 	//capacity = storage.ScaledValue(resource.Peta)
 	//capacity = storage.ScaledValue(resource.Exa)
-	capacity = storage.Value()
-	return
+	return storage.Value()
 }
 
-// GetPhase get the status phase of the persistentvolume.
-func (h *Handler) GetPhase(name string) (phase string, err error) {
-	pv, err := h.Get(name)
-	if err != nil {
-		return
+// GetAccessModes get the accessModes of the persistentvolume.
+func (h *Handler) GetAccessModes(object interface{}) (accessModes []string, err error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return nil, err
+		}
+		return h.getAccessModes(pv), nil
+	case *corev1.PersistentVolume:
+		return h.getAccessModes(val), nil
+	case corev1.PersistentVolume:
+		return h.getAccessModes(&val), nil
+	default:
+		return nil, ERR_TYPE
 	}
-	phase = string(pv.Status.Phase)
-	return
+}
+func (h *Handler) getAccessModes(pv *corev1.PersistentVolume) []string {
+	var accessModes []string
+	for _, accessMode := range pv.Spec.AccessModes {
+		accessModes = append(accessModes, string(accessMode))
+	}
+	return accessModes
 }
 
 // GetReclaimPolicy get the reclaim policy of the persistentvolume.
-func (h *Handler) GetReclaimPolicy(name string) (policy string, err error) {
-	pv, err := h.Get(name)
-	if err != nil {
-		return
+func (h *Handler) GetReclaimPolicy(object interface{}) (string, error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return "", err
+		}
+		return string(pv.Spec.PersistentVolumeReclaimPolicy), nil
+	case *corev1.PersistentVolume:
+		return string(val.Spec.PersistentVolumeReclaimPolicy), nil
+	case corev1.PersistentVolume:
+		return string(val.Spec.PersistentVolumeReclaimPolicy), nil
+	default:
+		return "", ERR_TYPE
 	}
-	policy = string(pv.Spec.PersistentVolumeReclaimPolicy)
-	return
+}
+
+// GetStatus get the status phase of the persistentvolume.
+// All supported pv status are: Pending, Available, Bound, Released, Failed.
+// Pending used for PersistentVolumes that are not available.
+// Available used for PersistentVolumes that are not yet bound.
+// Bound used for PersistentVolumes that are bound.
+// Released used for PersistentVolumes where the bound PersistentVolumeClaim was deleted.
+// Failed used for PersistentVolumes that failed to be correctly recycled or
+// deleted after being released from a claim.
+func (h *Handler) GetStatus(object interface{}) (string, error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return "", err
+		}
+		return string(pv.Status.Phase), nil
+	case *corev1.PersistentVolume:
+		return string(val.Status.Phase), nil
+	case corev1.PersistentVolume:
+		return string(val.Status.Phase), nil
+	default:
+		return "", ERR_TYPE
+	}
+}
+
+// GetClaim simply calls GetPVC.
+func (h *Handler) GetClaim(object interface{}) (string, error) {
+	return h.GetPVC(object)
+}
+
+// GetPVC get the pvc name of the persistentvolume.
+func (h *Handler) GetPVC(object interface{}) (string, error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return "", err
+		}
+		return h.getPVC(pv), nil
+	case *corev1.PersistentVolume:
+		return h.getPVC(val), nil
+	case corev1.PersistentVolume:
+		return h.getPVC(&val), nil
+	default:
+		return "", ERR_TYPE
+	}
+}
+func (h *Handler) getPVC(pv *corev1.PersistentVolume) string {
+	var pvc string
+	if pv.Spec.ClaimRef != nil {
+		if pv.Spec.ClaimRef.Kind == "PersistentVolumeClaim" {
+			pvc = pv.Spec.ClaimRef.Name
+		}
+	}
+	return pvc
+}
+
+// GetStorageClass get the storageclass name of the persistentvolume.
+func (h *Handler) GetStorageClass(object interface{}) (string, error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return "", err
+		}
+		return pv.Spec.StorageClassName, nil
+	case *corev1.PersistentVolume:
+		return val.Spec.StorageClassName, nil
+	case corev1.PersistentVolume:
+		return val.Spec.StorageClassName, nil
+	default:
+		return "", ERR_TYPE
+	}
+}
+
+func (h *Handler) GetVolumeSource(object interface{}) (string, error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return "", err
+		}
+		return h.getVolumeSource(pv), nil
+	case *corev1.PersistentVolume:
+		return h.getVolumeSource(val), nil
+	case corev1.PersistentVolume:
+		return h.getVolumeSource(&val), nil
+	default:
+		return "", ERR_TYPE
+	}
+
+}
+func (h *Handler) getVolumeSource(pv *corev1.PersistentVolume) string {
+	// 通过反射来做
+	t := reflect.TypeOf(pv.Spec.PersistentVolumeSource)
+	v := reflect.ValueOf(pv.Spec.PersistentVolumeSource)
+
+	for i := 0; i < v.NumField(); i++ {
+		//log.Println(t.Field(i).Tag.Get("protobuf"))
+		//log.Println(t.Field(i).Tag.Get("json"))
+		val := v.Field(i).Interface()
+		if !reflect.ValueOf(val).IsNil() {
+			tag := t.Field(i).Tag.Get("json") // nfs,omitempty
+			source := strings.Split(tag, ",") // [nfs]
+			return source[0]
+		}
+
+	}
+	return ""
+}
+
+// GetAge returns age of the persistentvolume.
+func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return time.Duration(int64(0)), err
+		}
+		return time.Now().Sub(pv.CreationTimestamp.Time), nil
+	case *corev1.PersistentVolume:
+		return time.Now().Sub(val.CreationTimestamp.Time), nil
+	case corev1.PersistentVolume:
+		return time.Now().Sub(val.CreationTimestamp.Time), nil
+	default:
+		return time.Duration(int64(0)), ERR_TYPE
+	}
+}
+
+// GetVolumeMode get volume mode of the persistentvolume.
+// volumeMode defines what type of volume is required by the claim.
+// Value of Filesystem is implied when not included in claim spec.
+func (h *Handler) GetVolumeMode(object interface{}) (string, error) {
+	switch val := object.(type) {
+	case string:
+		pv, err := h.Get(val)
+		if err != nil {
+			return "", err
+		}
+		return string(*pv.Spec.VolumeMode), nil
+	case *corev1.PersistentVolume:
+		return string(*val.Spec.VolumeMode), nil
+	case corev1.PersistentVolume:
+		return string(*val.Spec.VolumeMode), nil
+	default:
+		return "", ERR_TYPE
+	}
 }

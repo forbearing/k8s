@@ -2,6 +2,7 @@ package secret
 
 import (
 	"context"
+	"net/http"
 	"sync"
 	"time"
 
@@ -24,6 +25,7 @@ type Handler struct {
 
 	ctx             context.Context
 	config          *rest.Config
+	httpClient      *http.Client
 	restClient      *rest.RESTClient
 	clientset       *kubernetes.Clientset
 	dynamicClient   dynamic.Interface
@@ -40,6 +42,7 @@ type Handler struct {
 func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, err error) {
 	var (
 		config          *rest.Config
+		httpClient      *http.Client
 		restClient      *rest.RESTClient
 		clientset       *kubernetes.Clientset
 		dynamicClient   dynamic.Interface
@@ -68,23 +71,28 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	config.GroupVersion = &corev1.SchemeGroupVersion
 	config.NegotiatedSerializer = scheme.Codecs
 
-	// create a RESTClient for the given config
-	restClient, err = rest.RESTClientFor(config)
+	// create a http client for the given config.
+	httpClient, err = rest.HTTPClientFor(config)
+	if err != nil {
+		return nil, err
+	}
+	// create a RESTClient for the given config and http client.
+	restClient, err = rest.RESTClientForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a Clientset for the given config
-	clientset, err = kubernetes.NewForConfig(config)
+	// create a Clientset for the given config and http client.
+	clientset, err = kubernetes.NewForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a dynamic client for the given config
-	dynamicClient, err = dynamic.NewForConfig(config)
+	// create a dynamic client for the given config and http client.
+	dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a DiscoveryClient for the given config
-	discoveryClient, err = discovery.NewDiscoveryClientForConfig(config)
+	// create a DiscoveryClient for the given config and http client.
+	discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
@@ -98,6 +106,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	handler.namespace = namespace
 	handler.ctx = ctx
 	handler.config = config
+	handler.httpClient = httpClient
 	handler.restClient = restClient
 	handler.clientset = clientset
 	handler.dynamicClient = dynamicClient
@@ -119,6 +128,7 @@ func (in *Handler) DeepCopy() *Handler {
 
 	out.ctx = in.ctx
 	out.config = in.config
+	out.httpClient = in.httpClient
 	out.restClient = in.restClient
 	out.clientset = in.clientset
 	out.dynamicClient = in.dynamicClient
@@ -174,4 +184,17 @@ func (h *Handler) SetForceDelete(force bool) {
 	} else {
 		h.Options.DeleteOptions = metav1.DeleteOptions{}
 	}
+}
+
+func (h *Handler) RESTClient() *rest.RESTClient {
+	return h.restClient
+}
+func (h *Handler) Clientset() *kubernetes.Clientset {
+	return h.clientset
+}
+func (h *Handler) DynamicClient() dynamic.Interface {
+	return h.dynamicClient
+}
+func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
+	return h.discoveryClient
 }

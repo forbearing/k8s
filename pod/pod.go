@@ -5,6 +5,7 @@ package pod
 // 2. 精简代码, 比如返回值
 import (
 	"context"
+	"net/http"
 	"sync"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	listerscorev1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
@@ -30,23 +32,26 @@ type Handler struct {
 
 	ctx             context.Context
 	config          *rest.Config
+	httpClient      *http.Client
 	restClient      *rest.RESTClient
 	clientset       *kubernetes.Clientset
 	dynamicClient   dynamic.Interface
 	discoveryClient *discovery.DiscoveryClient
 	informerFactory informers.SharedInformerFactory
 	informer        cache.SharedIndexInformer
+	lister          listerscorev1.PodLister
 	client          typedcorev1.PodInterface
 
 	Options *typed.HandlerOptions
 
-	sync.Mutex
+	l sync.Mutex
 }
 
 // New returns a pod handler from kubeconfig or in-cluster config.
 func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, err error) {
 	var (
 		config          *rest.Config
+		httpClient      *http.Client
 		restClient      *rest.RESTClient
 		clientset       *kubernetes.Clientset
 		dynamicClient   dynamic.Interface
@@ -84,28 +89,34 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	//    NegotiatedSerializer: scheme.Codecs,
 	//}
 
-	// create a RESTClient for the given config
-	restClient, err = rest.RESTClientFor(config)
+	// create a http client for the given config.
+	httpClient, err = rest.HTTPClientFor(config)
+	if err != nil {
+		return nil, err
+	}
+	// create a RESTClient for the given config and http client.
+	restClient, err = rest.RESTClientForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a Clientset for the given config
-	clientset, err = kubernetes.NewForConfig(config)
+	// create a Clientset for the given config and http client.
+	clientset, err = kubernetes.NewForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a dynamic client for the given config
-	dynamicClient, err = dynamic.NewForConfig(config)
+	// create a dynamic client for the given config and http client.
+	dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a DiscoveryClient for the given config
-	discoveryClient, err = discovery.NewDiscoveryClientForConfig(config)
+	// create a DiscoveryClient for the given config and http client.
+	discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
 	// create a sharedInformerFactory for all namespaces.
-	informerFactory = informers.NewSharedInformerFactory(clientset, time.Minute)
+	// NewSharedInformerFactory constructs a new instance of sharedInformerFactory for all namespaces.
+	informerFactory = informers.NewSharedInformerFactory(clientset, time.Second*30)
 
 	if len(namespace) == 0 {
 		namespace = metav1.NamespaceDefault
@@ -114,12 +125,14 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	handler.namespace = namespace
 	handler.ctx = ctx
 	handler.config = config
+	handler.httpClient = httpClient
 	handler.restClient = restClient
 	handler.clientset = clientset
 	handler.dynamicClient = dynamicClient
 	handler.discoveryClient = discoveryClient
 	handler.informerFactory = informerFactory
 	handler.informer = informerFactory.Core().V1().Pods().Informer()
+	handler.lister = informerFactory.Core().V1().Pods().Lister()
 	handler.client = clientset.CoreV1().Pods(namespace)
 	handler.Options = &typed.HandlerOptions{}
 
@@ -129,6 +142,10 @@ func (p *Handler) Namespace() string {
 	return p.namespace
 }
 func (in *Handler) DeepCopy() *Handler {
+	if in == nil {
+		return nil
+	}
+
 	out := new(Handler)
 
 	out.kubeconfig = in.kubeconfig
@@ -136,12 +153,14 @@ func (in *Handler) DeepCopy() *Handler {
 
 	out.ctx = in.ctx
 	out.config = in.config
+	out.httpClient = in.httpClient
 	out.restClient = in.restClient
 	out.clientset = in.clientset
 	out.dynamicClient = in.dynamicClient
 	out.discoveryClient = in.discoveryClient
 	out.informerFactory = in.informerFactory
 	out.informer = in.informer
+	out.lister = in.lister
 	out.client = in.client
 
 	out.Options = &typed.HandlerOptions{}
@@ -155,14 +174,14 @@ func (in *Handler) DeepCopy() *Handler {
 	return out
 }
 
-func (p *Handler) setNamespace(namespace string) {
-	p.Lock()
-	defer p.Unlock()
+func (p *Handler) resetNamespace(namespace string) {
+	p.l.Lock()
+	defer p.l.Unlock()
 	p.namespace = namespace
 }
 func (p *Handler) WithNamespace(namespace string) *Handler {
 	handler := p.DeepCopy()
-	handler.setNamespace(namespace)
+	handler.resetNamespace(namespace)
 	return handler
 }
 func (p *Handler) WithDryRun() *Handler {
@@ -175,22 +194,35 @@ func (p *Handler) WithDryRun() *Handler {
 	return handler
 }
 func (p *Handler) SetLimit(limit int64) {
-	p.Lock()
-	defer p.Unlock()
+	p.l.Lock()
+	defer p.l.Unlock()
 	p.Options.ListOptions.Limit = limit
 }
 func (p *Handler) SetTimeout(timeout int64) {
-	p.Lock()
-	defer p.Unlock()
+	p.l.Lock()
+	defer p.l.Unlock()
 	p.Options.ListOptions.TimeoutSeconds = &timeout
 }
 func (p *Handler) SetForceDelete(force bool) {
-	p.Lock()
-	defer p.Unlock()
+	p.l.Lock()
+	defer p.l.Unlock()
 	if force {
 		gracePeriodSeconds := int64(0)
 		p.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
 	} else {
 		p.Options.DeleteOptions = metav1.DeleteOptions{}
 	}
+}
+
+func (h *Handler) RESTClient() *rest.RESTClient {
+	return h.restClient
+}
+func (h *Handler) Clientset() *kubernetes.Clientset {
+	return h.clientset
+}
+func (h *Handler) DynamicClient() dynamic.Interface {
+	return h.dynamicClient
+}
+func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
+	return h.discoveryClient
 }

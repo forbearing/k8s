@@ -1,6 +1,9 @@
 package deployment
 
-import "k8s.io/client-go/tools/cache"
+import (
+	listersappsv1 "k8s.io/client-go/listers/apps/v1"
+	"k8s.io/client-go/tools/cache"
+)
 
 // RunInformer
 func (h *Handler) RunInformer(
@@ -13,5 +16,17 @@ func (h *Handler) RunInformer(
 		UpdateFunc: updateFunc,
 		DeleteFunc: deleteFunc,
 	})
+	h.informerFactory.WaitForCacheSync(stopCh)
 	h.informer.Run(stopCh)
+}
+
+//func (h *Handler) InformerFactory(resync time.Duration) informers.SharedInformerFactory {
+//    return informers.NewSharedInformerFactory(h.clientset, resync)
+//}
+
+func (h *Handler) Informer() cache.SharedIndexInformer {
+	return h.informer
+}
+func (h *Handler) Lister() listersappsv1.DeploymentLister {
+	return h.lister
 }

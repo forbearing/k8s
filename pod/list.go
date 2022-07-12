@@ -44,3 +44,11 @@ func (h *Handler) ListByNamespace(namespace string) (*corev1.PodList, error) {
 func (h *Handler) ListAll() (*corev1.PodList, error) {
 	return h.WithNamespace(metav1.NamespaceAll).ListByLabel("")
 }
+
+func toPodSlice(podList *corev1.PodList) []corev1.Pod {
+	var pl []corev1.Pod
+	for _, p := range podList.Items {
+		pl = append(pl, p)
+	}
+	return pl
+}

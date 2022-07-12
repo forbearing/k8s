@@ -2,6 +2,7 @@ package job
 
 import (
 	"context"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -19,20 +20,13 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-type JobController struct {
-	Labels             map[string]string `json:"labels"`
-	CreationTimestamp  metav1.Time       `json:"creationTimestamp"`
-	LastScheduleTime   metav1.Time       `json:"lastScheduleTime"`
-	LastSuccessfulTime metav1.Time       `json:"lastSuccessfulTime"`
-
-	metav1.OwnerReference `json:"ownerReference"`
-}
 type Handler struct {
 	kubeconfig string
 	namespace  string
 
 	ctx             context.Context
 	config          *rest.Config
+	httpClient      *http.Client
 	restClient      *rest.RESTClient
 	clientset       *kubernetes.Clientset
 	dynamicClient   dynamic.Interface
@@ -42,13 +36,14 @@ type Handler struct {
 
 	Options *typed.HandlerOptions
 
-	sync.Mutex
+	l sync.Mutex
 }
 
 // New returns a job handler from kubeconfig or in-cluster config.
 func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, err error) {
 	var (
 		config          *rest.Config
+		httpClient      *http.Client
 		restClient      *rest.RESTClient
 		clientset       *kubernetes.Clientset
 		dynamicClient   dynamic.Interface
@@ -77,23 +72,28 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	config.GroupVersion = &batchv1.SchemeGroupVersion
 	config.NegotiatedSerializer = scheme.Codecs
 
-	// create a RESTClient for the given config
-	restClient, err = rest.RESTClientFor(config)
+	// create a http client for the given config.
+	httpClient, err = rest.HTTPClientFor(config)
+	if err != nil {
+		return nil, err
+	}
+	// create a RESTClient for the given config and http client.
+	restClient, err = rest.RESTClientForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a Clientset for the given config
-	clientset, err = kubernetes.NewForConfig(config)
+	// create a Clientset for the given config and http client.
+	clientset, err = kubernetes.NewForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a dynamic client for the given config
-	dynamicClient, err = dynamic.NewForConfig(config)
+	// create a dynamic client for the given config and http client.
+	dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
-	// create a DiscoveryClient for the given config
-	discoveryClient, err = discovery.NewDiscoveryClientForConfig(config)
+	// create a DiscoveryClient for the given config and http client.
+	discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient)
 	if err != nil {
 		return
 	}
@@ -107,6 +107,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	handler.namespace = namespace
 	handler.ctx = ctx
 	handler.config = config
+	handler.httpClient = httpClient
 	handler.restClient = restClient
 	handler.clientset = clientset
 	handler.dynamicClient = dynamicClient
@@ -128,6 +129,7 @@ func (in *Handler) DeepCopy() *Handler {
 
 	out.ctx = in.ctx
 	out.config = in.config
+	out.httpClient = in.httpClient
 	out.restClient = in.restClient
 	out.clientset = in.clientset
 	out.dynamicClient = in.dynamicClient
@@ -147,8 +149,8 @@ func (in *Handler) DeepCopy() *Handler {
 	return out
 }
 func (h *Handler) resetNamespace(namespace string) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	h.namespace = namespace
 }
 func (h *Handler) WithNamespace(namespace string) *Handler {
@@ -167,18 +169,18 @@ func (h *Handler) WithDryRun() *Handler {
 	return handler
 }
 func (h *Handler) SetTimeout(timeout int64) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	h.Options.ListOptions.TimeoutSeconds = &timeout
 }
 func (h *Handler) SetLimit(limit int64) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	h.Options.ListOptions.Limit = limit
 }
 func (h *Handler) SetForceDelete(force bool) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	if force {
 		gracePeriodSeconds := int64(0)
 		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
@@ -195,8 +197,8 @@ func (h *Handler) SetForceDelete(force bool) {
 // support value are "Background", "Orphan", "Foreground",
 // default value is "Background"
 func (h *Handler) SetPropagationPolicy(policy string) {
-	h.Lock()
-	defer h.Unlock()
+	h.l.Lock()
+	defer h.l.Unlock()
 	switch strings.ToLower(policy) {
 	case strings.ToLower(string(metav1.DeletePropagationBackground)):
 		propagationPolicy := metav1.DeletePropagationBackground
@@ -211,4 +213,17 @@ func (h *Handler) SetPropagationPolicy(policy string) {
 		propagationPolicy := metav1.DeletePropagationBackground
 		h.Options.DeleteOptions.PropagationPolicy = &propagationPolicy
 	}
+}
+
+func (h *Handler) RESTClient() *rest.RESTClient {
+	return h.restClient
+}
+func (h *Handler) Clientset() *kubernetes.Clientset {
+	return h.clientset
+}
+func (h *Handler) DynamicClient() dynamic.Interface {
+	return h.dynamicClient
+}
+func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
+	return h.discoveryClient
 }
