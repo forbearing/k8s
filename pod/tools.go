@@ -10,7 +10,6 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh/terminal"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -557,16 +556,16 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 		return err
 	}
 
-	// Put the terminal into raw mode to prevent it echoing characters twice.
-	// The integer file descriptor associated with the stream stdin, stdout
-	// and stderr are 0, 1 and 2, respectively.
-	//oldState, err := terminal.MakeRaw(0)
-	//defer terminal.Restore(0, oldState)
-	oldState, err := terminal.MakeRaw(int(os.Stdin.Fd()))
-	if err != nil {
-		return fmt.Errorf("Failed to set raw mod on Stdin: %v\n", err)
-	}
-	defer terminal.Restore(int(os.Stdin.Fd()), oldState)
+	//// Put the terminal into raw mode to prevent it echoing characters twice.
+	//// The integer file descriptor associated with the stream stdin, stdout
+	//// and stderr are 0, 1 and 2, respectively.
+	////oldState, err := terminal.MakeRaw(0)
+	////defer terminal.Restore(0, oldState)
+	//oldState, err := terminal.MakeRaw(int(os.Stdin.Fd()))
+	//if err != nil {
+	//    return fmt.Errorf("Failed to set raw mod on Stdin: %v\n", err)
+	//}
+	//defer terminal.Restore(int(os.Stdin.Fd()), oldState)
 
 	// if passed ptyhandler is nil
 	if pty == nil || reflect.ValueOf(pty).IsNil() {
