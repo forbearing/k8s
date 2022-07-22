@@ -578,10 +578,11 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 		})
 	}
 	return exec.Stream(remotecommand.StreamOptions{
-		Stdin:  pty,
-		Stdout: pty,
-		Stderr: pty,
-		Tty:    true,
+		Stdin:             pty,
+		Stdout:            pty,
+		Stderr:            pty,
+		TerminalSizeQueue: pty,
+		Tty:               true,
 	})
 }
 
