@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func Deployment_Delete() {
@@ -13,30 +14,49 @@ func Deployment_Delete() {
 	}
 	defer cleanup(handler)
 
-	// DeleteByName delete a deployment by name.
+	// 1. delete deployment by name.
 	handler.Apply(filename)
-	checkErr("DeleteByName", "", handler.DeleteByName(name))
+	checkErr("delete deployment by name", "", handler.Delete(name))
 
-	// Delete delete a deployment by name, it's alias to "DeleteByName".
+	// 2. delete deployment from file.
+	// You should always explicitly call DeleteFromFile to delete a deployment
+	// from file. if the parameter type passed to the `Delete` method is string,
+	// the `Delete` method will call DeleteByName not DeleteFromFile.
 	handler.Apply(filename)
-	checkErr("Delete", "", handler.Delete(name))
+	checkErr("delete deployment from file", "", handler.DeleteFromFile(filename))
 
-	// DeleteFromFile delete a deployment from yaml file.
-	handler.Apply(filename)
-	checkErr("DeleteFromFile", "", handler.DeleteFromFile(filename))
-
-	// DeleteFromBytes delete a deployment from bytes.
+	// 3. delete deployment from bytes.
 	var data []byte
 	if data, err = ioutil.ReadFile(filename); err != nil {
 		panic(err)
 	}
 	handler.Apply(filename)
-	checkErr("DeleteFromBytes", "", handler.DeleteFromBytes(data))
+	checkErr("delete deployment from bytes", "", handler.Delete(data))
+
+	// 4. delete deployment from *appsv1.deployment
+	deploy, _ := handler.Apply(filename)
+	checkErr("delete deployment from *appsv1.Deployment", "", handler.Delete(deploy))
+
+	// 5. delete deployment from appsv1.deployment
+	deploy, _ = handler.Apply(filename)
+	checkErr("delete deployment from appsv1.Deployment", "", handler.Delete(*deploy))
+
+	// 6. delete deployment from runtime.Object.
+	deploy, _ = handler.Apply(filename)
+	object := runtime.Object(deploy)
+	checkErr("delete deployment from runtime.Object", "", handler.Delete(object))
+
+	// 7. delete deployment from unstructured data, aka map[string]interface{}.
+	handler.Apply(unstructData)
+	checkErr("delete deployment from unstructured data", "", handler.Delete(unstructData))
 
 	// Output:
 
-	//2022/07/04 21:43:08 DeleteByName success.
-	//2022/07/04 21:43:08 Delete success.
-	//2022/07/04 21:43:08 DeleteFromFile success.
-	//2022/07/04 21:43:08 DeleteFromBytes success.
+	//2022/07/22 22:20:18 delete deployment by name success:
+	//2022/07/22 22:20:18 delete deployment from file success:
+	//2022/07/22 22:20:18 delete deployment from bytes success:
+	//2022/07/22 22:20:18 delete deployment from *appsv1.Deployment success:
+	//2022/07/22 22:20:18 delete deployment from appsv1.Deployment success:
+	//2022/07/22 22:20:18 delete deployment from runtime.Object success:
+	//2022/07/22 22:20:19 delete deployment from unstructured data success:
 }

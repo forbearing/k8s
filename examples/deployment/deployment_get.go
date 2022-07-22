@@ -2,9 +2,9 @@ package main
 
 import (
 	"io/ioutil"
-	"log"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func Deployment_Get() {
@@ -14,31 +14,56 @@ func Deployment_Get() {
 		panic(err)
 	}
 	defer cleanup(handler)
-	handler.Apply(filename)
+	if _, err := handler.Apply(filename); err != nil {
+		panic(err)
+	}
+	if _, err := handler.Apply(unstructData); err != nil {
+		panic(err)
+	}
 
-	deploy1, err := handler.GetByName(name)
-	checkErr("GetByName", "", err)
+	// 1. get deployment by name.
+	deploy1, err := handler.Get(name)
+	checkErr("get deployment by name", deploy1.Name, err)
 
-	deploy2, err := handler.Get(name)
-	checkErr("Get", "", err)
+	// 2. get deployment from file.
+	// You should always explicitly call GetFromFile to get a deployment from file.
+	// if the parameter type passed to the `Get` method is string, the `Get`
+	// method will call GetByName not GetFromFile.
+	deploy2, err := handler.GetFromFile(filename)
+	checkErr("get deployment from file", deploy2.Name, err)
 
-	deploy3, err := handler.GetFromFile(filename)
-	checkErr("GetFromFile", "", err)
-
+	// 3. get deployment from bytes.
 	var data []byte
 	if data, err = ioutil.ReadFile(filename); err != nil {
 		panic(err)
 	}
-	deploy4, err := handler.GetFromBytes(data)
-	checkErr("GetFromBytes", "", err)
+	deploy3, err := handler.Get(data)
+	checkErr("get deployment from bytes", deploy3.Name, err)
 
-	log.Println(deploy1.Name, deploy2.Name, deploy3.Name, deploy4.Name)
+	// 4. get deployment from *appv1.Deployment.
+	deploy4, err := handler.Get(deploy3)
+	checkErr("get deployment from *appsv1.Deployment", deploy4.Name, err)
+
+	// 5. get deployment from appsv1.Deployment
+	deploy5, err := handler.Get(*deploy4)
+	checkErr("get deployment from appsv1.Deployment", deploy5.Name, err)
+
+	// 6. get deployment from runtime.Object.
+	object := runtime.Object(deploy5)
+	deploy6, err := handler.Get(object)
+	checkErr("get deployment from runtime.Object", deploy6.Name, err)
+
+	// 7. get deployment from unstructured data, aka map[string]interface{}.
+	deploy7, err := handler.Get(unstructData)
+	checkErr("get deployment from unstructured data", deploy7.Name, err)
 
 	// Output:
 
-	//2022/07/04 21:51:05 GetByName success.
-	//2022/07/04 21:51:05 Get success.
-	//2022/07/04 21:51:05 GetFromFile success.
-	//2022/07/04 21:51:05 GetFromBytes success.
-	//2022/07/04 21:51:05 mydep mydep mydep mydep
+	//2022/07/22 22:47:33 get deployment by name success: mydep
+	//2022/07/22 22:47:33 get deployment from file success: mydep
+	//2022/07/22 22:47:33 get deployment from bytes success: mydep
+	//2022/07/22 22:47:33 get deployment from *appsv1.Deployment success: mydep
+	//2022/07/22 22:47:33 get deployment from appsv1.Deployment success: mydep
+	//2022/07/22 22:47:33 get deployment from runtime.Object success: mydep
+	//2022/07/22 22:47:33 get deployment from unstructured data success: mydep-unstruct
 }

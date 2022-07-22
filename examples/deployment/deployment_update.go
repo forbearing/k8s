@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func Deployment_Update() {
@@ -13,33 +14,56 @@ func Deployment_Update() {
 		panic(err)
 	}
 	defer cleanup(handler)
-	handler.Apply(filename)
-	handler.ApplyFromRaw(rawData)
 
-	// UpdateFromRaw updates deployment from map[string]interface.
-	_, err = handler.UpdateFromRaw(rawData)
-	checkErr("UpdateFromRaw", "", err)
-
-	// UpdateFromFile updates deployment from file.
-	_, err = handler.UpdateFromFile(update1File)
-	checkErr("UpdateFromFile", "", err)
-
-	// UpdateFromBytes updates deployment from bytes.
-	var data []byte
-	if data, err = ioutil.ReadFile(update2File); err != nil {
+	deploy, err := handler.Apply(filename)
+	if err != nil {
 		panic(err)
 	}
-	_, err = handler.UpdateFromBytes(data)
-	checkErr("UpdateFromBytes", "", err)
+	if _, err := handler.Apply(unstructData); err != nil {
+		panic(err)
+	}
 
-	// Update updates deployment from file, it's alias to "UpdateFromFile".
-	_, err = handler.Update(update3File)
-	checkErr("Update", "", err)
+	// 1. update deployment from file.
+	_, err = handler.Update(updateFile)
+	checkErr("update deployment from file", "", err)
+
+	// 2. update deployment from bytes.
+	var data []byte
+	if data, err = ioutil.ReadFile(updateFile); err != nil {
+		panic(err)
+	}
+	_, err = handler.Update(data)
+	checkErr("update deployment from bytes", "", err)
+
+	// 3. update deployment from *appsv1.Deployment
+	_, err = handler.Update(deploy)
+	checkErr("update deployment from *appsv1.Deployment", "", err)
+
+	// 4. update deployment from appsv1.Deployment
+	_, err = handler.Update(*deploy)
+	checkErr("update deployment from appsv1.Deployment", "", err)
+
+	// 5. update deployment from runtime.Object.
+	object := runtime.Object(deploy)
+	_, err = handler.Update(object)
+	checkErr("update deployment from runtime.Object", "", err)
+
+	// 6. update deployment from unstructured data, aka map[string]interface{}.
+	_, err = handler.Update(unstructData)
+	checkErr("update deployment from unstructured data", "", err)
 
 	// Output:
 
-	//2022/07/04 21:43:05 UpdateFromRaw success.
-	//2022/07/04 21:43:05 UpdateFromFile success.
-	//2022/07/04 21:43:05 UpdateFromBytes success.
-	//2022/07/04 21:43:05 Update success.
+	//2022/07/22 22:02:25 apply deployment from file (deployment not exists) success:
+	//2022/07/22 22:02:25 apply deployment from file (deployment exists) success:
+	//2022/07/22 22:02:25 apply deployment from bytes (deployment not exists) success:
+	//2022/07/22 22:02:25 apply deployment from bytes (deployment exists) success:
+	//2022/07/22 22:02:25 apply deployment from *appsv1.Deployment (deployment not exists) success:
+	//2022/07/22 22:02:25 apply deployment from *appsv1.Deployment (deployment exists) success:
+	//2022/07/22 22:02:26 apply deployment from appsv1.Deployment (deployment not exists) success:
+	//2022/07/22 22:02:26 apply deployment from appsv1.Deployment (deployment exists) success:
+	//2022/07/22 22:02:26 apply deployment from runtime.Object (deployment not exists) success:
+	//2022/07/22 22:02:27 apply deployment from runtime.Object (deployment exists) success:
+	//2022/07/22 22:02:27 apply deployment from unstructured data (deployment not exists) success:
+	//2022/07/22 22:02:28 apply deployment from unstructured data (deployment exists) success:
 }

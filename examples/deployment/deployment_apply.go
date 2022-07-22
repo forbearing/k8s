@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // ApplyXXX method will creates deployment if specified deployment not exist and
@@ -16,57 +17,76 @@ func Deployment_Apply() {
 	}
 	defer cleanup(handler)
 
+	// 1. apply deployment from file, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
-	handler.Delete(rawName)
+	_, err = handler.Apply(filename)
+	checkErr("apply deployment from file (deployment not exists)", "", err)
+	_, err = handler.Apply(updateFile)
+	checkErr("apply deployment from file (deployment exists)", "", err)
 
-	// ApplyFromRaw apply a deployment from map[string]interface.
-	// it will updates the deployment, if already exist, or creates it.
-	handler.CreateFromRaw(rawData)
-	_, err = handler.ApplyFromRaw(rawData)
-	checkErr("ApplyFromRaw", "", err)
-
-	handler.Delete(rawName)
-	_, err = handler.ApplyFromRaw(rawData)
-	checkErr("ApplyFromRaw", "", err)
-
-	// ApplyFromFile apply a deployment from file.
-	// it will updates the deployment, if already exist, or creates it.
-	handler.CreateFromFile(update1File)
-	_, err = handler.ApplyFromFile(update1File)
-	checkErr("ApplyFromFile", "", err)
-	handler.DeleteFromFile(update1File)
-	_, err = handler.ApplyFromFile(update1File)
-	checkErr("ApplyFromFile", "", err)
-
-	// ApplyFromBytes apply a deployment from bytes.
-	// it will updates the deployment, if already exist, or creates it.
-	var data []byte
-	if data, err = ioutil.ReadFile(update2File); err != nil {
+	// 2. apply deployment from bytes, it will updates the deployment, if already exist, or creates it.
+	handler.Delete(name)
+	var data, data2 []byte
+	if data, err = ioutil.ReadFile(filename); err != nil {
 		panic(err)
 	}
-	handler.CreateFromFile(update2File)
-	_, err = handler.ApplyFromBytes(data)
-	checkErr("ApplyFromBytes", "", err)
-	handler.DeleteFromFile(update2File)
-	_, err = handler.ApplyFromBytes(data)
-	checkErr("ApplyFromBytes", "", err)
+	if data2, err = ioutil.ReadFile(updateFile); err != nil {
+		panic(err)
+	}
+	deploy, err := handler.Apply(data)
+	checkErr("apply deployment from bytes (deployment not exists)", "", err)
+	_, err = handler.Apply(data2)
+	checkErr("apply deployment from bytes (deployment exists)", "", err)
 
-	// Apply apply a deployment from file, it's alias to "ApplyFromFile".
-	// it will updates the deployment, if already exist, or creates it.
-	handler.CreateFromFile(update3File)
-	_, err = handler.Apply(update3File)
-	checkErr("Apply", "", err)
-	handler.DeleteFromFile(update3File)
-	checkErr("Apply", "", err)
+	// 3. apply deployment from *appsv1.Deployment, it will updates the deployment, if already exist, or creates it.
+	replicas := *deploy.Spec.Replicas
+	handler.Delete(name)
+	_, err = handler.Apply(deploy)
+	checkErr("apply deployment from *appsv1.Deployment (deployment not exists)", "", err)
+	replicas += 1
+	deploy.Spec.Replicas = &replicas
+	_, err = handler.Apply(deploy)
+	checkErr("apply deployment from *appsv1.Deployment (deployment exists)", "", err)
+
+	// 4. apply deployment from appsv1.Deployment, it will updates the deployment, if already exist, or creates it.
+	handler.Delete(name)
+	_, err = handler.Apply(*deploy)
+	checkErr("apply deployment from appsv1.Deployment (deployment not exists)", "", err)
+	replicas += 1
+	deploy.Spec.Replicas = &replicas
+	_, err = handler.Apply(*deploy)
+	checkErr("apply deployment from appsv1.Deployment (deployment exists)", "", err)
+
+	// 5. apply deployment from runtime.Object, it will updates the deployment, if already exist, or creates it.
+	handler.Delete(name)
+	object := runtime.Object(deploy)
+	replicas += 1
+	deploy.Spec.Replicas = &replicas
+	object2 := runtime.Object(deploy)
+	_, err = handler.Apply(object)
+	checkErr("apply deployment from runtime.Object (deployment not exists)", "", err)
+	_, err = handler.Apply(object2)
+	checkErr("apply deployment from runtime.Object (deployment exists)", "", err)
+
+	// 6. apply deployment from unstructured data, aka map[string]interface{}, it will updates the deployment, if already exist, or creates it.
+	handler.Delete(unstructName)
+	_, err = handler.Apply(unstructData)
+	checkErr("apply deployment from unstructured data (deployment not exists)", "", err)
+	_, err = handler.Apply(unstructData)
+	checkErr("apply deployment from unstructured data (deployment exists)", "", err)
 
 	// Output:
 
-	//2022/07/04 21:43:05 ApplyFromRaw success.
-	//2022/07/04 21:43:05 ApplyFromRaw success.
-	//2022/07/04 21:43:05 ApplyFromFile success.
-	//2022/07/04 21:43:05 ApplyFromFile success.
-	//2022/07/04 21:43:06 ApplyFromBytes success.
-	//2022/07/04 21:43:06 ApplyFromBytes success.
-	//2022/07/04 21:43:07 Apply success.
-	//2022/07/04 21:43:07 Apply success.
+	//2022/07/22 22:52:49 apply deployment from file (deployment not exists) success:
+	//2022/07/22 22:52:49 apply deployment from file (deployment exists) success:
+	//2022/07/22 22:52:49 apply deployment from bytes (deployment not exists) success:
+	//2022/07/22 22:52:49 apply deployment from bytes (deployment exists) success:
+	//2022/07/22 22:52:49 apply deployment from *appsv1.Deployment (deployment not exists) success:
+	//2022/07/22 22:52:49 apply deployment from *appsv1.Deployment (deployment exists) success:
+	//2022/07/22 22:52:49 apply deployment from appsv1.Deployment (deployment not exists) success:
+	//2022/07/22 22:52:50 apply deployment from appsv1.Deployment (deployment exists) success:
+	//2022/07/22 22:52:50 apply deployment from runtime.Object (deployment not exists) success:
+	//2022/07/22 22:52:51 apply deployment from runtime.Object (deployment exists) success:
+	//2022/07/22 22:52:51 apply deployment from unstructured data (deployment not exists) success:
+	//2022/07/22 22:52:51 apply deployment from unstructured data (deployment exists) success:
 }
