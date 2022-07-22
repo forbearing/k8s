@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"reflect"
 	"syscall"
 	"time"
 
@@ -515,20 +516,22 @@ func (h *Handler) getReadyContainers(pod *corev1.Pod) []Container {
 //    https://miminar.fedorapeople.org/_preview/openshift-enterprise/registry-redeploy/go_client/executing_remote_processes.html
 //    https://stackoverflow.com/questions/43314689/example-of-exec-in-k8ss-pod-by-using-go-client
 //    https://github.com/kubernetes/kubernetes/blob/v1.6.1/test/e2e/framework/exec_util.go
+//    https://github.com/kubernetes/client-go/issues/464  (How to make a web terminal)
+//    https://github.com/kubernetes/dashboard/blob/master/src/app/backend/handler/terminal.go
 
 // Execute will executing remote processes in a container of the pod.
 // If no container name is specified, Execute will executing a process
 // in the first container of the pod by default.
 // It will returns error, If the pod not ready. It's your responsibility to ensure
 // the pod Is running and ready.
-func (h *Handler) Execute(podName, containerName string, command []string) error {
+func (h *Handler) Execute(podName, containerName string, command []string, pty PtyHandler) error {
 	// if pod not found, returns error.
 	pod, err := h.Get(podName)
 	if err != nil {
 		return err
 	}
 
-	// if containerName is empty, execute command in first command of the pod.
+	// if containerName is empty, execute command in first container of the pod.
 	if len(containerName) == 0 {
 		containerName = pod.Spec.Containers[0].Name
 	}
@@ -565,11 +568,20 @@ func (h *Handler) Execute(podName, containerName string, command []string) error
 	}
 	defer terminal.Restore(int(os.Stdin.Fd()), oldState)
 
-	// Connect the process  std(in,out,err) to the remote shell process.
+	// if passed ptyhandler is nil
+	if pty == nil || reflect.ValueOf(pty).IsNil() {
+		// Connect the process std(in,out,err) to the remote shell process.
+		return exec.Stream(remotecommand.StreamOptions{
+			Stdin:  os.Stdin,
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+			Tty:    true,
+		})
+	}
 	return exec.Stream(remotecommand.StreamOptions{
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
+		Stdin:  pty,
+		Stdout: pty,
+		Stderr: pty,
 		Tty:    true,
 	})
 }
