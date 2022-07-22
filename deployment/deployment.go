@@ -55,7 +55,17 @@ type Handler struct {
 // clientset 调用 Discovery 方法可以得到一个 discovery.DiscoveryInterface
 // discovery.DiscoveryClient 其实就是 discovery.DiscoveryInterface 的一个实现
 
-// New returns a deployment handler from kubeconfig or in-cluster config
+// NewOrDie simply call New() to get a deployment handler.
+// panic if there is any error occurs.
+func NewOrDie(ctx context.Context, namespace, kubeconfig string) *Handler {
+	handler, err := New(ctx, namespace, kubeconfig)
+	if err != nil {
+		panic(err)
+	}
+	return handler
+}
+
+// New returns a deployment handler from kubeconfig or in-cluster config.
 func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, err error) {
 	var (
 		config             *rest.Config
@@ -254,15 +264,27 @@ func (h *Handler) SetForceDelete(force bool) {
 	}
 }
 
+// RESTConfig returns underlying rest config.
+func (h *Handler) RESTConfig() *rest.Config {
+	return h.config
+}
+
+// RESTClient returns underlying rest client.
 func (h *Handler) RESTClient() *rest.RESTClient {
 	return h.restClient
 }
+
+// Clientset returns underlying clientset.
 func (h *Handler) Clientset() *kubernetes.Clientset {
 	return h.clientset
 }
+
+// DynamicClient returns underlying dynamic client.
 func (h *Handler) DynamicClient() dynamic.Interface {
 	return h.dynamicClient
 }
+
+// DiscoveryClient returns underlying discovery client.
 func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	log "github.com/sirupsen/logrus"
@@ -20,31 +21,34 @@ import (
 	"k8s.io/client-go/restmapper"
 )
 
-// ApplyFromRaw apply deployment from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*appsv1.Deployment, error) {
-	deploy := &appsv1.Deployment{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, deploy)
-	if err != nil {
-		return nil, err
+// Apply applies deployment from type string, []byte, *appsv1.Deployment,
+// appsv1.Deployment, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*appsv1.Deployment, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *appsv1.Deployment:
+		return h.ApplyFromObject(val)
+	case appsv1.Deployment:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
+}
 
-	var namespace string
-	if len(deploy.Namespace) != 0 {
-		namespace = deploy.Namespace
-	} else {
-		namespace = h.namespace
+// ApplyFromFile applies deployment from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (deploy *appsv1.Deployment, err error) {
+	deploy, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) { // if deployment already exist, update it.
+		deploy, err = h.UpdateFromFile(filename)
 	}
-
-	// 这里不能再用 deploy 来接收 Create 的结果, 以为如果 Create 失败了, 返回的
-	// 是一个空的 deploy, 刚通过 runtime.DefaultUnstructuredConverter 转换获得
-	// 的 deployment 会被这个空的 deploy 覆盖掉.
-	// 这是我踩的一个大坑, 我调试了好久.
-	// 这种问题我需要将相关的代码重新排查一遍, 排查掉这种隐患.
-	_, err = h.clientset.AppsV1().Deployments(namespace).Create(h.ctx, deploy, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		deploy, err = h.clientset.AppsV1().Deployments(namespace).Update(h.ctx, deploy, h.Options.UpdateOptions)
-	}
-	return deploy, err
+	return
 }
 
 // ApplyFromBytes pply deployment from bytes.
@@ -56,21 +60,52 @@ func (h *Handler) ApplyFromBytes(data []byte) (deploy *appsv1.Deployment, err er
 	return
 }
 
-// ApplyFromFile apply deployment from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (deploy *appsv1.Deployment, err error) {
-	deploy, err = h.CreateFromFile(filename)
-	if k8serrors.IsAlreadyExists(err) { // if deployment already exist, update it.
-		deploy, err = h.UpdateFromFile(filename)
+// ApplyFromObject applies deployment from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.Deployment, error) {
+	deploy, ok := obj.(*appsv1.Deployment)
+	if !ok {
+		return nil, fmt.Errorf("object is not *appsv1.Deployment")
 	}
-	return
+	return h.applyDeployment(deploy)
 }
 
-// ApplyFromFile apply deployment from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*appsv1.Deployment, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromUnstructured applies deployment from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*appsv1.Deployment, error) {
+	deploy := &appsv1.Deployment{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, deploy)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyDeployment(deploy)
 }
 
-func (h *Handler) Apply2(filename string) (deploy *appsv1.Deployment, err error) {
+// applyDeployment
+func (h *Handler) applyDeployment(deploy *appsv1.Deployment) (*appsv1.Deployment, error) {
+	//var namespace string
+	//if len(deploy.Namespace) != 0 {
+	//    namespace = deploy.Namespace
+	//} else {
+	//    namespace = h.namespace
+	//}
+
+	//// 这里不能再用 deploy 来接收 Create 的结果, 以为如果 Create 失败了, 返回的
+	//// 是一个空的 deploy, 后续的 Update deployment 就会失败.
+	//_, err := h.clientset.AppsV1().Deployments(namespace).Create(h.ctx, deploy, h.Options.CreateOptions)
+	//if k8serrors.IsAlreadyExists(err) {
+	//    deploy, err = h.clientset.AppsV1().Deployments(namespace).Update(h.ctx, deploy, h.Options.UpdateOptions)
+	//}
+	//return deploy, err
+	_, err := h.createDeployment(deploy)
+	if k8serrors.IsAlreadyExists(err) {
+		//log.Println("create failed, update it.")
+		return h.updateDeployment(deploy)
+	}
+	return nil, err
+}
+
+// Don't Use This Method, Just for Testzng, May Be Removed.
+// reserved it here as my study notes (hahaha).
+func (h *Handler) __Apply(filename string) (deploy *appsv1.Deployment, err error) {
 	var (
 		data            []byte
 		deployJson      []byte

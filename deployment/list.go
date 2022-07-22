@@ -5,17 +5,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// List list deployments by labels, alias to "ListByLabel".
+func (h *Handler) List(label string) (*appsv1.DeploymentList, error) {
+	return h.ListByLabel(label)
+}
+
 // ListByLabel list deployments by labels.
 func (h *Handler) ListByLabel(labels string) (*appsv1.DeploymentList, error) {
 	//h.Options.ListOptions.LabelSelector = labelSelector
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = labels
 	return h.clientset.AppsV1().Deployments(h.namespace).List(h.ctx, *listOptions)
-}
-
-// List list deployments by labels, alias to "ListByLabel".
-func (h *Handler) List(label string) (*appsv1.DeploymentList, error) {
-	return h.ListByLabel(label)
 }
 
 // ListByNamespace list all deployments in the specified namespace.
