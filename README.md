@@ -405,18 +405,12 @@ func Deployment_Update() {
 
 	// Output:
 
-	//2022/07/22 22:02:25 apply deployment from file (deployment not exists) success:
-	//2022/07/22 22:02:25 apply deployment from file (deployment exists) success:
-	//2022/07/22 22:02:25 apply deployment from bytes (deployment not exists) success:
-	//2022/07/22 22:02:25 apply deployment from bytes (deployment exists) success:
-	//2022/07/22 22:02:25 apply deployment from *appsv1.Deployment (deployment not exists) success:
-	//2022/07/22 22:02:25 apply deployment from *appsv1.Deployment (deployment exists) success:
-	//2022/07/22 22:02:26 apply deployment from appsv1.Deployment (deployment not exists) success:
-	//2022/07/22 22:02:26 apply deployment from appsv1.Deployment (deployment exists) success:
-	//2022/07/22 22:02:26 apply deployment from runtime.Object (deployment not exists) success:
-	//2022/07/22 22:02:27 apply deployment from runtime.Object (deployment exists) success:
-	//2022/07/22 22:02:27 apply deployment from unstructured data (deployment not exists) success:
-	//2022/07/22 22:02:28 apply deployment from unstructured data (deployment exists) success:
+	//2022/07/22 23:09:31 update deployment from file success:
+	//2022/07/22 23:09:31 update deployment from bytes success:
+	//2022/07/22 23:09:31 update deployment from *appsv1.Deployment success:
+	//2022/07/22 23:09:31 update deployment from appsv1.Deployment success:
+	//2022/07/22 23:09:31 update deployment from runtime.Object success:
+	//2022/07/22 23:09:31 update deployment from unstructured data success:
 }
 ```
 
