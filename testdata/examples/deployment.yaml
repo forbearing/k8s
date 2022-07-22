@@ -17,7 +17,7 @@ spec:
         app: mydep
         type: deployment
     spec:
-      #terminationGracePeriodSeconds: 1
+      terminationGracePeriodSeconds: 1
       containers:
       - name: nginx
         image: nginx
