@@ -139,7 +139,7 @@ func Pod_Tools() {
 
 
 
-## How to create k8s deployment by handler.
+## How to create deployment resources by handler.
 
 ```golang
 package main
@@ -346,7 +346,7 @@ func Deployment_Create() {
 
 
 
-## How to update k8s deployment by handler.
+## How to update deployment resources by handler.
 
 ```golang
 package main
@@ -422,7 +422,7 @@ func Deployment_Update() {
 
 
 
-## How to apply k8s deployment by handler.
+## How to apply deployment resources by handler.
 
 ```go
 package main
@@ -521,7 +521,7 @@ func Deployment_Apply() {
 
 
 
-## How to delete k8s deployment by handler.
+## How to delete deployment resources by handler.
 
 ```go
 package main
@@ -590,7 +590,7 @@ func Deployment_Delete() {
 
 
 
-## How to get k8s deployment by handler.
+## How to get deployment resources by handler.
 
 ```go
 package main
@@ -666,7 +666,7 @@ func Deployment_Get() {
 
 
 
-## How to list k8s deployment by handler.
+## How to list deployment resources by handler.
 
 ```go
 package main
@@ -733,7 +733,7 @@ func outputDeploy(deployList appsv1.DeploymentList) {
 
 
 
-## How to watch k8s deployment by handler.
+## How to watch deployment resources by handler.
 
 ```go
 package main
@@ -841,7 +841,7 @@ func Deployment_Watch() {
 
 
 
-## How to get a deployment more information.
+## How to get deployment resource more info.
 
 ```go
 package main
