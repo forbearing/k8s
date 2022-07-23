@@ -2,6 +2,7 @@ package clusterrolebinding
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -9,18 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// UpdateFromRaw update clusterrolebinding from map[string]interface{}.
-func (h *Handler) UpdateFromRaw(raw map[string]interface{}) (*rbacv1.ClusterRoleBinding, error) {
-	crb := &rbacv1.ClusterRoleBinding{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, crb)
+// Update updates clusterrolebinding from type string, []byte, *rbacv1.ClusterRoleBinding,
+// rbacv1.ClusterRoleBinding, runtime.Object or map[string]interface{}.
+func (h *Handler) Update(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.UpdateFromFile(val)
+	case []byte:
+		return h.UpdateFromBytes(val)
+	case *rbacv1.ClusterRoleBinding:
+		return h.UpdateFromObject(val)
+	case rbacv1.ClusterRoleBinding:
+		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
+	case map[string]interface{}:
+		return h.UpdateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_UPDATE
+	}
+}
+
+// UpdateFromFile updates clusterrolebinding from yaml file.
+func (h *Handler) UpdateFromFile(filename string) (*rbacv1.ClusterRoleBinding, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	return h.clientset.RbacV1().ClusterRoleBindings().Update(h.ctx, crb, h.Options.UpdateOptions)
+	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes update clusterrolebinding from bytes.
+// UpdateFromBytes updates clusterrolebinding from bytes.
 func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.ClusterRoleBinding, error) {
 	crbJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -32,20 +52,31 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.ClusterRoleBinding, erro
 	if err != nil {
 		return nil, err
 	}
-
-	return h.clientset.RbacV1().ClusterRoleBindings().Update(h.ctx, crb, h.Options.UpdateOptions)
+	return h.updateCRB(crb)
 }
 
-// UpdateFromFile update clusterrolebinding from yaml file.
-func (h *Handler) UpdateFromFile(filename string) (*rbacv1.ClusterRoleBinding, error) {
-	data, err := ioutil.ReadFile(filename)
+// UpdateFromObject updates clusterrolebinding from runtime.Object.
+func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.ClusterRoleBinding, error) {
+	crb, ok := obj.(*rbacv1.ClusterRoleBinding)
+	if !ok {
+		return nil, fmt.Errorf("object is not *rbacv1.ClusterRoleBinding")
+	}
+	return h.updateCRB(crb)
+}
+
+// UpdateFromUnstructured updates clusterrolebinding from map[string]interface{}.
+func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*rbacv1.ClusterRoleBinding, error) {
+	crb := &rbacv1.ClusterRoleBinding{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, crb)
 	if err != nil {
 		return nil, err
 	}
-	return h.UpdateFromBytes(data)
+	return h.updateCRB(crb)
 }
 
-// Update update clusterrolebinding from file, alias to "UpdateFromFile".
-func (h *Handler) Update(filename string) (*rbacv1.ClusterRoleBinding, error) {
-	return h.UpdateFromFile(filename)
+// updateCRB
+func (h *Handler) updateCRB(crb *rbacv1.ClusterRoleBinding) (*rbacv1.ClusterRoleBinding, error) {
+	crb.ResourceVersion = ""
+	crb.UID = ""
+	return h.clientset.RbacV1().ClusterRoleBindings().Update(h.ctx, crb, h.Options.UpdateOptions)
 }

@@ -1,46 +1,76 @@
 package clusterrolebinding
 
 import (
+	"fmt"
+
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply clusterrolebinding from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*rbacv1.ClusterRoleBinding, error) {
-	crb := &rbacv1.ClusterRoleBinding{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, crb)
-	if err != nil {
-		return nil, err
+// Apply applies clusterrolebinding from type string, []byte, *rbacv1.ClusterRoleBinding,
+// rbacv1.ClusterRoleBinding, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *rbacv1.ClusterRoleBinding:
+		return h.ApplyFromObject(val)
+	case rbacv1.ClusterRoleBinding:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
-
-	_, err = h.clientset.RbacV1().ClusterRoleBindings().Create(h.ctx, crb, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		crb, err = h.clientset.RbacV1().ClusterRoleBindings().Update(h.ctx, crb, h.Options.UpdateOptions)
-	}
-	return crb, err
 }
 
-// ApplyFromBytes apply clusterrolebinding from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (crb *rbacv1.ClusterRoleBinding, err error) {
-	crb, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		crb, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply clusterrolebinding from yaml file.
+// ApplyFromFile applies clusterrolebinding from yaml file.
 func (h *Handler) ApplyFromFile(filename string) (crb *rbacv1.ClusterRoleBinding, err error) {
 	crb, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
+	if k8serrors.IsAlreadyExists(err) { // if clusterrolebinding already exist, update it.
 		crb, err = h.UpdateFromFile(filename)
 	}
 	return
 }
 
-// Apply apply clusterrolebinding from file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*rbacv1.ClusterRoleBinding, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromBytes pply clusterrolebinding from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (crb *rbacv1.ClusterRoleBinding, err error) {
+	crb, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		crb, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies clusterrolebinding from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.ClusterRoleBinding, error) {
+	crb, ok := obj.(*rbacv1.ClusterRoleBinding)
+	if !ok {
+		return nil, fmt.Errorf("object is not *rbacv1.ClusterRoleBinding")
+	}
+	return h.applyCRB(crb)
+}
+
+// ApplyFromUnstructured applies clusterrolebinding from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*rbacv1.ClusterRoleBinding, error) {
+	crb := &rbacv1.ClusterRoleBinding{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, crb)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyCRB(crb)
+}
+
+// applyCRB
+func (h *Handler) applyCRB(crb *rbacv1.ClusterRoleBinding) (*rbacv1.ClusterRoleBinding, error) {
+	_, err := h.createCRB(crb)
+	if k8serrors.IsAlreadyExists(err) {
+		return h.updateCRB(crb)
+	}
+	return crb, err
 }
