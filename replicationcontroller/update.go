@@ -12,7 +12,7 @@ import (
 
 // Update updates replicationcontroller from type string, []byte, *corev1.ReplicationController,
 // corev1.ReplicationController, runtime.Object or map[string]interface{}.
-func (h *Handler) Update(obj interface{}) (rc *corev1.ReplicationController, err error) {
+func (h *Handler) Update(obj interface{}) (*corev1.ReplicationController, error) {
 	switch val := obj.(type) {
 	case string:
 		return h.UpdateFromFile(val)

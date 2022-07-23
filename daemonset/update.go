@@ -12,7 +12,7 @@ import (
 
 // Update updates daemonset from type string, []byte, *appsv1.DaemonSet,
 // appsv1.DaemonSet, runtime.Object or map[string]interface{}.
-func (h *Handler) Update(obj interface{}) (ds *appsv1.DaemonSet, err error) {
+func (h *Handler) Update(obj interface{}) (*appsv1.DaemonSet, error) {
 	switch val := obj.(type) {
 	case string:
 		return h.UpdateFromFile(val)

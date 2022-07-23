@@ -12,7 +12,7 @@ import (
 
 // Update updates replicaset from type string, []byte, *appsv1.ReplicaSet,
 // appsv1.ReplicaSet, runtime.Object or map[string]interface{}.
-func (h *Handler) Update(obj interface{}) (rs *appsv1.ReplicaSet, err error) {
+func (h *Handler) Update(obj interface{}) (*appsv1.ReplicaSet, error) {
 	switch val := obj.(type) {
 	case string:
 		return h.UpdateFromFile(val)

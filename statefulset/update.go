@@ -12,7 +12,7 @@ import (
 
 // Update updates statefulset from type string, []byte, *appsv1.StatefulSet,
 // appsv1.StatefulSet, runtime.Object or map[string]interface{}.
-func (h *Handler) Update(obj interface{}) (sts *appsv1.StatefulSet, err error) {
+func (h *Handler) Update(obj interface{}) (*appsv1.StatefulSet, error) {
 	switch val := obj.(type) {
 	case string:
 		return h.UpdateFromFile(val)

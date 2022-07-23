@@ -12,7 +12,7 @@ import (
 
 // Update updates deployment from type string, []byte, *appsv1.Deployment,
 // appsv1.Deployment, runtime.Object or map[string]interface{}.
-func (h *Handler) Update(obj interface{}) (deploy *appsv1.Deployment, err error) {
+func (h *Handler) Update(obj interface{}) (*appsv1.Deployment, error) {
 	switch val := obj.(type) {
 	case string:
 		return h.UpdateFromFile(val)
