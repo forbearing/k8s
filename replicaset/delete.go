@@ -2,36 +2,44 @@ package replicaset
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// DeleteFromBytes delete replicaset from bytes.
-func (h *Handler) DeleteFromBytes(data []byte) error {
-	dsJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return err
-	}
+// Delete deletes replicaset from type string, []byte, *appsv1.ReplicaSet,
+// appsv1.ReplicaSet, runtime.Object or map[string]interface{}.
 
-	replicaset := &appsv1.ReplicaSet{}
-	err = json.Unmarshal(dsJson, replicaset)
-	if err != nil {
-		return err
+// If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
+// You should always explicitly call DeleteFromFile to delete a replicaset from file path.
+func (h *Handler) Delete(obj interface{}) error {
+	switch val := obj.(type) {
+	case string:
+		return h.DeleteByName(val)
+	case []byte:
+		return h.DeleteFromBytes(val)
+	case *appsv1.ReplicaSet:
+		return h.DeleteFromObject(val)
+	case appsv1.ReplicaSet:
+		return h.DeleteFromObject(&val)
+	case runtime.Object:
+		return h.DeleteFromObject(val)
+	case map[string]interface{}:
+		return h.DeleteFromUnstructured(val)
+	default:
+		return ERR_TYPE_DELETE
 	}
-
-	var namespace string
-	if len(replicaset.Namespace) != 0 {
-		namespace = replicaset.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.WithNamespace(namespace).DeleteByName(replicaset.Name)
 }
 
-// DeleteFromFile delete replicaset from yaml file.
+// DeleteByName deletes replicaset by name.
+func (h *Handler) DeleteByName(name string) error {
+	return h.clientset.AppsV1().ReplicaSets(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+}
+
+// DeleteFromFile deletes replicaset from yaml file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -40,12 +48,47 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteByName delete replicaset by name.
-func (h *Handler) DeleteByName(name string) error {
-	return h.clientset.AppsV1().ReplicaSets(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+// DeleteFromBytes deletes replicaset from bytes.
+func (h *Handler) DeleteFromBytes(data []byte) error {
+	rsJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return err
+	}
+
+	rs := &appsv1.ReplicaSet{}
+	err = json.Unmarshal(rsJson, rs)
+	if err != nil {
+		return err
+	}
+	return h.deleteReplicaset(rs)
 }
 
-// Delete delete replicaset by name, alias to "DeleteByName".
-func (h *Handler) Delete(name string) error {
-	return h.DeleteByName(name)
+// DeleteFromObject deletes replicaset from runtime.Object.
+func (h *Handler) DeleteFromObject(obj runtime.Object) error {
+	rs, ok := obj.(*appsv1.ReplicaSet)
+	if !ok {
+		return fmt.Errorf("object is not *appsv1.ReplicaSet")
+	}
+	return h.deleteReplicaset(rs)
+}
+
+// DeleteFromUnstructured deletes replicaset from map[string]interface{}.
+func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
+	rs := &appsv1.ReplicaSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rs)
+	if err != nil {
+		return err
+	}
+	return h.deleteReplicaset(rs)
+}
+
+// deleteReplicaset
+func (h *Handler) deleteReplicaset(rs *appsv1.ReplicaSet) error {
+	var namespace string
+	if len(rs.Namespace) != 0 {
+		namespace = rs.Namespace
+	} else {
+		namespace = h.namespace
+	}
+	return h.clientset.AppsV1().ReplicaSets(namespace).Delete(h.ctx, rs.Name, h.Options.DeleteOptions)
 }

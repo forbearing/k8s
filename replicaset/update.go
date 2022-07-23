@@ -2,6 +2,7 @@ package replicaset
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -9,48 +10,28 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// UpdateFromRaw update replicaset from map[string]interface{}.
-func (h *Handler) UpdateFromRaw(raw map[string]interface{}) (*appsv1.ReplicaSet, error) {
-	rs := &appsv1.ReplicaSet{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, rs)
-	if err != nil {
-		return nil, err
+// Update updates replicaset from type string, []byte, *appsv1.ReplicaSet,
+// appsv1.ReplicaSet, runtime.Object or map[string]interface{}.
+func (h *Handler) Update(obj interface{}) (rs *appsv1.ReplicaSet, err error) {
+	switch val := obj.(type) {
+	case string:
+		return h.UpdateFromFile(val)
+	case []byte:
+		return h.UpdateFromBytes(val)
+	case *appsv1.ReplicaSet:
+		return h.UpdateFromObject(val)
+	case appsv1.ReplicaSet:
+		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
+	case map[string]interface{}:
+		return h.UpdateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_UPDATE
 	}
-
-	var namespace string
-	if len(rs.Namespace) != 0 {
-		namespace = rs.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.AppsV1().ReplicaSets(namespace).Update(h.ctx, rs, h.Options.UpdateOptions)
 }
 
-// UpdateFromBytes update replicaset from bytes.
-func (h *Handler) UpdateFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
-	dsJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	replicaset := &appsv1.ReplicaSet{}
-	err = json.Unmarshal(dsJson, replicaset)
-	if err != nil {
-		return nil, err
-	}
-
-	var namespace string
-	if len(replicaset.Namespace) != 0 {
-		namespace = replicaset.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.AppsV1().ReplicaSets(namespace).Update(h.ctx, replicaset, h.Options.UpdateOptions)
-}
-
-// UpdateFromFile update replicaset from yaml file.
+// UpdateFromFile updates replicaset from yaml file.
 func (h *Handler) UpdateFromFile(filename string) (*appsv1.ReplicaSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -59,7 +40,49 @@ func (h *Handler) UpdateFromFile(filename string) (*appsv1.ReplicaSet, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// Update update replicaset from yaml file, alias to "UpdateFromFile".
-func (h *Handler) Update(filename string) (*appsv1.ReplicaSet, error) {
-	return h.UpdateFromFile(filename)
+// UpdateFromBytes updates replicaset from bytes.
+func (h *Handler) UpdateFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
+	rsJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	rs := &appsv1.ReplicaSet{}
+	err = json.Unmarshal(rsJson, rs)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateReplicaset(rs)
+}
+
+// UpdateFromObject updates replicaset from runtime.Object.
+func (h *Handler) UpdateFromObject(obj runtime.Object) (*appsv1.ReplicaSet, error) {
+	rs, ok := obj.(*appsv1.ReplicaSet)
+	if !ok {
+		return nil, fmt.Errorf("object is not *appsv1.ReplicaSet")
+	}
+	return h.updateReplicaset(rs)
+}
+
+// UpdateFromUnstructured updates replicaset from map[string]interface{}.
+func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*appsv1.ReplicaSet, error) {
+	rs := &appsv1.ReplicaSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rs)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateReplicaset(rs)
+}
+
+// updateReplicaset
+func (h *Handler) updateReplicaset(rs *appsv1.ReplicaSet) (*appsv1.ReplicaSet, error) {
+	var namespace string
+	if len(rs.Namespace) != 0 {
+		namespace = rs.Namespace
+	} else {
+		namespace = h.namespace
+	}
+	rs.ResourceVersion = ""
+	rs.UID = ""
+	return h.clientset.AppsV1().ReplicaSets(namespace).Update(h.ctx, rs, h.Options.UpdateOptions)
 }
