@@ -82,14 +82,12 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	// create rest config
 	if len(kubeconfig) != 0 {
 		// use the current context in kubeconfig
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
+		if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
 			return nil, err
 		}
 	} else {
 		// create the in-cluster config
-		config, err = rest.InClusterConfig()
-		if err != nil {
+		if config, err = rest.InClusterConfig(); err != nil {
 			return nil, err
 		}
 	}
@@ -109,8 +107,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	//}
 
 	// create a http client for the given config
-	httpClient, err = rest.HTTPClientFor(config)
-	if err != nil {
+	if httpClient, err = rest.HTTPClientFor(config); err != nil {
 		return nil, err
 	}
 
@@ -120,8 +117,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	//    return nil, err
 	//}
 	// create a RESTClient for the given config and http client
-	restClient, err = rest.RESTClientForConfigAndClient(config, httpClient)
-	if err != nil {
+	if restClient, err = rest.RESTClientForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
 
@@ -131,8 +127,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	//    return nil, err
 	//}
 	// create a clientset for the given config and http client.
-	clientset, err = kubernetes.NewForConfigAndClient(config, httpClient)
-	if err != nil {
+	if clientset, err = kubernetes.NewForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
 	//// create a dynamic client for the given config
@@ -141,8 +136,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	//    return nil, err
 	//}
 	// create a dynamic client for the given config and http client.
-	dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient)
-	if err != nil {
+	if dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
 
@@ -152,8 +146,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	//    return nil, err
 	//}
 	// create a DiscoveryClient for the given config and http client.
-	discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient)
-	if err != nil {
+	if discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
 
