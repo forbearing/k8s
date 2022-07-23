@@ -34,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*corev1.ReplicationController, error) {
 
 // GetByName gets replicationcontroller by name.
 func (h *Handler) GetByName(name string) (*corev1.ReplicationController, error) {
-	return h.clientset.AppsV1().Deployments(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
+	return h.clientset.CoreV1().ReplicationControllers(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 }
 
 // GetFromFile gets replicationcontroller from yaml file.
