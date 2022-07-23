@@ -97,10 +97,9 @@ func (h *Handler) applyDeployment(deploy *appsv1.Deployment) (*appsv1.Deployment
 	//return deploy, err
 	_, err := h.createDeployment(deploy)
 	if k8serrors.IsAlreadyExists(err) {
-		//log.Println("create failed, update it.")
 		return h.updateDeployment(deploy)
 	}
-	return nil, err
+	return deploy, err
 }
 
 // Don't Use This Method, Just for Testzng, May Be Removed.
