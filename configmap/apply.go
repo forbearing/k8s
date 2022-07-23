@@ -1,53 +1,76 @@
 package configmap
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply configmap from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.ConfigMap, error) {
-	configmap := &corev1.ConfigMap{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, configmap)
+// Apply applies configmap from type string, []byte, *corev1.ConfigMap,
+// corev1.ConfigMap, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*corev1.ConfigMap, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *corev1.ConfigMap:
+		return h.ApplyFromObject(val)
+	case corev1.ConfigMap:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
+	}
+}
+
+// ApplyFromFile applies configmap from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (cm *corev1.ConfigMap, err error) {
+	cm, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) { // if configmap already exist, update it.
+		cm, err = h.UpdateFromFile(filename)
+	}
+	return
+}
+
+// ApplyFromBytes pply configmap from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (cm *corev1.ConfigMap, err error) {
+	cm, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		cm, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies configmap from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.ConfigMap, error) {
+	cm, ok := obj.(*corev1.ConfigMap)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.ConfigMap")
+	}
+	return h.applyConfigmap(cm)
+}
+
+// ApplyFromUnstructured applies configmap from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*corev1.ConfigMap, error) {
+	cm := &corev1.ConfigMap{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cm)
 	if err != nil {
 		return nil, err
 	}
+	return h.applyConfigmap(cm)
+}
 
-	var namespace string
-	if len(configmap.Namespace) != 0 {
-		namespace = configmap.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	_, err = h.clientset.CoreV1().ConfigMaps(namespace).Create(h.ctx, configmap, h.Options.CreateOptions)
+// applyConfigmap
+func (h *Handler) applyConfigmap(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
+	_, err := h.createConfigmap(cm)
 	if k8serrors.IsAlreadyExists(err) {
-		configmap, err = h.clientset.CoreV1().ConfigMaps(namespace).Update(h.ctx, configmap, h.Options.UpdateOptions)
+		return h.updateConfigmap(cm)
 	}
-	return configmap, err
-}
-
-// ApplyFromBytes apply configmap from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (configmap *corev1.ConfigMap, err error) {
-	configmap, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		configmap, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply configmap from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (configmap *corev1.ConfigMap, err error) {
-	configmap, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
-		configmap, err = h.UpdateFromFile(filename)
-	}
-	return
-}
-
-// Apply apply configmap from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*corev1.ConfigMap, error) {
-	return h.ApplyFromFile(filename)
+	return cm, err
 }
