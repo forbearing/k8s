@@ -2,6 +2,7 @@ package clusterrole
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -9,33 +10,28 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create clusterrole from map[string]interface{}.
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*rbacv1.ClusterRole, error) {
-	cr := &rbacv1.ClusterRole{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, cr)
-	if err != nil {
-		return nil, err
+// Create creates clusterrole from type string, []byte, *rbacv1.ClusterRole,
+// rbacv1.ClusterRole, runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*rbacv1.ClusterRole, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *rbacv1.ClusterRole:
+		return h.CreateFromObject(val)
+	case rbacv1.ClusterRole:
+		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
 	}
-
-	return h.clientset.RbacV1().ClusterRoles().Create(h.ctx, cr, h.Options.CreateOptions)
 }
 
-// CreateFromBytes create clusterrole from bytes.
-func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
-	crJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	cr := &rbacv1.ClusterRole{}
-	if err = json.Unmarshal(crJson, cr); err != nil {
-		return nil, err
-	}
-
-	return h.clientset.RbacV1().ClusterRoles().Create(h.ctx, cr, h.Options.CreateOptions)
-}
-
-// CreateFromFile create clusterrole from yaml file.
+// CreateFromFile creates clusterrole from yaml file.
 func (h *Handler) CreateFromFile(filename string) (*rbacv1.ClusterRole, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -44,7 +40,43 @@ func (h *Handler) CreateFromFile(filename string) (*rbacv1.ClusterRole, error) {
 	return h.CreateFromBytes(data)
 }
 
-// Create create clusterrole from yaml file, alias to "CreateFromFile".
-func (h *Handler) Create(filename string) (*rbacv1.ClusterRole, error) {
-	return h.CreateFromFile(filename)
+// CreateFromBytes creates clusterrole from bytes.
+func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
+	crJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	cr := &rbacv1.ClusterRole{}
+	err = json.Unmarshal(crJson, cr)
+	if err != nil {
+		return nil, err
+	}
+	return h.createClusterRole(cr)
+}
+
+// CreateFromObject creates clusterrole from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.ClusterRole, error) {
+	cr, ok := obj.(*rbacv1.ClusterRole)
+	if !ok {
+		return nil, fmt.Errorf("object is not *rbacv1.ClusterRole")
+	}
+	return h.createClusterRole(cr)
+}
+
+// CreateFromUnstructured creates clusterrole from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*rbacv1.ClusterRole, error) {
+	cr := &rbacv1.ClusterRole{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cr)
+	if err != nil {
+		return nil, err
+	}
+	return h.createClusterrole(cr)
+}
+
+// createClusterRole
+func (h *Handler) createClusterRole(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
+	cr.ResourceVersion = ""
+	cr.UID = ""
+	return h.clientset.RbacV1().ClusterRoles().Create(h.ctx, cr, h.Options.CreateOptions)
 }

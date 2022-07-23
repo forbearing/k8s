@@ -1,46 +1,76 @@
 package clusterrole
 
 import (
+	"fmt"
+
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply clusterrole from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*rbacv1.ClusterRole, error) {
-	clusterrole := &rbacv1.ClusterRole{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, clusterrole)
+// Apply applies clusterrole from type string, []byte, *rbacv1.ClusterRole,
+// rbacv1.ClusterRole, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*rbacv1.ClusterRole, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *rbacv1.ClusterRole:
+		return h.ApplyFromObject(val)
+	case rbacv1.ClusterRole:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
+	}
+}
+
+// ApplyFromFile applies clusterrole from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (cr *rbacv1.ClusterRole, err error) {
+	cr, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) { // if clusterrole already exist, update it.
+		cr, err = h.UpdateFromFile(filename)
+	}
+	return
+}
+
+// ApplyFromBytes pply clusterrole from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (cr *rbacv1.ClusterRole, err error) {
+	cr, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		cr, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies clusterrole from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.ClusterRole, error) {
+	cr, ok := obj.(*rbacv1.ClusterRole)
+	if !ok {
+		return nil, fmt.Errorf("object is not *rbacv1.ClusterRole")
+	}
+	return h.applyClusterRole(cr)
+}
+
+// ApplyFromUnstructured applies clusterrole from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*rbacv1.ClusterRole, error) {
+	cr := &rbacv1.ClusterRole{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cr)
 	if err != nil {
 		return nil, err
 	}
+	return h.applyClusterRole(cr)
+}
 
-	_, err = h.clientset.RbacV1().ClusterRoles().Create(h.ctx, clusterrole, h.Options.CreateOptions)
+// applyClusterRole
+func (h *Handler) applyClusterRole(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
+	_, err := h.createClusterRole(cr)
 	if k8serrors.IsAlreadyExists(err) {
-		clusterrole, err = h.clientset.RbacV1().ClusterRoles().Update(h.ctx, clusterrole, h.Options.UpdateOptions)
+		return h.updateClusterRole(cr)
 	}
-	return clusterrole, err
-}
-
-// ApplyFromBytes apply clusterrole from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (clusterrole *rbacv1.ClusterRole, err error) {
-	clusterrole, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		clusterrole, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply clusterrole from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (clusterrole *rbacv1.ClusterRole, err error) {
-	clusterrole, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
-		clusterrole, err = h.UpdateFromFile(filename)
-	}
-	return
-}
-
-// Apply apply clusterrole from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*rbacv1.ClusterRole, error) {
-	return h.ApplyFromFile(filename)
+	return cr, err
 }
