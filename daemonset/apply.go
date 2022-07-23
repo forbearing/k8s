@@ -1,53 +1,76 @@
 package daemonset
 
 import (
+	"fmt"
+
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply daemonset from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*appsv1.DaemonSet, error) {
-	daemonset := &appsv1.DaemonSet{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, daemonset)
+// Apply applies daemonset from type string, []byte, *appsv1.DaemonSet,
+// appsv1.DaemonSet, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*appsv1.DaemonSet, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *appsv1.DaemonSet:
+		return h.ApplyFromObject(val)
+	case appsv1.DaemonSet:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
+	}
+}
+
+// ApplyFromFile applies daemonset from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (ds *appsv1.DaemonSet, err error) {
+	ds, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) { // if daemonset already exist, update it.
+		ds, err = h.UpdateFromFile(filename)
+	}
+	return
+}
+
+// ApplyFromBytes pply daemonset from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (ds *appsv1.DaemonSet, err error) {
+	ds, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		ds, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies daemonset from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.DaemonSet, error) {
+	ds, ok := obj.(*appsv1.DaemonSet)
+	if !ok {
+		return nil, fmt.Errorf("object is not *appsv1.DaemonSet")
+	}
+	return h.applyDaemonset(ds)
+}
+
+// ApplyFromUnstructured applies daemonset from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*appsv1.DaemonSet, error) {
+	ds := &appsv1.DaemonSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ds)
 	if err != nil {
 		return nil, err
 	}
+	return h.applyDaemonset(ds)
+}
 
-	var namespace string
-	if len(daemonset.Namespace) != 0 {
-		namespace = daemonset.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	_, err = h.clientset.AppsV1().DaemonSets(namespace).Create(h.ctx, daemonset, h.Options.CreateOptions)
+// applyDaemonset
+func (h *Handler) applyDaemonset(ds *appsv1.DaemonSet) (*appsv1.DaemonSet, error) {
+	_, err := h.createDaemonset(ds)
 	if k8serrors.IsAlreadyExists(err) {
-		daemonset, err = h.clientset.AppsV1().DaemonSets(namespace).Update(h.ctx, daemonset, h.Options.UpdateOptions)
+		return h.updateDaemonset(ds)
 	}
-	return daemonset, err
-}
-
-// ApplyFromBytes apply daemonset from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (daemonset *appsv1.DaemonSet, err error) {
-	daemonset, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		daemonset, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply daemonset from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (daemonset *appsv1.DaemonSet, err error) {
-	daemonset, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
-		daemonset, err = h.UpdateFromFile(filename)
-	}
-	return
-}
-
-// Apply apply daemonset from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*appsv1.DaemonSet, error) {
-	return h.ApplyFromFile(filename)
+	return ds, err
 }
