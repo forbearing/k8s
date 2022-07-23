@@ -38,7 +38,8 @@ type Handler struct {
 	l sync.Mutex
 }
 
-// NewOrDie
+// NewOrDie simply call New() to get a statefulset handler.
+// panic if there is any error occurs.
 func NewOrDie(ctx context.Context, namespace, kubeconfig string) *Handler {
 	handler, err := New(ctx, namespace, kubeconfig)
 	if err != nil {

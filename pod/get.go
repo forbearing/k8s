@@ -14,7 +14,7 @@ import (
 // corev1.Pod, runtime.Object or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
-// You need to always explicitly call GetFromFile to get a pod from file path.
+// You should always explicitly call GetFromFile to get a pod from file path.
 func (h *Handler) Get(obj interface{}) (*corev1.Pod, error) {
 	switch val := obj.(type) {
 	case string:

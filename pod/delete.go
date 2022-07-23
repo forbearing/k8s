@@ -60,7 +60,6 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	if err != nil {
 		return err
 	}
-
 	return h.deletePod(pod)
 }
 
@@ -80,7 +79,6 @@ func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	return h.deletePod(pod)
 }
 

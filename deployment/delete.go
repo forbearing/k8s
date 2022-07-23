@@ -10,11 +10,11 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// Delete deletes deployment from type string, []byte, *appsv1.Deployments,
+// Delete deletes deployment from type string, []byte, *appsv1.Deployment,
 // appsv1.Deployment, runtime.Object or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
-// You need to always explicitly call DeleteFromFile to delete a deployment from file path.
+// You should always explicitly call DeleteFromFile to delete a deployment from file path.
 func (h *Handler) Delete(obj interface{}) error {
 	switch val := obj.(type) {
 	case string:
@@ -48,7 +48,7 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteFromBytes deletes deploy from bytes.
+// DeleteFromBytes deletes deployment from bytes.
 func (h *Handler) DeleteFromBytes(data []byte) error {
 	deployJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,7 +60,6 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	if err != nil {
 		return err
 	}
-
 	return h.deleteDeployment(deploy)
 }
 
@@ -80,7 +79,6 @@ func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	return h.deleteDeployment(deploy)
 }
 
