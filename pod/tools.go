@@ -517,6 +517,7 @@ func (h *Handler) getReadyContainers(pod *corev1.Pod) []Container {
 //    https://github.com/kubernetes/kubernetes/blob/v1.6.1/test/e2e/framework/exec_util.go
 //    https://github.com/kubernetes/client-go/issues/464  (How to make a web terminal)
 //    https://github.com/kubernetes/dashboard/blob/master/src/app/backend/handler/terminal.go
+//    http://maoqide.live/post/cloud/kubernetes-webshell/
 
 // Execute will executing remote processes in a container of the pod.
 // If no container name is specified, Execute will executing a process

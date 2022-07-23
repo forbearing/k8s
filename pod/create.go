@@ -2,6 +2,7 @@ package pod
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
@@ -9,25 +10,35 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create pod from map[string]interface{}.
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*corev1.Pod, error) {
-	pod := &corev1.Pod{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, pod)
+// Create creates pod from type string, []byte, *corev1.pod, corev1.pod,
+// runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*corev1.Pod, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *corev1.Pod:
+		return h.CreateFromObject(val)
+	case corev1.Pod:
+		return h.CreateFromObject(&val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
+	}
+}
+
+// CreateFromFile creates pod from yaml file.
+func (h *Handler) CreateFromFile(filename string) (*corev1.Pod, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	var namespace string
-	if len(pod.Namespace) != 0 {
-		namespace = pod.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.CoreV1().Pods(namespace).Create(h.ctx, pod, h.Options.CreateOptions)
+	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes create pod from bytes.
+// CreateFromBytes creates pod from bytes.
 func (h *Handler) CreateFromBytes(data []byte) (*corev1.Pod, error) {
 	podJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -39,34 +50,37 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.Pod, error) {
 	if err != nil {
 		return nil, err
 	}
+	return h.createPod(pod)
+}
 
+// CreateFromObject creates pod from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Pod, error) {
+	pod, ok := obj.(*corev1.Pod)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.Pod")
+	}
+	return h.createPod(pod)
+}
+
+// CreateFromUnstructured creates pod from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*corev1.Pod, error) {
+	pod := &corev1.Pod{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, pod)
+	if err != nil {
+		return nil, err
+	}
+	return h.createPod(pod)
+}
+
+// createPod
+func (h *Handler) createPod(pod *corev1.Pod) (*corev1.Pod, error) {
 	var namespace string
 	if len(pod.Namespace) != 0 {
 		namespace = pod.Namespace
 	} else {
 		namespace = h.namespace
 	}
-
-	//unstructMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(pod)
-	//if err != nil {
-	//    log.Error("ToUnstructured error")
-	//    log.Error(err)
-	//} else {
-	//    log.Infof("%#v", unstructMap)
-	//}
+	pod.UID = ""
+	pod.ResourceVersion = ""
 	return h.clientset.CoreV1().Pods(namespace).Create(h.ctx, pod, h.Options.CreateOptions)
-}
-
-// CreateFromFile create pod from yaml file.
-func (h *Handler) CreateFromFile(filename string) (*corev1.Pod, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return h.CreateFromBytes(data)
-}
-
-// Create create pod from file, alias to "CreateFromFile".
-func (h *Handler) Create(filename string) (*corev1.Pod, error) {
-	return h.CreateFromFile(filename)
 }

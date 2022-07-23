@@ -12,7 +12,7 @@ func (h *Handler) TestInformer(stopCh chan struct{}) {
 	h.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			myObj := obj.(metav1.Object)
-			log.Infof("New Pod Added to Store: %s", myObj.GetName())
+			log.Printf("New Pod Added to Store: %s", myObj.GetName())
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			newPod := newObj.(*corev1.Pod)
@@ -27,7 +27,7 @@ func (h *Handler) TestInformer(stopCh chan struct{}) {
 		},
 		DeleteFunc: func(obj interface{}) {
 			myObj := obj.(metav1.Object)
-			log.Infof("Pod Deleted from Store: %s", myObj.GetName())
+			log.Printf("Pod Deleted from Store: %s", myObj.GetName())
 		},
 	})
 	h.informerFactory.WaitForCacheSync(stopCh)

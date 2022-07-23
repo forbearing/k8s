@@ -1,35 +1,43 @@
 package pod
 
 import (
+	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply pod from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.Pod, error) {
-	pod := &corev1.Pod{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, pod)
-	if err != nil {
-		return nil, err
+// Apply applies pod from type string, []byte, *corev1.pod, corev1.pod,
+// runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*corev1.Pod, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *corev1.Pod:
+		return h.CreateFromObject(val)
+	case corev1.Pod:
+		return h.CreateFromObject(&val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
-
-	var namespace string
-	if len(pod.Namespace) != 0 {
-		namespace = pod.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	_, err = h.clientset.CoreV1().Pods(namespace).Create(h.ctx, pod, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		pod, err = h.clientset.CoreV1().Pods(namespace).Update(h.ctx, pod, h.Options.UpdateOptions)
-	}
-	return pod, err
 }
 
-// ApplyFromBytes apply pod from bytes.
+// ApplyFromFile applies pod from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (pod *corev1.Pod, err error) {
+	pod, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) {
+		pod, err = h.UpdateFromFile(filename)
+	}
+	return
+}
+
+// ApplyFromBytes applies pod from bytes.
 func (h *Handler) ApplyFromBytes(data []byte) (pod *corev1.Pod, err error) {
 	pod, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -39,16 +47,30 @@ func (h *Handler) ApplyFromBytes(data []byte) (pod *corev1.Pod, err error) {
 	return
 }
 
-// ApplyFromFile apply pod from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (pod *corev1.Pod, err error) {
-	pod, err = h.CreateFromFile(filename)
-	if k8serrors.IsAlreadyExists(err) {
-		pod, err = h.UpdateFromFile(filename)
+// ApplyFromObject applies deployment from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Pod, error) {
+	pod, ok := obj.(*corev1.Pod)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.Pod")
 	}
-	return
+	return h.applyPod(pod)
 }
 
-// Apply apply pod from file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*corev1.Pod, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromUnstructured applies pod from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*corev1.Pod, error) {
+	pod := &corev1.Pod{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, pod)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyPod(pod)
+}
+
+// applyPod
+func (h *Handler) applyPod(pod *corev1.Pod) (*corev1.Pod, error) {
+	_, err := h.createPod(pod)
+	if k8serrors.IsAlreadyExists(err) {
+		return h.updatePod(pod)
+	}
+	return pod, err
 }
