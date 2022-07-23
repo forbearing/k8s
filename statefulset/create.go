@@ -2,6 +2,7 @@ package statefulset
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -9,25 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create statefulset from map[string]interface{}.
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*appsv1.StatefulSet, error) {
-	sts := &appsv1.StatefulSet{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, sts)
+// Create creates statefulset from type string, []byte, *appsv1.StatefulSet,
+// appsv1.StatefulSet, runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*appsv1.StatefulSet, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *appsv1.StatefulSet:
+		return h.CreateFromObject(val)
+	case appsv1.StatefulSet:
+		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
+	}
+}
+
+// CreateFromFile creates statefulset from yaml file.
+func (h *Handler) CreateFromFile(filename string) (*appsv1.StatefulSet, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	var namespace string
-	if len(sts.Namespace) != 0 {
-		namespace = sts.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.AppsV1().StatefulSets(namespace).Create(h.ctx, sts, h.Options.CreateOptions)
+	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes create statefulset from bytes.
+// CreateFromBytes creates statefulset from bytes.
 func (h *Handler) CreateFromBytes(data []byte) (*appsv1.StatefulSet, error) {
 	stsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -39,27 +52,37 @@ func (h *Handler) CreateFromBytes(data []byte) (*appsv1.StatefulSet, error) {
 	if err != nil {
 		return nil, err
 	}
+	return h.createStatefulset(sts)
+}
 
+// CreateFromObject creates statefulset from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*appsv1.StatefulSet, error) {
+	sts, ok := obj.(*appsv1.StatefulSet)
+	if !ok {
+		return nil, fmt.Errorf("object is not *appsv1.StatefulSet")
+	}
+	return h.createStatefulset(sts)
+}
+
+// CreateFromUnstructured creates statefulset from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*appsv1.StatefulSet, error) {
+	sts := &appsv1.StatefulSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sts)
+	if err != nil {
+		return nil, err
+	}
+	return h.createStatefulset(sts)
+}
+
+// createStatefulset
+func (h *Handler) createStatefulset(sts *appsv1.StatefulSet) (*appsv1.StatefulSet, error) {
 	var namespace string
 	if len(sts.Namespace) != 0 {
 		namespace = sts.Namespace
 	} else {
 		namespace = h.namespace
 	}
-
+	sts.ResourceVersion = ""
+	sts.UID = ""
 	return h.clientset.AppsV1().StatefulSets(namespace).Create(h.ctx, sts, h.Options.CreateOptions)
-}
-
-// CreateFromFile create statefulset from yaml file.
-func (h *Handler) CreateFromFile(filename string) (*appsv1.StatefulSet, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return h.CreateFromBytes(data)
-}
-
-// Create create statefulset from yaml file, alias to "CreateFromFile".
-func (h *Handler) Create(filename string) (*appsv1.StatefulSet, error) {
-	return h.CreateFromFile(filename)
 }
