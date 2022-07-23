@@ -2,6 +2,7 @@ package cronjob
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -9,48 +10,28 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create cronjob from map[string]interface{}.
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*batchv1.CronJob, error) {
-	cronjob := &batchv1.CronJob{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, cronjob)
-	if err != nil {
-		return nil, err
+// Create creates cronjob from type string, []byte, *batchv1.CronJob,
+// batchv1.CronJob, runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*batchv1.CronJob, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *batchv1.CronJob:
+		return h.CreateFromObject(val)
+	case batchv1.CronJob:
+		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
 	}
-
-	var namespace string
-	if len(cronjob.Namespace) != 0 {
-		namespace = cronjob.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.BatchV1().CronJobs(namespace).Create(h.ctx, cronjob, h.Options.CreateOptions)
 }
 
-// CreateFromBytes create cronjob from bytes.
-func (h *Handler) CreateFromBytes(data []byte) (*batchv1.CronJob, error) {
-	cronjobJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	cronjob := &batchv1.CronJob{}
-	err = json.Unmarshal(cronjobJson, cronjob)
-	if err != nil {
-		return nil, err
-	}
-
-	var namespace string
-	if len(cronjob.Namespace) != 0 {
-		namespace = cronjob.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.BatchV1().CronJobs(namespace).Create(h.ctx, cronjob, h.Options.CreateOptions)
-}
-
-// CreateFromFile create cronjob from yaml file.
+// CreateFromFile creates cronjob from yaml file.
 func (h *Handler) CreateFromFile(filename string) (*batchv1.CronJob, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -59,7 +40,49 @@ func (h *Handler) CreateFromFile(filename string) (*batchv1.CronJob, error) {
 	return h.CreateFromBytes(data)
 }
 
-// Create create cronjob from file, alias to "CreateFromFile".
-func (h *Handler) Create(path string) (*batchv1.CronJob, error) {
-	return h.CreateFromFile(path)
+// CreateFromBytes creates cronjob from bytes.
+func (h *Handler) CreateFromBytes(data []byte) (*batchv1.CronJob, error) {
+	cjJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	cj := &batchv1.CronJob{}
+	err = json.Unmarshal(cjJson, cj)
+	if err != nil {
+		return nil, err
+	}
+	return h.createCronjob(cj)
+}
+
+// CreateFromObject creates cronjob from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*batchv1.CronJob, error) {
+	cj, ok := obj.(*batchv1.CronJob)
+	if !ok {
+		return nil, fmt.Errorf("object is not *batchv1.CronJob")
+	}
+	return h.createCronjob(cj)
+}
+
+// CreateFromUnstructured creates cronjob from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*batchv1.CronJob, error) {
+	cj := &batchv1.CronJob{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cj)
+	if err != nil {
+		return nil, err
+	}
+	return h.createCronjob(cj)
+}
+
+// createCronjob
+func (h *Handler) createCronjob(cj *batchv1.CronJob) (*batchv1.CronJob, error) {
+	var namespace string
+	if len(cj.Namespace) != 0 {
+		namespace = cj.Namespace
+	} else {
+		namespace = h.namespace
+	}
+	cj.ResourceVersion = ""
+	cj.UID = ""
+	return h.clientset.BatchV1().CronJobs(namespace).Create(h.ctx, cj, h.Options.CreateOptions)
 }

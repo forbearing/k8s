@@ -1,53 +1,76 @@
 package cronjob
 
 import (
+	"fmt"
+
 	batchv1 "k8s.io/api/batch/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply cronjob from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*batchv1.CronJob, error) {
-	cronjob := &batchv1.CronJob{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, cronjob)
+// Apply applies cronjob from type string, []byte, *batchv1.CronJob,
+// batchv1.CronJob, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*batchv1.CronJob, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *batchv1.CronJob:
+		return h.ApplyFromObject(val)
+	case batchv1.CronJob:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
+	}
+}
+
+// ApplyFromFile applies cronjob from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (cm *batchv1.CronJob, err error) {
+	cm, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) { // if cronjob already exist, update it.
+		cm, err = h.UpdateFromFile(filename)
+	}
+	return
+}
+
+// ApplyFromBytes pply cronjob from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (cm *batchv1.CronJob, err error) {
+	cm, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		cm, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies cronjob from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*batchv1.CronJob, error) {
+	cm, ok := obj.(*batchv1.CronJob)
+	if !ok {
+		return nil, fmt.Errorf("object is not *batchv1.CronJob")
+	}
+	return h.applyCronjob(cm)
+}
+
+// ApplyFromUnstructured applies cronjob from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*batchv1.CronJob, error) {
+	cm := &batchv1.CronJob{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cm)
 	if err != nil {
 		return nil, err
 	}
+	return h.applyCronjob(cm)
+}
 
-	var namespace string
-	if len(cronjob.Namespace) != 0 {
-		namespace = cronjob.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	_, err = h.clientset.BatchV1().CronJobs(namespace).Create(h.ctx, cronjob, h.Options.CreateOptions)
+// applyCronjob
+func (h *Handler) applyCronjob(cm *batchv1.CronJob) (*batchv1.CronJob, error) {
+	_, err := h.createCronjob(cm)
 	if k8serrors.IsAlreadyExists(err) {
-		cronjob, err = h.clientset.BatchV1().CronJobs(namespace).Update(h.ctx, cronjob, h.Options.UpdateOptions)
+		return h.updateCronjob(cm)
 	}
-	return cronjob, err
-}
-
-// ApplyFromBytes apply cronjob from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (cronjob *batchv1.CronJob, err error) {
-	cronjob, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		cronjob, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply cronjob from yaml file
-func (h *Handler) ApplyFromFile(filename string) (cronjob *batchv1.CronJob, err error) {
-	cronjob, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
-		cronjob, err = h.UpdateFromFile(filename)
-	}
-	return
-}
-
-// Apply apply cronjob from file, alias to "ApplyFromFile".
-func (h *Handler) Apply(name string) (*batchv1.CronJob, error) {
-	return h.ApplyFromFile(name)
+	return cm, err
 }
