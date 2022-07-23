@@ -2,6 +2,7 @@ package replicationcontroller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
@@ -9,25 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// UpdateFromRaw update replicationcontroller from map[string]interface{}
-func (h *Handler) UpdateFromRaw(raw map[string]interface{}) (*corev1.ReplicationController, error) {
-	rc := &corev1.ReplicationController{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, rc)
+// Update updates replicationcontroller from type string, []byte, *corev1.ReplicationController,
+// corev1.ReplicationController, runtime.Object or map[string]interface{}.
+func (h *Handler) Update(obj interface{}) (rc *corev1.ReplicationController, err error) {
+	switch val := obj.(type) {
+	case string:
+		return h.UpdateFromFile(val)
+	case []byte:
+		return h.UpdateFromBytes(val)
+	case *corev1.ReplicationController:
+		return h.UpdateFromObject(val)
+	case corev1.ReplicationController:
+		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
+	case map[string]interface{}:
+		return h.UpdateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_UPDATE
+	}
+}
+
+// UpdateFromFile updates replicationcontroller from yaml file.
+func (h *Handler) UpdateFromFile(filename string) (*corev1.ReplicationController, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	var namespace string
-	if len(rc.Namespace) != 0 {
-		namespace = rc.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.CoreV1().ReplicationControllers(namespace).Update(h.ctx, rc, h.Options.UpdateOptions)
+	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes update replicationcontroller from bytes
+// UpdateFromBytes updates replicationcontroller from bytes.
 func (h *Handler) UpdateFromBytes(data []byte) (*corev1.ReplicationController, error) {
 	rcJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -39,27 +52,37 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.ReplicationController, e
 	if err != nil {
 		return nil, err
 	}
+	return h.updateRS(rc)
+}
 
+// UpdateFromObject updates replicationcontroller from runtime.Object.
+func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.ReplicationController, error) {
+	rc, ok := obj.(*corev1.ReplicationController)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.ReplicationController")
+	}
+	return h.updateRS(rc)
+}
+
+// UpdateFromUnstructured updates replicationcontroller from map[string]interface{}.
+func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*corev1.ReplicationController, error) {
+	rc := &corev1.ReplicationController{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rc)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateRS(rc)
+}
+
+// updateRS
+func (h *Handler) updateRS(rc *corev1.ReplicationController) (*corev1.ReplicationController, error) {
 	var namespace string
 	if len(rc.Namespace) != 0 {
 		namespace = rc.Namespace
 	} else {
 		namespace = h.namespace
 	}
-
+	rc.ResourceVersion = ""
+	rc.UID = ""
 	return h.clientset.CoreV1().ReplicationControllers(namespace).Update(h.ctx, rc, h.Options.UpdateOptions)
-}
-
-// UpdateFromFile update replicationcontroller from yaml file
-func (h *Handler) UpdateFromFile(filename string) (*corev1.ReplicationController, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return h.UpdateFromBytes(data)
-}
-
-// Update update replicationcontroller from yaml file, alias to "UpdateFromFile"
-func (h *Handler) Update(filename string) (*corev1.ReplicationController, error) {
-	return h.UpdateFromFile(filename)
 }

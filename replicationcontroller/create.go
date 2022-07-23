@@ -2,6 +2,7 @@ package replicationcontroller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
@@ -9,25 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create replicationcontroller from map[string]interface{}
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*corev1.ReplicationController, error) {
-	rc := &corev1.ReplicationController{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, rc)
+// Create creates replicationcontroller from type string, []byte, *corev1.ReplicationController,
+// corev1.ReplicationController, runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*corev1.ReplicationController, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *corev1.ReplicationController:
+		return h.CreateFromObject(val)
+	case corev1.ReplicationController:
+		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
+	}
+}
+
+// CreateFromFile creates replicationcontroller from yaml file.
+func (h *Handler) CreateFromFile(filename string) (*corev1.ReplicationController, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	var namespace string
-	if len(rc.Namespace) != 0 {
-		namespace = rc.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.CoreV1().ReplicationControllers(namespace).Create(h.ctx, rc, h.Options.CreateOptions)
+	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes create replicationcontroller from bytes
+// CreateFromBytes creates replicationcontroller from bytes.
 func (h *Handler) CreateFromBytes(data []byte) (*corev1.ReplicationController, error) {
 	rcJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -39,27 +52,37 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.ReplicationController, e
 	if err != nil {
 		return nil, err
 	}
+	return h.createRS(rc)
+}
 
+// CreateFromObject creates replicationcontroller from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.ReplicationController, error) {
+	rc, ok := obj.(*corev1.ReplicationController)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.ReplicationController")
+	}
+	return h.createRS(rc)
+}
+
+// CreateFromUnstructured creates replicationcontroller from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*corev1.ReplicationController, error) {
+	rc := &corev1.ReplicationController{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rc)
+	if err != nil {
+		return nil, err
+	}
+	return h.createRS(rc)
+}
+
+// createRS
+func (h *Handler) createRS(rc *corev1.ReplicationController) (*corev1.ReplicationController, error) {
 	var namespace string
 	if len(rc.Namespace) != 0 {
 		namespace = rc.Namespace
 	} else {
 		namespace = h.namespace
 	}
-
+	rc.ResourceVersion = ""
+	rc.UID = ""
 	return h.clientset.CoreV1().ReplicationControllers(namespace).Create(h.ctx, rc, h.Options.CreateOptions)
-}
-
-// CreateFromFile create replicationcontroller from yaml file
-func (h *Handler) CreateFromFile(filename string) (*corev1.ReplicationController, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return h.CreateFromBytes(data)
-}
-
-// Create create replicationcontroller from yaml file, alias to "CreateFromFile"
-func (h *Handler) Create(filename string) (*corev1.ReplicationController, error) {
-	return h.CreateFromFile(filename)
 }
