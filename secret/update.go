@@ -2,6 +2,7 @@ package secret
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
@@ -9,25 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// UpdateFromRaw update secret from map[string]interface{}.
-func (h *Handler) UpdateFromRaw(raw map[string]interface{}) (*corev1.Secret, error) {
-	secret := &corev1.Secret{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, secret)
+// Update updates secret from type string, []byte, *corev1.Secret,
+// corev1.Secret, runtime.Object or map[string]interface{}.
+func (h *Handler) Update(obj interface{}) (*corev1.Secret, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.UpdateFromFile(val)
+	case []byte:
+		return h.UpdateFromBytes(val)
+	case *corev1.Secret:
+		return h.UpdateFromObject(val)
+	case corev1.Secret:
+		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
+	case map[string]interface{}:
+		return h.UpdateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_UPDATE
+	}
+}
+
+// UpdateFromFile updates secret from yaml file.
+func (h *Handler) UpdateFromFile(filename string) (*corev1.Secret, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	var namespace string
-	if len(secret.Namespace) != 0 {
-		namespace = secret.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.CoreV1().Secrets(namespace).Update(h.ctx, secret, h.Options.UpdateOptions)
+	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes update secret from bytes.
+// UpdateFromBytes updates secret from bytes.
 func (h *Handler) UpdateFromBytes(data []byte) (*corev1.Secret, error) {
 	secretJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -39,27 +52,37 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.Secret, error) {
 	if err != nil {
 		return nil, err
 	}
+	return h.updateSecret(secret)
+}
 
+// UpdateFromObject updates secret from runtime.Object.
+func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.Secret, error) {
+	secret, ok := obj.(*corev1.Secret)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.Secret")
+	}
+	return h.updateSecret(secret)
+}
+
+// UpdateFromUnstructured updates secret from map[string]interface{}.
+func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*corev1.Secret, error) {
+	secret := &corev1.Secret{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, secret)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateSecret(secret)
+}
+
+// updateSecret
+func (h *Handler) updateSecret(secret *corev1.Secret) (*corev1.Secret, error) {
 	var namespace string
 	if len(secret.Namespace) != 0 {
 		namespace = secret.Namespace
 	} else {
 		namespace = h.namespace
 	}
-
+	secret.ResourceVersion = ""
+	secret.UID = ""
 	return h.clientset.CoreV1().Secrets(namespace).Update(h.ctx, secret, h.Options.UpdateOptions)
-}
-
-// UpdateFromFile update secret from yaml file.
-func (h *Handler) UpdateFromFile(filename string) (*corev1.Secret, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return h.UpdateFromBytes(data)
-}
-
-// Update update secret from yaml file, alias to "UpdateFromFile".
-func (h *Handler) Update(filename string) (*corev1.Secret, error) {
-	return h.UpdateFromFile(filename)
 }

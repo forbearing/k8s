@@ -1,53 +1,76 @@
 package secret
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply secret from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.Secret, error) {
-	secret := &corev1.Secret{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, secret)
-	if err != nil {
-		return nil, err
+// Apply applies secret from type string, []byte, *corev1.Secret,
+// corev1.Secret, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*corev1.Secret, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *corev1.Secret:
+		return h.ApplyFromObject(val)
+	case corev1.Secret:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
-
-	var namespace string
-	if len(secret.Namespace) != 0 {
-		namespace = secret.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	_, err = h.clientset.CoreV1().Secrets(namespace).Create(h.ctx, secret, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		secret, err = h.clientset.CoreV1().Secrets(namespace).Update(h.ctx, secret, h.Options.UpdateOptions)
-	}
-	return secret, err
 }
 
-// ApplyFromBytes apply secret from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (secret *corev1.Secret, err error) {
-	secret, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		secret, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply secret from yaml file.
+// ApplyFromFile applies secret from yaml file.
 func (h *Handler) ApplyFromFile(filename string) (secret *corev1.Secret, err error) {
 	secret, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
+	if k8serrors.IsAlreadyExists(err) { // if secret already exist, update it.
 		secret, err = h.UpdateFromFile(filename)
 	}
 	return
 }
 
-// Apply apply secret from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*corev1.Secret, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromBytes pply secret from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (secret *corev1.Secret, err error) {
+	secret, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		secret, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies secret from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Secret, error) {
+	secret, ok := obj.(*corev1.Secret)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.Secret")
+	}
+	return h.applySecret(secret)
+}
+
+// ApplyFromUnstructured applies secret from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*corev1.Secret, error) {
+	secret := &corev1.Secret{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, secret)
+	if err != nil {
+		return nil, err
+	}
+	return h.applySecret(secret)
+}
+
+// applySecret
+func (h *Handler) applySecret(secret *corev1.Secret) (*corev1.Secret, error) {
+	_, err := h.createSecret(secret)
+	if k8serrors.IsAlreadyExists(err) {
+		return h.updateSecret(secret)
+	}
+	return secret, err
 }
