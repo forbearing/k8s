@@ -52,7 +52,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 	if err != nil {
 		return nil, err
 	}
-	return h.updateClusterRole(cr)
+	return h.updateCR(cr)
 }
 
 // UpdateFromObject updates clusterrole from runtime.Object.
@@ -61,7 +61,7 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.ClusterRole, err
 	if !ok {
 		return nil, fmt.Errorf("object is not *rbacv1.ClusterRole")
 	}
-	return h.updateClusterRole(cr)
+	return h.updateCR(cr)
 }
 
 // UpdateFromUnstructured updates clusterrole from map[string]interface{}.
@@ -71,11 +71,11 @@ func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*rbacv1.Clus
 	if err != nil {
 		return nil, err
 	}
-	return h.updateClusterRole(cr)
+	return h.updateCR(cr)
 }
 
-// updateClusterRole
-func (h *Handler) updateClusterRole(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
+// updateCR
+func (h *Handler) updateCR(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
 	cr.ResourceVersion = ""
 	cr.UID = ""
 	return h.clientset.RbacV1().ClusterRoles().Update(h.ctx, cr, h.Options.UpdateOptions)

@@ -58,7 +58,7 @@ func (h *Handler) GetFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 	if err != nil {
 		return nil, err
 	}
-	return h.getClusterRole(cr)
+	return h.getCR(cr)
 }
 
 // GetFromObject gets clusterrole from runtime.Object.
@@ -67,7 +67,7 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*rbacv1.ClusterRole, error)
 	if !ok {
 		return nil, fmt.Errorf("object is not *rbacv1.ClusterRole")
 	}
-	return h.getClusterRole(cr)
+	return h.getCR(cr)
 }
 
 // GetFromUnstructured gets clusterrole from map[string]interface{}.
@@ -77,12 +77,12 @@ func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*rbacv1.Cluster
 	if err != nil {
 		return nil, err
 	}
-	return h.getClusterRole(cr)
+	return h.getCR(cr)
 }
 
-// getClusterRole
+// getCR
 // It's necessary to get a new clusterrole resource from a old clusterrole resource,
 // because old clusterrole usually don't have clusterrole.Status field.
-func (h *Handler) getClusterRole(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
+func (h *Handler) getCR(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
 	return h.clientset.RbacV1().ClusterRoles().Get(h.ctx, cr.Name, h.Options.GetOptions)
 }

@@ -52,7 +52,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 	if err != nil {
 		return nil, err
 	}
-	return h.createClusterRole(cr)
+	return h.createCR(cr)
 }
 
 // CreateFromObject creates clusterrole from runtime.Object.
@@ -61,7 +61,7 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.ClusterRole, err
 	if !ok {
 		return nil, fmt.Errorf("object is not *rbacv1.ClusterRole")
 	}
-	return h.createClusterRole(cr)
+	return h.createCR(cr)
 }
 
 // CreateFromUnstructured creates clusterrole from map[string]interface{}.
@@ -71,11 +71,11 @@ func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*rbacv1.Clus
 	if err != nil {
 		return nil, err
 	}
-	return h.createClusterrole(cr)
+	return h.createCR(cr)
 }
 
-// createClusterRole
-func (h *Handler) createClusterRole(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
+// createCR
+func (h *Handler) createCR(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
 	cr.ResourceVersion = ""
 	cr.UID = ""
 	return h.clientset.RbacV1().ClusterRoles().Create(h.ctx, cr, h.Options.CreateOptions)

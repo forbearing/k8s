@@ -53,7 +53,7 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.ClusterRole, erro
 	if !ok {
 		return nil, fmt.Errorf("object is not *rbacv1.ClusterRole")
 	}
-	return h.applyClusterRole(cr)
+	return h.applyCR(cr)
 }
 
 // ApplyFromUnstructured applies clusterrole from map[string]interface{}.
@@ -63,14 +63,14 @@ func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*rbacv1.Clust
 	if err != nil {
 		return nil, err
 	}
-	return h.applyClusterRole(cr)
+	return h.applyCR(cr)
 }
 
-// applyClusterRole
-func (h *Handler) applyClusterRole(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
-	_, err := h.createClusterRole(cr)
+// applyCR
+func (h *Handler) applyCR(cr *rbacv1.ClusterRole) (*rbacv1.ClusterRole, error) {
+	_, err := h.createCR(cr)
 	if k8serrors.IsAlreadyExists(err) {
-		return h.updateClusterRole(cr)
+		return h.updateCR(cr)
 	}
 	return cr, err
 }

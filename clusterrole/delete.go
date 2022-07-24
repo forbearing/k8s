@@ -60,7 +60,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	if err != nil {
 		return err
 	}
-	return h.deleteClusterRole(cr)
+	return h.deleteCR(cr)
 }
 
 // DeleteFromObject deletes clusterrole from runtime.Object.
@@ -69,7 +69,7 @@ func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	if !ok {
 		return fmt.Errorf("object is not *rbacv1.ClusterRole")
 	}
-	return h.deleteClusterRole(cr)
+	return h.deleteCR(cr)
 }
 
 // DeleteFromUnstructured deletes clusterrole from map[string]interface{}.
@@ -79,10 +79,10 @@ func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
-	return h.deleteClusterRole(cr)
+	return h.deleteCR(cr)
 }
 
-// deleteClusterRole
-func (h *Handler) deleteClusterRole(cr *rbacv1.ClusterRole) error {
+// deleteCR
+func (h *Handler) deleteCR(cr *rbacv1.ClusterRole) error {
 	return h.clientset.RbacV1().ClusterRoles().Delete(h.ctx, cr.Name, h.Options.DeleteOptions)
 }
