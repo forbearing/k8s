@@ -2,6 +2,7 @@ package namespace
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
@@ -9,18 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create namespace from map[string]interface{}.
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*corev1.Namespace, error) {
-	namespace := &corev1.Namespace{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, namespace)
+// Create creates namespace from type string, []byte, *corev1.Namespace,
+// corev1.Namespace, runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*corev1.Namespace, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *corev1.Namespace:
+		return h.CreateFromObject(val)
+	case corev1.Namespace:
+		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
+	}
+}
+
+// CreateFromFile creates namespace from yaml file.
+func (h *Handler) CreateFromFile(filename string) (*corev1.Namespace, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	return h.clientset.CoreV1().Namespaces().Create(h.ctx, namespace, h.Options.CreateOptions)
+	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes create namespace from bytes.
+// CreateFromBytes creates namespace from bytes.
 func (h *Handler) CreateFromBytes(data []byte) (*corev1.Namespace, error) {
 	nsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -32,20 +52,31 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.Namespace, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return h.clientset.CoreV1().Namespaces().Create(h.ctx, ns, h.Options.CreateOptions)
+	return h.createNamespace(ns)
 }
 
-// CreateFromFile create namespace from yaml file.
-func (h *Handler) CreateFromFile(filename string) (*corev1.Namespace, error) {
-	data, err := ioutil.ReadFile(filename)
+// CreateFromObject creates namespace from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Namespace, error) {
+	ns, ok := obj.(*corev1.Namespace)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.Namespace")
+	}
+	return h.createNamespace(ns)
+}
+
+// CreateFromUnstructured creates namespace from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*corev1.Namespace, error) {
+	ns := &corev1.Namespace{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ns)
 	if err != nil {
 		return nil, err
 	}
-	return h.CreateFromBytes(data)
+	return h.createNamespace(ns)
 }
 
-// Create create namespace from yaml file, alias to "CreateFromFile".
-func (h *Handler) Create(filename string) (*corev1.Namespace, error) {
-	return h.CreateFromFile(filename)
+// createNamespace
+func (h *Handler) createNamespace(ns *corev1.Namespace) (*corev1.Namespace, error) {
+	ns.ResourceVersion = ""
+	ns.UID = ""
+	return h.clientset.CoreV1().Namespaces().Create(h.ctx, ns, h.Options.CreateOptions)
 }

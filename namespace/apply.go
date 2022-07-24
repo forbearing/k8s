@@ -1,46 +1,76 @@
 package namespace
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply namespace from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.Namespace, error) {
-	namespace := &corev1.Namespace{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, namespace)
+// Apply applies namespace from type string, []byte, *corev1.Namespace,
+// corev1.Namespace, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*corev1.Namespace, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *corev1.Namespace:
+		return h.ApplyFromObject(val)
+	case corev1.Namespace:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
+	}
+}
+
+// ApplyFromFile applies namespace from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (ns *corev1.Namespace, err error) {
+	ns, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) { // if namespace already exist, update it.
+		ns, err = h.UpdateFromFile(filename)
+	}
+	return
+}
+
+// ApplyFromBytes pply namespace from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (ns *corev1.Namespace, err error) {
+	ns, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		ns, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies namespace from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Namespace, error) {
+	ns, ok := obj.(*corev1.Namespace)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.Namespace")
+	}
+	return h.applyNamespace(ns)
+}
+
+// ApplyFromUnstructured applies namespace from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*corev1.Namespace, error) {
+	ns := &corev1.Namespace{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ns)
 	if err != nil {
 		return nil, err
 	}
+	return h.applyNamespace(ns)
+}
 
-	_, err = h.clientset.CoreV1().Namespaces().Create(h.ctx, namespace, h.Options.CreateOptions)
+// applyNamespace
+func (h *Handler) applyNamespace(ns *corev1.Namespace) (*corev1.Namespace, error) {
+	_, err := h.createNamespace(ns)
 	if k8serrors.IsAlreadyExists(err) {
-		namespace, err = h.clientset.CoreV1().Namespaces().Update(h.ctx, namespace, h.Options.UpdateOptions)
+		return h.updateNamespace(ns)
 	}
-	return namespace, err
-}
-
-// ApplyFromBytes apply namespace from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (namespace *corev1.Namespace, err error) {
-	namespace, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		namespace, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply namespace from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (namespace *corev1.Namespace, err error) {
-	namespace, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
-		namespace, err = h.UpdateFromFile(filename)
-	}
-	return
-}
-
-// Apply apply namespace from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*corev1.Namespace, error) {
-	return h.ApplyFromFile(filename)
+	return ns, err
 }
