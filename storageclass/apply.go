@@ -1,46 +1,76 @@
 package storageclass
 
 import (
+	"fmt"
+
 	storagev1 "k8s.io/api/storage/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply storageclass from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*storagev1.StorageClass, error) {
-	sc := &storagev1.StorageClass{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, sc)
-	if err != nil {
-		return nil, err
+// Apply applies storageclass from type string, []byte, *storagev1.StorageClass,
+// storagev1.StorageClass, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*storagev1.StorageClass, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *storagev1.StorageClass:
+		return h.ApplyFromObject(val)
+	case storagev1.StorageClass:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
-
-	_, err = h.clientset.StorageV1().StorageClasses().Create(h.ctx, sc, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		sc, err = h.clientset.StorageV1().StorageClasses().Update(h.ctx, sc, h.Options.UpdateOptions)
-	}
-	return sc, err
 }
 
-// ApplyFromBytes apply storageclass from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (sc *storagev1.StorageClass, err error) {
-	sc, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		sc, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply storageclass from yaml file.
+// ApplyFromFile applies storageclass from yaml file.
 func (h *Handler) ApplyFromFile(filename string) (sc *storagev1.StorageClass, err error) {
 	sc, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
+	if k8serrors.IsAlreadyExists(err) { // if storageclass already exist, update it.
 		sc, err = h.UpdateFromFile(filename)
 	}
 	return
 }
 
-// Apply apply storageclass from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*storagev1.StorageClass, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromBytes pply storageclass from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (sc *storagev1.StorageClass, err error) {
+	sc, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		sc, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies storageclass from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*storagev1.StorageClass, error) {
+	sc, ok := obj.(*storagev1.StorageClass)
+	if !ok {
+		return nil, fmt.Errorf("object is not *storagev1.StorageClass")
+	}
+	return h.applySC(sc)
+}
+
+// ApplyFromUnstructured applies storageclass from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*storagev1.StorageClass, error) {
+	sc := &storagev1.StorageClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sc)
+	if err != nil {
+		return nil, err
+	}
+	return h.applySC(sc)
+}
+
+// applySC
+func (h *Handler) applySC(sc *storagev1.StorageClass) (*storagev1.StorageClass, error) {
+	_, err := h.createSC(sc)
+	if k8serrors.IsAlreadyExists(err) {
+		return h.updateSC(sc)
+	}
+	return sc, err
 }

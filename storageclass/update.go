@@ -2,6 +2,7 @@ package storageclass
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	storagev1 "k8s.io/api/storage/v1"
@@ -9,18 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// UpdateFromRaw update storageclass from map[string]interface{}.
-func (h *Handler) UpdateFromRaw(raw map[string]interface{}) (*storagev1.StorageClass, error) {
-	sc := &storagev1.StorageClass{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, sc)
+// Update updates storageclass from type string, []byte, *storagev1.StorageClass,
+// storagev1.StorageClass, runtime.Object or map[string]interface{}.
+func (h *Handler) Update(obj interface{}) (*storagev1.StorageClass, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.UpdateFromFile(val)
+	case []byte:
+		return h.UpdateFromBytes(val)
+	case *storagev1.StorageClass:
+		return h.UpdateFromObject(val)
+	case storagev1.StorageClass:
+		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
+	case map[string]interface{}:
+		return h.UpdateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_UPDATE
+	}
+}
+
+// UpdateFromFile updates storageclass from yaml file.
+func (h *Handler) UpdateFromFile(filename string) (*storagev1.StorageClass, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	return h.clientset.StorageV1().StorageClasses().Update(h.ctx, sc, h.Options.UpdateOptions)
+	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes update storageclass from bytes.
+// UpdateFromBytes updates storageclass from bytes.
 func (h *Handler) UpdateFromBytes(data []byte) (*storagev1.StorageClass, error) {
 	scJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -32,20 +52,31 @@ func (h *Handler) UpdateFromBytes(data []byte) (*storagev1.StorageClass, error) 
 	if err != nil {
 		return nil, err
 	}
-
-	return h.clientset.StorageV1().StorageClasses().Update(h.ctx, sc, h.Options.UpdateOptions)
+	return h.updateSC(sc)
 }
 
-// UpdateFromFile update storageclass from yaml file
-func (h *Handler) UpdateFromFile(filename string) (*storagev1.StorageClass, error) {
-	data, err := ioutil.ReadFile(filename)
+// UpdateFromObject updates storageclass from runtime.Object.
+func (h *Handler) UpdateFromObject(obj runtime.Object) (*storagev1.StorageClass, error) {
+	sc, ok := obj.(*storagev1.StorageClass)
+	if !ok {
+		return nil, fmt.Errorf("object is not *storagev1.StorageClass")
+	}
+	return h.updateSC(sc)
+}
+
+// UpdateFromUnstructured updates storageclass from map[string]interface{}.
+func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*storagev1.StorageClass, error) {
+	sc := &storagev1.StorageClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sc)
 	if err != nil {
 		return nil, err
 	}
-	return h.UpdateFromBytes(data)
+	return h.updateSC(sc)
 }
 
-// Update update storageclass from yaml file, alias to "UpdateFromFile".
-func (h *Handler) Update(filename string) (*storagev1.StorageClass, error) {
-	return h.UpdateFromFile(filename)
+// updateSC
+func (h *Handler) updateSC(sc *storagev1.StorageClass) (*storagev1.StorageClass, error) {
+	sc.ResourceVersion = ""
+	sc.UID = ""
+	return h.clientset.StorageV1().StorageClasses().Update(h.ctx, sc, h.Options.UpdateOptions)
 }
