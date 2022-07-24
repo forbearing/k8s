@@ -1,46 +1,76 @@
 package ingressclass
 
 import (
+	"fmt"
+
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply ingressclass from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*networkingv1.IngressClass, error) {
-	ingc := &networkingv1.IngressClass{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, ingc)
-	if err != nil {
-		return nil, err
+// Apply applies ingressclass from type string, []byte, *networkingv1.IngressClass,
+// networkingv1.IngressClass, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*networkingv1.IngressClass, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *networkingv1.IngressClass:
+		return h.ApplyFromObject(val)
+	case networkingv1.IngressClass:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
-
-	_, err = h.clientset.NetworkingV1().IngressClasses().Create(h.ctx, ingc, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		ingc, err = h.clientset.NetworkingV1().IngressClasses().Update(h.ctx, ingc, h.Options.UpdateOptions)
-	}
-	return ingc, err
 }
 
-// ApplyFromBytes apply ingressclass from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (ingc *networkingv1.IngressClass, err error) {
-	ingc, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		ingc, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply ingressclass from yaml file.
+// ApplyFromFile applies ingressclass from yaml file.
 func (h *Handler) ApplyFromFile(filename string) (ingc *networkingv1.IngressClass, err error) {
 	ingc, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
+	if k8serrors.IsAlreadyExists(err) { // if ingressclass already exist, update it.
 		ingc, err = h.UpdateFromFile(filename)
 	}
 	return
 }
 
-// Apply apply ingressclass from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*networkingv1.IngressClass, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromBytes pply ingressclass from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (ingc *networkingv1.IngressClass, err error) {
+	ingc, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		ingc, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies ingressclass from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*networkingv1.IngressClass, error) {
+	ingc, ok := obj.(*networkingv1.IngressClass)
+	if !ok {
+		return nil, fmt.Errorf("object is not *networkingv1.IngressClass")
+	}
+	return h.applyIngressclass(ingc)
+}
+
+// ApplyFromUnstructured applies ingressclass from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*networkingv1.IngressClass, error) {
+	ingc := &networkingv1.IngressClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ingc)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyIngressclass(ingc)
+}
+
+// applyIngressclass
+func (h *Handler) applyIngressclass(ingc *networkingv1.IngressClass) (*networkingv1.IngressClass, error) {
+	_, err := h.createIngressclass(ingc)
+	if k8serrors.IsAlreadyExists(err) {
+		return h.updateIngressclass(ingc)
+	}
+	return ingc, err
 }

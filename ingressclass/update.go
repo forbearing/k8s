@@ -2,6 +2,7 @@ package ingressclass
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
@@ -9,18 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// UpdateFromRaw update ingressclass from map[string]interface{}.
-func (h *Handler) UpdateFromRaw(raw map[string]interface{}) (*networkingv1.IngressClass, error) {
-	ingressclass := &networkingv1.IngressClass{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, ingressclass)
+// Update updates ingressclass from type string, []byte, *networkingv1.IngressClass,
+// networkingv1.IngressClass, runtime.Object or map[string]interface{}.
+func (h *Handler) Update(obj interface{}) (*networkingv1.IngressClass, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.UpdateFromFile(val)
+	case []byte:
+		return h.UpdateFromBytes(val)
+	case *networkingv1.IngressClass:
+		return h.UpdateFromObject(val)
+	case networkingv1.IngressClass:
+		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
+	case map[string]interface{}:
+		return h.UpdateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_UPDATE
+	}
+}
+
+// UpdateFromFile updates ingressclass from yaml file.
+func (h *Handler) UpdateFromFile(filename string) (*networkingv1.IngressClass, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	return h.clientset.NetworkingV1().IngressClasses().Update(h.ctx, ingressclass, h.Options.UpdateOptions)
+	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes update ingressclass from bytes.
+// UpdateFromBytes updates ingressclass from bytes.
 func (h *Handler) UpdateFromBytes(data []byte) (*networkingv1.IngressClass, error) {
 	ingcJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -32,20 +52,31 @@ func (h *Handler) UpdateFromBytes(data []byte) (*networkingv1.IngressClass, erro
 	if err != nil {
 		return nil, err
 	}
-
-	return h.clientset.NetworkingV1().IngressClasses().Update(h.ctx, ingc, h.Options.UpdateOptions)
+	return h.updateIngressclass(ingc)
 }
 
-// UpdateFromFile update ingressclass from yaml file.
-func (h *Handler) UpdateFromFile(filename string) (*networkingv1.IngressClass, error) {
-	data, err := ioutil.ReadFile(filename)
+// UpdateFromObject updates ingressclass from runtime.Object.
+func (h *Handler) UpdateFromObject(obj runtime.Object) (*networkingv1.IngressClass, error) {
+	ingc, ok := obj.(*networkingv1.IngressClass)
+	if !ok {
+		return nil, fmt.Errorf("object is not *networkingv1.IngressClass")
+	}
+	return h.updateIngressclass(ingc)
+}
+
+// UpdateFromUnstructured updates ingressclass from map[string]interface{}.
+func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*networkingv1.IngressClass, error) {
+	ingc := &networkingv1.IngressClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ingc)
 	if err != nil {
 		return nil, err
 	}
-	return h.UpdateFromBytes(data)
+	return h.updateIngressclass(ingc)
 }
 
-// Update update ingressclass from yaml file, alias to "UpdateFromFile".
-func (h *Handler) Update(filename string) (*networkingv1.IngressClass, error) {
-	return h.UpdateFromFile(filename)
+// updateIngressclass
+func (h *Handler) updateIngressclass(ingc *networkingv1.IngressClass) (*networkingv1.IngressClass, error) {
+	ingc.ResourceVersion = ""
+	ingc.UID = ""
+	return h.clientset.NetworkingV1().IngressClasses().Update(h.ctx, ingc, h.Options.UpdateOptions)
 }
