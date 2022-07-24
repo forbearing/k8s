@@ -2,6 +2,7 @@ package networkpolicy
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
@@ -9,25 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create networkpolicy from map[string]interface{}.
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
-	netpol := &networkingv1.NetworkPolicy{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, netpol)
+// Create creates networkpolicy from type string, []byte, *networkingv1.NetworkPolicy,
+// networkingv1.NetworkPolicy, runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*networkingv1.NetworkPolicy, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *networkingv1.NetworkPolicy:
+		return h.CreateFromObject(val)
+	case networkingv1.NetworkPolicy:
+		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
+	}
+}
+
+// CreateFromFile creates networkpolicy from yaml file.
+func (h *Handler) CreateFromFile(filename string) (*networkingv1.NetworkPolicy, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	var namespace string
-	if len(netpol.Namespace) != 0 {
-		namespace = netpol.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.NetworkingV1().NetworkPolicies(namespace).Create(h.ctx, netpol, h.Options.CreateOptions)
+	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes create networkpolicy from bytes.
+// CreateFromBytes creates networkpolicy from bytes.
 func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.NetworkPolicy, error) {
 	netpolJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -39,27 +52,37 @@ func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.NetworkPolicy, err
 	if err != nil {
 		return nil, err
 	}
+	return h.createNetpol(netpol)
+}
 
+// CreateFromObject creates networkpolicy from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*networkingv1.NetworkPolicy, error) {
+	netpol, ok := obj.(*networkingv1.NetworkPolicy)
+	if !ok {
+		return nil, fmt.Errorf("object is not *networkingv1.NetworkPolicy")
+	}
+	return h.createNetpol(netpol)
+}
+
+// CreateFromUnstructured creates networkpolicy from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
+	netpol := &networkingv1.NetworkPolicy{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, netpol)
+	if err != nil {
+		return nil, err
+	}
+	return h.createNetpol(netpol)
+}
+
+// createNetpol
+func (h *Handler) createNetpol(netpol *networkingv1.NetworkPolicy) (*networkingv1.NetworkPolicy, error) {
 	var namespace string
 	if len(netpol.Namespace) != 0 {
 		namespace = netpol.Namespace
 	} else {
 		namespace = h.namespace
 	}
-
+	netpol.ResourceVersion = ""
+	netpol.UID = ""
 	return h.clientset.NetworkingV1().NetworkPolicies(namespace).Create(h.ctx, netpol, h.Options.CreateOptions)
-}
-
-// CreateFromFile create networkpolicy from yaml file.
-func (h *Handler) CreateFromFile(filename string) (*networkingv1.NetworkPolicy, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return h.CreateFromBytes(data)
-}
-
-// Create create networkpolicy from yaml file, alias to "CreateFromFile".
-func (h *Handler) Create(filename string) (*networkingv1.NetworkPolicy, error) {
-	return h.CreateFromFile(filename)
 }

@@ -1,53 +1,76 @@
 package networkpolicy
 
 import (
+	"fmt"
+
 	networkingv1 "k8s.io/api/networking/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply netpol from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
-	netpol := &networkingv1.NetworkPolicy{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, netpol)
-	if err != nil {
-		return nil, err
+// Apply applies networkpolicy from type string, []byte, *networkingv1.NetworkPolicy,
+// networkingv1.NetworkPolicy, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*networkingv1.NetworkPolicy, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *networkingv1.NetworkPolicy:
+		return h.ApplyFromObject(val)
+	case networkingv1.NetworkPolicy:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
-
-	var namespace string
-	if len(netpol.Namespace) != 0 {
-		namespace = netpol.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	_, err = h.clientset.NetworkingV1().NetworkPolicies(namespace).Create(h.ctx, netpol, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		netpol, err = h.clientset.NetworkingV1().NetworkPolicies(namespace).Update(h.ctx, netpol, h.Options.UpdateOptions)
-	}
-	return netpol, err
 }
 
-// ApplyFromBytes apply networkpolicy from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (netpol *networkingv1.NetworkPolicy, err error) {
-	netpol, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		netpol, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply netpol from yaml file.
+// ApplyFromFile applies networkpolicy from yaml file.
 func (h *Handler) ApplyFromFile(filename string) (netpol *networkingv1.NetworkPolicy, err error) {
 	netpol, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
+	if k8serrors.IsAlreadyExists(err) { // if networkpolicy already exist, update it.
 		netpol, err = h.UpdateFromFile(filename)
 	}
 	return
 }
 
-// Apply apply networkpolicy from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*networkingv1.NetworkPolicy, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromBytes pply networkpolicy from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (netpol *networkingv1.NetworkPolicy, err error) {
+	netpol, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		netpol, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies networkpolicy from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*networkingv1.NetworkPolicy, error) {
+	netpol, ok := obj.(*networkingv1.NetworkPolicy)
+	if !ok {
+		return nil, fmt.Errorf("object is not *networkingv1.NetworkPolicy")
+	}
+	return h.applyNetpol(netpol)
+}
+
+// ApplyFromUnstructured applies networkpolicy from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
+	netpol := &networkingv1.NetworkPolicy{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, netpol)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyNetpol(netpol)
+}
+
+// applyNetpol
+func (h *Handler) applyNetpol(netpol *networkingv1.NetworkPolicy) (*networkingv1.NetworkPolicy, error) {
+	_, err := h.createNetpol(netpol)
+	if k8serrors.IsAlreadyExists(err) {
+		return h.updateNetpol(netpol)
+	}
+	return netpol, err
 }
