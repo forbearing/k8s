@@ -118,6 +118,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	handler.informerFactory = informerFactory
 	handler.informer = informerFactory.Batch().V1().CronJobs().Informer()
 	handler.Options = &typed.HandlerOptions{}
+	handler.SetPropagationPolicy("background")
 
 	return handler, nil
 }
