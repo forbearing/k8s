@@ -113,7 +113,7 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	handler.informer = informerFactory.Rbac().V1().ClusterRoles().Informer()
 	handler.Options = &typed.HandlerOptions{}
 
-	return nil, err
+	return handler, nil
 }
 func (in *Handler) DeepCopy() *Handler {
 	out := new(Handler)
