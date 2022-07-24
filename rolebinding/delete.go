@@ -2,35 +2,44 @@ package rolebinding
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// DeleteFromBytes delete rolebinding from bytes.
-func (h *Handler) DeleteFromBytes(data []byte) error {
-	rolebindingJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return err
-	}
+// Delete deletes rolebinding from type string, []byte, *rbacv1.RoleBinding,
+// rbacv1.RoleBinding, runtime.Object or map[string]interface{}.
 
-	rolebinding := &rbacv1.RoleBinding{}
-	if err = json.Unmarshal(rolebindingJson, rolebinding); err != nil {
-		return err
+// If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
+// You should always explicitly call DeleteFromFile to delete a rolebinding from file path.
+func (h *Handler) Delete(obj interface{}) error {
+	switch val := obj.(type) {
+	case string:
+		return h.DeleteByName(val)
+	case []byte:
+		return h.DeleteFromBytes(val)
+	case *rbacv1.RoleBinding:
+		return h.DeleteFromObject(val)
+	case rbacv1.RoleBinding:
+		return h.DeleteFromObject(&val)
+	case runtime.Object:
+		return h.DeleteFromObject(val)
+	case map[string]interface{}:
+		return h.DeleteFromUnstructured(val)
+	default:
+		return ERR_TYPE_DELETE
 	}
-
-	var namespace string
-	if len(rolebinding.Namespace) != 0 {
-		namespace = rolebinding.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.WithNamespace(namespace).DeleteByName(rolebinding.Name)
 }
 
-// DeleteFromFile delete rolebinding from yaml file.
+// DeleteByName deletes rolebinding by name.
+func (h *Handler) DeleteByName(name string) error {
+	return h.clientset.RbacV1().RoleBindings(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+}
+
+// DeleteFromFile deletes rolebinding from yaml file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -39,12 +48,47 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteByName delete rolebinding by name.
-func (h *Handler) DeleteByName(name string) error {
-	return h.clientset.RbacV1().RoleBindings(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+// DeleteFromBytes deletes rolebinding from bytes.
+func (h *Handler) DeleteFromBytes(data []byte) error {
+	rbJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return err
+	}
+
+	rb := &rbacv1.RoleBinding{}
+	err = json.Unmarshal(rbJson, rb)
+	if err != nil {
+		return err
+	}
+	return h.deleteRolebinding(rb)
 }
 
-// Delete delete rolebinding by name, alias to "DeleteByName".
-func (h *Handler) Delete(name string) (err error) {
-	return h.DeleteByName(name)
+// DeleteFromObject deletes rolebinding from runtime.Object.
+func (h *Handler) DeleteFromObject(obj runtime.Object) error {
+	rb, ok := obj.(*rbacv1.RoleBinding)
+	if !ok {
+		return fmt.Errorf("object is not *rbacv1.RoleBinding")
+	}
+	return h.deleteRolebinding(rb)
+}
+
+// DeleteFromUnstructured deletes rolebinding from map[string]interface{}.
+func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
+	rb := &rbacv1.RoleBinding{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rb)
+	if err != nil {
+		return err
+	}
+	return h.deleteRolebinding(rb)
+}
+
+// deleteRolebinding
+func (h *Handler) deleteRolebinding(rb *rbacv1.RoleBinding) error {
+	var namespace string
+	if len(rb.Namespace) != 0 {
+		namespace = rb.Namespace
+	} else {
+		namespace = h.namespace
+	}
+	return h.clientset.RbacV1().RoleBindings(namespace).Delete(h.ctx, rb.Name, h.Options.DeleteOptions)
 }

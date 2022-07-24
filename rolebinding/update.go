@@ -2,6 +2,7 @@ package rolebinding
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -9,48 +10,28 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// UpdateFromRaw update rolebinding from map[string]interface{}.
-func (h *Handler) UpdateFromRaw(raw map[string]interface{}) (*rbacv1.RoleBinding, error) {
-	rolebinding := &rbacv1.RoleBinding{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, rolebinding)
-	if err != nil {
-		return nil, err
+// Update updates rolebinding from type string, []byte, *rbacv1.RoleBinding,
+// rbacv1.RoleBinding, runtime.Object or map[string]interface{}.
+func (h *Handler) Update(obj interface{}) (*rbacv1.RoleBinding, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.UpdateFromFile(val)
+	case []byte:
+		return h.UpdateFromBytes(val)
+	case *rbacv1.RoleBinding:
+		return h.UpdateFromObject(val)
+	case rbacv1.RoleBinding:
+		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
+	case map[string]interface{}:
+		return h.UpdateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_UPDATE
 	}
-
-	var namespace string
-	if len(rolebinding.Namespace) != 0 {
-		namespace = rolebinding.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.RbacV1().RoleBindings(namespace).Update(h.ctx, rolebinding, h.Options.UpdateOptions)
 }
 
-// UpdateFromBytes update rolebinding from bytes.
-func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
-	rolebindingJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	rolebinding := &rbacv1.RoleBinding{}
-	err = json.Unmarshal(rolebindingJson, rolebinding)
-	if err != nil {
-		return nil, err
-	}
-
-	var namespace string
-	if len(rolebinding.Namespace) != 0 {
-		namespace = rolebinding.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.RbacV1().RoleBindings(namespace).Update(h.ctx, rolebinding, h.Options.UpdateOptions)
-}
-
-// UpdateFromFile update rolebinding from yaml file.
+// UpdateFromFile updates rolebinding from yaml file.
 func (h *Handler) UpdateFromFile(filename string) (*rbacv1.RoleBinding, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -59,7 +40,49 @@ func (h *Handler) UpdateFromFile(filename string) (*rbacv1.RoleBinding, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// Update update rolebinding from yaml file, alias to "UpdateFromFile".
-func (h *Handler) Update(filename string) (*rbacv1.RoleBinding, error) {
-	return h.UpdateFromFile(filename)
+// UpdateFromBytes updates rolebinding from bytes.
+func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
+	rbJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	rb := &rbacv1.RoleBinding{}
+	err = json.Unmarshal(rbJson, rb)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateRolebinding(rb)
+}
+
+// UpdateFromObject updates rolebinding from runtime.Object.
+func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error) {
+	rb, ok := obj.(*rbacv1.RoleBinding)
+	if !ok {
+		return nil, fmt.Errorf("object is not *rbacv1.RoleBinding")
+	}
+	return h.updateRolebinding(rb)
+}
+
+// UpdateFromUnstructured updates rolebinding from map[string]interface{}.
+func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*rbacv1.RoleBinding, error) {
+	rb := &rbacv1.RoleBinding{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rb)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateRolebinding(rb)
+}
+
+// updateRolebinding
+func (h *Handler) updateRolebinding(rb *rbacv1.RoleBinding) (*rbacv1.RoleBinding, error) {
+	var namespace string
+	if len(rb.Namespace) != 0 {
+		namespace = rb.Namespace
+	} else {
+		namespace = h.namespace
+	}
+	rb.ResourceVersion = ""
+	rb.UID = ""
+	return h.clientset.RbacV1().RoleBindings(namespace).Update(h.ctx, rb, h.Options.UpdateOptions)
 }

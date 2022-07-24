@@ -1,53 +1,76 @@
 package rolebinding
 
 import (
+	"fmt"
+
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply rolebinding from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*rbacv1.RoleBinding, error) {
-	rolebinding := &rbacv1.RoleBinding{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, rolebinding)
+// Apply applies rolebinding from type string, []byte, *rbacv1.RoleBinding,
+// rbacv1.RoleBinding, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*rbacv1.RoleBinding, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *rbacv1.RoleBinding:
+		return h.ApplyFromObject(val)
+	case rbacv1.RoleBinding:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
+	}
+}
+
+// ApplyFromFile applies rolebinding from yaml file.
+func (h *Handler) ApplyFromFile(filename string) (rb *rbacv1.RoleBinding, err error) {
+	rb, err = h.CreateFromFile(filename)
+	if k8serrors.IsAlreadyExists(err) { // if rolebinding already exist, update it.
+		rb, err = h.UpdateFromFile(filename)
+	}
+	return
+}
+
+// ApplyFromBytes pply rolebinding from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (rb *rbacv1.RoleBinding, err error) {
+	rb, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		rb, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies rolebinding from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error) {
+	rb, ok := obj.(*rbacv1.RoleBinding)
+	if !ok {
+		return nil, fmt.Errorf("object is not *rbacv1.RoleBinding")
+	}
+	return h.applyRolebinding(rb)
+}
+
+// ApplyFromUnstructured applies rolebinding from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*rbacv1.RoleBinding, error) {
+	rb := &rbacv1.RoleBinding{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rb)
 	if err != nil {
 		return nil, err
 	}
+	return h.applyRolebinding(rb)
+}
 
-	var namespace string
-	if len(rolebinding.Namespace) != 0 {
-		namespace = rolebinding.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	_, err = h.clientset.RbacV1().RoleBindings(namespace).Create(h.ctx, rolebinding, h.Options.CreateOptions)
+// applyRolebinding
+func (h *Handler) applyRolebinding(rb *rbacv1.RoleBinding) (*rbacv1.RoleBinding, error) {
+	_, err := h.createRolebinding(rb)
 	if k8serrors.IsAlreadyExists(err) {
-		rolebinding, err = h.clientset.RbacV1().RoleBindings(namespace).Update(h.ctx, rolebinding, h.Options.UpdateOptions)
+		return h.updateRolebinding(rb)
 	}
-	return rolebinding, err
-}
-
-// ApplyFromBytes apply rolebinding from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (rolebinding *rbacv1.RoleBinding, err error) {
-	rolebinding, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		rolebinding, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply rolebinding from yaml file.
-func (h *Handler) ApplyFromFile(filename string) (rolebinding *rbacv1.RoleBinding, err error) {
-	rolebinding, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
-		rolebinding, err = h.UpdateFromFile(filename)
-	}
-	return
-}
-
-// Apply apply rolebinding from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*rbacv1.RoleBinding, error) {
-	return h.ApplyFromFile(filename)
+	return rb, err
 }
