@@ -21,8 +21,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
-	_ "k8s.io/metrics/pkg/apis/metrics"
-	_ "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
 type Handler struct {
@@ -43,6 +41,16 @@ type Handler struct {
 	l sync.Mutex
 }
 
+// NewOrDie simply call New() to get a node handler.
+// panic if there is any error occurs.
+func NewOrDie(ctx context.Context, kubeconfig string) *Handler {
+	handler, err := New(ctx, kubeconfig)
+	if err != nil {
+		panic(err)
+	}
+	return handler
+}
+
 // New returns a node handler from kubeconfig or in-cluster config
 func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	var (
@@ -59,15 +67,13 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	// create rest config
 	if len(kubeconfig) != 0 {
 		// use the current context in kubeconfig
-		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
-		if err != nil {
-			return
+		if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
+			return nil, err
 		}
 	} else {
 		// create the in-cluster config
-		config, err = rest.InClusterConfig()
-		if err != nil {
-			return
+		if config, err = rest.InClusterConfig(); err != nil {
+			return nil, err
 		}
 	}
 
@@ -77,29 +83,24 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	config.NegotiatedSerializer = scheme.Codecs
 
 	// create a http client for the given config.
-	httpClient, err = rest.HTTPClientFor(config)
-	if err != nil {
+	if httpClient, err = rest.HTTPClientFor(config); err != nil {
 		return nil, err
 	}
 	// create a RESTClient for the given config and http client.
-	restClient, err = rest.RESTClientForConfigAndClient(config, httpClient)
-	if err != nil {
-		return
+	if restClient, err = rest.RESTClientForConfigAndClient(config, httpClient); err != nil {
+		return nil, err
 	}
 	// create a Clientset for the given config and http client.
-	clientset, err = kubernetes.NewForConfigAndClient(config, httpClient)
-	if err != nil {
-		return
+	if clientset, err = kubernetes.NewForConfigAndClient(config, httpClient); err != nil {
+		return nil, err
 	}
 	// create a dynamic client for the given config and http client.
-	dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient)
-	if err != nil {
-		return
+	if dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient); err != nil {
+		return nil, err
 	}
 	// create a DiscoveryClient for the given config and http client.
-	discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient)
-	if err != nil {
-		return
+	if discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient); err != nil {
+		return nil, err
 	}
 	// create a sharedInformerFactory for all namespaces.
 	informerFactory = informers.NewSharedInformerFactory(clientset, time.Minute)
@@ -116,7 +117,7 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	handler.informer = informerFactory.Core().V1().Nodes().Informer()
 	handler.Options = &typed.HandlerOptions{}
 
-	return
+	return handler, nil
 }
 func (in *Handler) DeepCopy() *Handler {
 	out := new(Handler)
@@ -163,15 +164,27 @@ func (h *Handler) SetLimit(limit int64) {
 	h.Options.ListOptions.Limit = limit
 }
 
+// RESTConfig returns underlying rest config.
+func (h *Handler) RESTConfig() *rest.Config {
+	return h.config
+}
+
+// RESTClient returns underlying rest client.
 func (h *Handler) RESTClient() *rest.RESTClient {
 	return h.restClient
 }
+
+// Clientset returns underlying clientset.
 func (h *Handler) Clientset() *kubernetes.Clientset {
 	return h.clientset
 }
+
+// DynamicClient returns underlying dynamic client.
 func (h *Handler) DynamicClient() dynamic.Interface {
 	return h.dynamicClient
 }
+
+// DiscoveryClient returns underlying discovery client.
 func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
