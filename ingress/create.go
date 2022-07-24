@@ -2,6 +2,7 @@ package ingress
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
@@ -9,48 +10,28 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create ingress from map[string]interface{}.
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*networkingv1.Ingress, error) {
-	ingress := &networkingv1.Ingress{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, ingress)
-	if err != nil {
-		return nil, err
+// Create creates ingress from type string, []byte, *networkingv1.Ingress,
+// networkingv1.Ingress, runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*networkingv1.Ingress, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *networkingv1.Ingress:
+		return h.CreateFromObject(val)
+	case networkingv1.Ingress:
+		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
 	}
-
-	var namespace string
-	if len(ingress.Namespace) != 0 {
-		namespace = ingress.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.NetworkingV1().Ingresses(namespace).Create(h.ctx, ingress, h.Options.CreateOptions)
 }
 
-// CreateFromBytes create ingress from bytes.
-func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.Ingress, error) {
-	ingressJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	ingress := &networkingv1.Ingress{}
-	err = json.Unmarshal(ingressJson, ingress)
-	if err != nil {
-		return nil, err
-	}
-
-	var namespace string
-	if len(ingress.Namespace) != 0 {
-		namespace = ingress.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.NetworkingV1().Ingresses(namespace).Create(h.ctx, ingress, h.Options.CreateOptions)
-}
-
-// CreateFromFile create ingress from yaml file.
+// CreateFromFile creates ingress from yaml file.
 func (h *Handler) CreateFromFile(filename string) (*networkingv1.Ingress, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -59,7 +40,49 @@ func (h *Handler) CreateFromFile(filename string) (*networkingv1.Ingress, error)
 	return h.CreateFromBytes(data)
 }
 
-// Create create ingress from file, alias to "CreateFromFile".
-func (h *Handler) Create(filename string) (*networkingv1.Ingress, error) {
-	return h.CreateFromFile(filename)
+// CreateFromBytes creates ingress from bytes.
+func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.Ingress, error) {
+	ingJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	ing := &networkingv1.Ingress{}
+	err = json.Unmarshal(ingJson, ing)
+	if err != nil {
+		return nil, err
+	}
+	return h.createIngress(ing)
+}
+
+// CreateFromObject creates ingress from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*networkingv1.Ingress, error) {
+	ing, ok := obj.(*networkingv1.Ingress)
+	if !ok {
+		return nil, fmt.Errorf("object is not *networkingv1.Ingress")
+	}
+	return h.createIngress(ing)
+}
+
+// CreateFromUnstructured creates ingress from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*networkingv1.Ingress, error) {
+	ing := &networkingv1.Ingress{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ing)
+	if err != nil {
+		return nil, err
+	}
+	return h.createIngress(ing)
+}
+
+// createIngress
+func (h *Handler) createIngress(ing *networkingv1.Ingress) (*networkingv1.Ingress, error) {
+	var namespace string
+	if len(ing.Namespace) != 0 {
+		namespace = ing.Namespace
+	} else {
+		namespace = h.namespace
+	}
+	ing.ResourceVersion = ""
+	ing.UID = ""
+	return h.clientset.NetworkingV1().Ingresses(namespace).Create(h.ctx, ing, h.Options.CreateOptions)
 }

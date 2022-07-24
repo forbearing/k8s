@@ -2,36 +2,44 @@ package ingress
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// DeleteFromBytes delete ingress from bytes.
-func (h *Handler) DeleteFromBytes(data []byte) error {
-	ingressJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return err
-	}
+// Delete deletes ingress from type string, []byte, *networkingv1.Ingress,
+// networkingv1.Ingress, runtime.Object or map[string]interface{}.
 
-	ingress := &networkingv1.Ingress{}
-	err = json.Unmarshal(ingressJson, ingress)
-	if err != nil {
-		return err
+// If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
+// You should always explicitly call DeleteFromFile to delete a ingress from file path.
+func (h *Handler) Delete(obj interface{}) error {
+	switch val := obj.(type) {
+	case string:
+		return h.DeleteByName(val)
+	case []byte:
+		return h.DeleteFromBytes(val)
+	case *networkingv1.Ingress:
+		return h.DeleteFromObject(val)
+	case networkingv1.Ingress:
+		return h.DeleteFromObject(&val)
+	case runtime.Object:
+		return h.DeleteFromObject(val)
+	case map[string]interface{}:
+		return h.DeleteFromUnstructured(val)
+	default:
+		return ERR_TYPE_DELETE
 	}
-
-	var namespace string
-	if len(ingress.Namespace) != 0 {
-		namespace = ingress.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.WithNamespace(namespace).DeleteByName(ingress.Name)
 }
 
-// DeleteFromFile delete ingress from yaml file.
+// DeleteByName deletes ingress by name.
+func (h *Handler) DeleteByName(name string) error {
+	return h.clientset.NetworkingV1().Ingresses(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+}
+
+// DeleteFromFile deletes ingress from yaml file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -40,12 +48,47 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteByName delete ingress by name
-func (h *Handler) DeleteByName(name string) error {
-	return h.clientset.NetworkingV1().Ingresses(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+// DeleteFromBytes deletes ingress from bytes.
+func (h *Handler) DeleteFromBytes(data []byte) error {
+	ingJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return err
+	}
+
+	ing := &networkingv1.Ingress{}
+	err = json.Unmarshal(ingJson, ing)
+	if err != nil {
+		return err
+	}
+	return h.deleteIngress(ing)
 }
 
-// Delete delete ingress by name, alias to "DeleteByName".
-func (h *Handler) Delete(name string) error {
-	return h.DeleteByName(name)
+// DeleteFromObject deletes ingress from runtime.Object.
+func (h *Handler) DeleteFromObject(obj runtime.Object) error {
+	ing, ok := obj.(*networkingv1.Ingress)
+	if !ok {
+		return fmt.Errorf("object is not *networkingv1.Ingress")
+	}
+	return h.deleteIngress(ing)
+}
+
+// DeleteFromUnstructured deletes ingress from map[string]interface{}.
+func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
+	ing := &networkingv1.Ingress{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ing)
+	if err != nil {
+		return err
+	}
+	return h.deleteIngress(ing)
+}
+
+// deleteIngress
+func (h *Handler) deleteIngress(ing *networkingv1.Ingress) error {
+	var namespace string
+	if len(ing.Namespace) != 0 {
+		namespace = ing.Namespace
+	} else {
+		namespace = h.namespace
+	}
+	return h.clientset.NetworkingV1().Ingresses(namespace).Delete(h.ctx, ing.Name, h.Options.DeleteOptions)
 }
