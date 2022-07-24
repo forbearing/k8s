@@ -2,6 +2,7 @@ package role
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -9,25 +10,37 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// UpdateFromRaw update role from map[string]interface{}.
-func (h *Handler) UpdateFromRaw(raw map[string]interface{}) (*rbacv1.Role, error) {
-	role := &rbacv1.Role{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, role)
+// Update updates role from type string, []byte, *rbacv1.Role,
+// rbacv1.Role, runtime.Object or map[string]interface{}.
+func (h *Handler) Update(obj interface{}) (*rbacv1.Role, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.UpdateFromFile(val)
+	case []byte:
+		return h.UpdateFromBytes(val)
+	case *rbacv1.Role:
+		return h.UpdateFromObject(val)
+	case rbacv1.Role:
+		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
+	case map[string]interface{}:
+		return h.UpdateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_UPDATE
+	}
+}
+
+// UpdateFromFile updates role from yaml file.
+func (h *Handler) UpdateFromFile(filename string) (*rbacv1.Role, error) {
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-
-	var namespace string
-	if len(role.Namespace) != 0 {
-		namespace = role.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.RbacV1().Roles(namespace).Update(h.ctx, role, h.Options.UpdateOptions)
+	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes update role from bytes.
+// UpdateFromBytes updates role from bytes.
 func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.Role, error) {
 	roleJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -39,27 +52,37 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.Role, error) {
 	if err != nil {
 		return nil, err
 	}
+	return h.updateRole(role)
+}
 
+// UpdateFromObject updates role from runtime.Object.
+func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.Role, error) {
+	role, ok := obj.(*rbacv1.Role)
+	if !ok {
+		return nil, fmt.Errorf("object is not *rbacv1.Role")
+	}
+	return h.updateRole(role)
+}
+
+// UpdateFromUnstructured updates role from map[string]interface{}.
+func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*rbacv1.Role, error) {
+	role := &rbacv1.Role{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, role)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateRole(role)
+}
+
+// updateRole
+func (h *Handler) updateRole(role *rbacv1.Role) (*rbacv1.Role, error) {
 	var namespace string
 	if len(role.Namespace) != 0 {
 		namespace = role.Namespace
 	} else {
 		namespace = h.namespace
 	}
-
+	role.ResourceVersion = ""
+	role.UID = ""
 	return h.clientset.RbacV1().Roles(namespace).Update(h.ctx, role, h.Options.UpdateOptions)
-}
-
-// UpdateFromFile update role from yaml file.
-func (h *Handler) UpdateFromFile(filename string) (*rbacv1.Role, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return h.UpdateFromBytes(data)
-}
-
-// Update update role from yaml file, alias to "UpdateFromFile".
-func (h *Handler) Update(filename string) (*rbacv1.Role, error) {
-	return h.UpdateFromFile(filename)
 }

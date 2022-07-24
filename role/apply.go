@@ -1,53 +1,76 @@
 package role
 
 import (
+	"fmt"
+
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply role from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*rbacv1.Role, error) {
-	role := &rbacv1.Role{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, role)
-	if err != nil {
-		return nil, err
+// Apply applies role from type string, []byte, *rbacv1.Role,
+// rbacv1.Role, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*rbacv1.Role, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *rbacv1.Role:
+		return h.ApplyFromObject(val)
+	case rbacv1.Role:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
-
-	var namespace string
-	if len(role.Namespace) != 0 {
-		namespace = role.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	_, err = h.clientset.RbacV1().Roles(namespace).Create(h.ctx, role, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		role, err = h.clientset.RbacV1().Roles(namespace).Update(h.ctx, role, h.Options.UpdateOptions)
-	}
-	return role, err
 }
 
-// ApplyFromBytes apply role from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (role *rbacv1.Role, err error) {
-	role, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		role, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply role from yaml file.
+// ApplyFromFile applies role from yaml file.
 func (h *Handler) ApplyFromFile(filename string) (role *rbacv1.Role, err error) {
 	role, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
+	if k8serrors.IsAlreadyExists(err) { // if role already exist, update it.
 		role, err = h.UpdateFromFile(filename)
 	}
 	return
 }
 
-// Apply apply role from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*rbacv1.Role, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromBytes pply role from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (role *rbacv1.Role, err error) {
+	role, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		role, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies role from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.Role, error) {
+	role, ok := obj.(*rbacv1.Role)
+	if !ok {
+		return nil, fmt.Errorf("object is not *rbacv1.Role")
+	}
+	return h.applyRole(role)
+}
+
+// ApplyFromUnstructured applies role from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*rbacv1.Role, error) {
+	role := &rbacv1.Role{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, role)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyRole(role)
+}
+
+// applyRole
+func (h *Handler) applyRole(role *rbacv1.Role) (*rbacv1.Role, error) {
+	_, err := h.createRole(role)
+	if k8serrors.IsAlreadyExists(err) {
+		return h.updateRole(role)
+	}
+	return role, err
 }
