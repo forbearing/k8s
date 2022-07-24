@@ -1,46 +1,76 @@
 package persistentvolume
 
 import (
+	"fmt"
+
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-// ApplyFromRaw apply persistentvolume from map[string]interface{}.
-func (h *Handler) ApplyFromRaw(raw map[string]interface{}) (*corev1.PersistentVolume, error) {
-	pv := &corev1.PersistentVolume{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, pv)
-	if err != nil {
-		return nil, err
+// Apply applies persistentvolume from type string, []byte, *corev1.PersistentVolume,
+// corev1.PersistentVolume, runtime.Object or map[string]interface{}.
+func (h *Handler) Apply(obj interface{}) (*corev1.PersistentVolume, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.ApplyFromFile(val)
+	case []byte:
+		return h.ApplyFromBytes(val)
+	case *corev1.PersistentVolume:
+		return h.ApplyFromObject(val)
+	case corev1.PersistentVolume:
+		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
+	case map[string]interface{}:
+		return h.ApplyFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_APPLY
 	}
-
-	_, err = h.clientset.CoreV1().PersistentVolumes().Create(h.ctx, pv, h.Options.CreateOptions)
-	if k8serrors.IsAlreadyExists(err) {
-		pv, err = h.clientset.CoreV1().PersistentVolumes().Update(h.ctx, pv, h.Options.UpdateOptions)
-	}
-	return pv, err
 }
 
-// ApplyFromBytes apply persistentvolume from bytes.
-func (h *Handler) ApplyFromBytes(data []byte) (pv *corev1.PersistentVolume, err error) {
-	pv, err = h.CreateFromBytes(data)
-	if errors.IsAlreadyExists(err) {
-		pv, err = h.UpdateFromBytes(data)
-	}
-	return
-}
-
-// ApplyFromFile apply persistentvolume from yaml file.
+// ApplyFromFile applies persistentvolume from yaml file.
 func (h *Handler) ApplyFromFile(filename string) (pv *corev1.PersistentVolume, err error) {
 	pv, err = h.CreateFromFile(filename)
-	if errors.IsAlreadyExists(err) {
+	if k8serrors.IsAlreadyExists(err) { // if persistentvolume already exist, update it.
 		pv, err = h.UpdateFromFile(filename)
 	}
 	return
 }
 
-// Apply apply persistentvolume from yaml file, alias to "ApplyFromFile".
-func (h *Handler) Apply(filename string) (*corev1.PersistentVolume, error) {
-	return h.ApplyFromFile(filename)
+// ApplyFromBytes pply persistentvolume from bytes.
+func (h *Handler) ApplyFromBytes(data []byte) (pv *corev1.PersistentVolume, err error) {
+	pv, err = h.CreateFromBytes(data)
+	if k8serrors.IsAlreadyExists(err) {
+		pv, err = h.UpdateFromBytes(data)
+	}
+	return
+}
+
+// ApplyFromObject applies persistentvolume from runtime.Object.
+func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.PersistentVolume, error) {
+	pv, ok := obj.(*corev1.PersistentVolume)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.PersistentVolume")
+	}
+	return h.applyPV(pv)
+}
+
+// ApplyFromUnstructured applies persistentvolume from map[string]interface{}.
+func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*corev1.PersistentVolume, error) {
+	pv := &corev1.PersistentVolume{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, pv)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyPV(pv)
+}
+
+// applyPV
+func (h *Handler) applyPV(pv *corev1.PersistentVolume) (*corev1.PersistentVolume, error) {
+	_, err := h.createPV(pv)
+	if k8serrors.IsAlreadyExists(err) {
+		return h.updatePV(pv)
+	}
+	return pv, err
 }

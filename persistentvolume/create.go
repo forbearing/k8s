@@ -2,6 +2,7 @@ package persistentvolume
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
@@ -9,33 +10,28 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// CreateFromRaw create persistentvolume from map[string]interface{}.
-func (h *Handler) CreateFromRaw(raw map[string]interface{}) (*corev1.PersistentVolume, error) {
-	pv := &corev1.PersistentVolume{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(raw, pv)
-	if err != nil {
-		return nil, err
+// Create creates persistentvolume from type string, []byte, *corev1.PersistentVolume,
+// corev1.PersistentVolume, runtime.Object or map[string]interface{}.
+func (h *Handler) Create(obj interface{}) (*corev1.PersistentVolume, error) {
+	switch val := obj.(type) {
+	case string:
+		return h.CreateFromFile(val)
+	case []byte:
+		return h.CreateFromBytes(val)
+	case *corev1.PersistentVolume:
+		return h.CreateFromObject(val)
+	case corev1.PersistentVolume:
+		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
+	case map[string]interface{}:
+		return h.CreateFromUnstructured(val)
+	default:
+		return nil, ERR_TYPE_CREATE
 	}
-
-	return h.clientset.CoreV1().PersistentVolumes().Create(h.ctx, pv, h.Options.CreateOptions)
 }
 
-// CreateFromBytes create persistentvolume from bytes.
-func (h *Handler) CreateFromBytes(data []byte) (*corev1.PersistentVolume, error) {
-	pvJson, err := yaml.ToJSON(data)
-	if err != nil {
-		return nil, err
-	}
-
-	pv := &corev1.PersistentVolume{}
-	if err = json.Unmarshal(pvJson, pv); err != nil {
-		return nil, err
-	}
-
-	return h.clientset.CoreV1().PersistentVolumes().Create(h.ctx, pv, h.Options.CreateOptions)
-}
-
-// CreateFromFile create persistentvolume from yaml file.
+// CreateFromFile creates persistentvolume from yaml file.
 func (h *Handler) CreateFromFile(filename string) (*corev1.PersistentVolume, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -44,7 +40,43 @@ func (h *Handler) CreateFromFile(filename string) (*corev1.PersistentVolume, err
 	return h.CreateFromBytes(data)
 }
 
-// Create create persistentvolume from yaml file, alias to "CreateFromFile".
-func (h *Handler) Create(filename string) (*corev1.PersistentVolume, error) {
-	return h.CreateFromFile(filename)
+// CreateFromBytes creates persistentvolume from bytes.
+func (h *Handler) CreateFromBytes(data []byte) (*corev1.PersistentVolume, error) {
+	pvJson, err := yaml.ToJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	pv := &corev1.PersistentVolume{}
+	err = json.Unmarshal(pvJson, pv)
+	if err != nil {
+		return nil, err
+	}
+	return h.createPV(pv)
+}
+
+// CreateFromObject creates persistentvolume from runtime.Object.
+func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.PersistentVolume, error) {
+	pv, ok := obj.(*corev1.PersistentVolume)
+	if !ok {
+		return nil, fmt.Errorf("object is not *corev1.PersistentVolume")
+	}
+	return h.createPV(pv)
+}
+
+// CreateFromUnstructured creates persistentvolume from map[string]interface{}.
+func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*corev1.PersistentVolume, error) {
+	pv := &corev1.PersistentVolume{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, pv)
+	if err != nil {
+		return nil, err
+	}
+	return h.createPV(pv)
+}
+
+// createPV
+func (h *Handler) createPV(pv *corev1.PersistentVolume) (*corev1.PersistentVolume, error) {
+	pv.ResourceVersion = ""
+	pv.UID = ""
+	return h.clientset.CoreV1().PersistentVolumes().Create(h.ctx, pv, h.Options.CreateOptions)
 }
