@@ -7,7 +7,7 @@ import (
 )
 
 func BenchmarkHandler(b *testing.B) {
-	_, err := deployment.New(ctx, namespace, kubeconfig)
+	_, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		b.Error(err)
 	}

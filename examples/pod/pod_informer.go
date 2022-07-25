@@ -14,7 +14,7 @@ type updateObject struct {
 }
 
 func Pod_Informer() {
-	handler, err := pod.New(ctx, namespace, kubeconfig)
+	handler, err := pod.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

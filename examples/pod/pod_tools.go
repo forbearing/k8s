@@ -9,7 +9,7 @@ import (
 )
 
 func Pod_Tools() {
-	handler, err := pod.New(ctx, namespace, kubeconfig)
+	handler, err := pod.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

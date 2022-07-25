@@ -10,7 +10,7 @@ import (
 )
 
 func DaemonSet_Tools() {
-	handler, err := daemonset.New(ctx, namespace, kubeconfig)
+	handler, err := daemonset.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

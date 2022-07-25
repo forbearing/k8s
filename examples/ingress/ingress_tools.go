@@ -8,7 +8,7 @@ import (
 )
 
 func Ingress_Tools() {
-	handler, err := ingress.New(ctx, namespace, kubeconfig)
+	handler, err := ingress.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

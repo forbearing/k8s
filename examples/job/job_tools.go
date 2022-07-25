@@ -8,7 +8,7 @@ import (
 )
 
 func Job_Tools() {
-	handler, err := job.New(ctx, namespace, kubeconfig)
+	handler, err := job.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

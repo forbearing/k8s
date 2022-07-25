@@ -10,7 +10,7 @@ import (
 )
 
 func StatefulSet_Tools() {
-	handler, err := statefulset.New(ctx, namespace, kubeconfig)
+	handler, err := statefulset.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

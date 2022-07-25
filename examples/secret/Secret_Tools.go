@@ -8,7 +8,7 @@ import (
 )
 
 func Secret_Tools() {
-	handler, err := secret.New(ctx, namespace, kubeconfig)
+	handler, err := secret.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

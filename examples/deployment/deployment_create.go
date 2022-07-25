@@ -9,7 +9,7 @@ import (
 
 func Deployment_Create() {
 	// New returns a handler used to multiples deployment.
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

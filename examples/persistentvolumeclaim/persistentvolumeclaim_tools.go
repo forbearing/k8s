@@ -9,7 +9,7 @@ import (
 
 func PersistentVolumeClaim_Tools() {
 	//handler, err := persisetntvolumeclaim.New()
-	handler, err := persistentvolumeclaim.New(ctx, namespace, kubeconfig)
+	handler, err := persistentvolumeclaim.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

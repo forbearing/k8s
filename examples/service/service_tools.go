@@ -8,7 +8,7 @@ import (
 )
 
 func Service_Tools() {
-	handler, err := service.New(ctx, namespace, kubeconfig)
+	handler, err := service.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

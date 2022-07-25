@@ -8,7 +8,7 @@ import (
 )
 
 func ConfigMap_Tools() {
-	handler, err := configmap.New(ctx, namespace, kubeconfig)
+	handler, err := configmap.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

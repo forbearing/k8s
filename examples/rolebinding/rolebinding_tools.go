@@ -8,7 +8,7 @@ import (
 )
 
 func RoleBinding_Tools() {
-	handler, err := rolebinding.New(ctx, namespace, kubeconfig)
+	handler, err := rolebinding.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

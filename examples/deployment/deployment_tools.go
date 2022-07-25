@@ -11,7 +11,7 @@ import (
 )
 
 func Deployment_Tools() {
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}

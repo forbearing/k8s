@@ -9,7 +9,7 @@ import (
 )
 
 func Cronjob_Tools() {
-	handler, err := cronjob.New(ctx, namespace, kubeconfig)
+	handler, err := cronjob.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
