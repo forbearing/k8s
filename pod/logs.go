@@ -107,7 +107,7 @@ func (h *Handler) getLog(namespace, name string, logOptions *LogOptions) error {
 	scanner := bufio.NewScanner(readCloser)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-		fmt.Fprintf(logOptions.Writer, "%s\n", scanner.Text())
+		fmt.Fprintf(logOptions.Writer, "%s", scanner.Text())
 	}
 
 	//// if logOptions.Writer already closed, return nil.
