@@ -519,6 +519,16 @@ func (h *Handler) getReadyContainers(pod *corev1.Pod) []Container {
 //    https://github.com/kubernetes/dashboard/blob/master/src/app/backend/handler/terminal.go
 //    http://maoqide.live/post/cloud/kubernetes-webshell/
 
+// client-go 提供的 k8s.io/client-go/tools/remotecommand 包, 提供了方法与集群中的
+// 容器进行长连接,并设置容器的 stdin, stdout 等.
+// remotecommand 包提供了基于 SPDY 协议的 Executor interface 进行和 pod 终端的流
+// 的传输. 初始化一个 Executor 很简单,只需要调用 NewSPDYExecutor 并传入对应参数.
+// Executor 的 Stream 方法, 会建立一个传输的连接,直到服务端和调用端一段关闭连接,
+// 才会停止传输. 常用的做法是定义一个 PtyHandler 的 interface, 然后使用你想用的
+// 客户端实现该 interface 对应的 Read(p []byte) (int, error) 和 Write(p []byte) (int, error)
+// 方法即可, Executor 调用 Stream 方法时,只要将 StreamOptions 的 Stdin Stdout
+// 都设置为 PtyHandler, Executor 就会通过你定义的 write 和 read 方法来传输数据.
+
 // Execute will executing remote processes in a container of the pod.
 // If no container name is specified, Execute will executing a process
 // in the first container of the pod by default.
@@ -536,7 +546,7 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 		containerName = pod.Spec.Containers[0].Name
 	}
 
-	// Prepare the API URL used to execute another process within the Pod.  In
+	// Prepare the API URL used to execute another process within the Pod. In
 	// this case, we'll run a remote shell.
 	req := h.restClient.Post().
 		Namespace(h.namespace).
@@ -557,17 +567,6 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 		return err
 	}
 
-	//// Put the terminal into raw mode to prevent it echoing characters twice.
-	//// The integer file descriptor associated with the stream stdin, stdout
-	//// and stderr are 0, 1 and 2, respectively.
-	////oldState, err := terminal.MakeRaw(0)
-	////defer terminal.Restore(0, oldState)
-	//oldState, err := terminal.MakeRaw(int(os.Stdin.Fd()))
-	//if err != nil {
-	//    return fmt.Errorf("Failed to set raw mod on Stdin: %v\n", err)
-	//}
-	//defer terminal.Restore(int(os.Stdin.Fd()), oldState)
-
 	// if passed ptyhandler is nil
 	if pty == nil || reflect.ValueOf(pty).IsNil() {
 		// Connect the process std(in,out,err) to the remote shell process.
@@ -586,6 +585,69 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 		Tty:               true,
 	})
 }
+
+//func (h *Handler) Execute(podName, containerName string, command []string, pty PtyHandler) error {
+//    // if pod not found, returns error.
+//    pod, err := h.Get(podName)
+//    if err != nil {
+//        return err
+//    }
+
+//    // if containerName is empty, execute command in first container of the pod.
+//    if len(containerName) == 0 {
+//        containerName = pod.Spec.Containers[0].Name
+//    }
+
+//    // Prepare the API URL used to execute another process within the Pod.  In
+//    // this case, we'll run a remote shell.
+//    req := h.restClient.Post().
+//        Namespace(h.namespace).
+//        Resource("pods").
+//        Name(podName).
+//        SubResource("exec").
+//        VersionedParams(&corev1.PodExecOptions{
+//            Container: containerName,
+//            Command:   command,
+//            Stdin:     true,
+//            Stdout:    true,
+//            Stderr:    true,
+//            TTY:       true,
+//        }, scheme.ParameterCodec)
+
+//    exec, err := remotecommand.NewSPDYExecutor(h.config, "POST", req.URL())
+//    if err != nil {
+//        return err
+//    }
+
+//    //// Put the terminal into raw mode to prevent it echoing characters twice.
+//    //// The integer file descriptor associated with the stream stdin, stdout
+//    //// and stderr are 0, 1 and 2, respectively.
+//    ////oldState, err := terminal.MakeRaw(0)
+//    ////defer terminal.Restore(0, oldState)
+//    //oldState, err := terminal.MakeRaw(int(os.Stdin.Fd()))
+//    //if err != nil {
+//    //    return fmt.Errorf("Failed to set raw mod on Stdin: %v\n", err)
+//    //}
+//    //defer terminal.Restore(int(os.Stdin.Fd()), oldState)
+
+//    // if passed ptyhandler is nil
+//    if pty == nil || reflect.ValueOf(pty).IsNil() {
+//        // Connect the process std(in,out,err) to the remote shell process.
+//        return exec.Stream(remotecommand.StreamOptions{
+//            Stdin:  os.Stdin,
+//            Stdout: os.Stdout,
+//            Stderr: os.Stderr,
+//            Tty:    true,
+//        })
+//    }
+//    return exec.Stream(remotecommand.StreamOptions{
+//        Stdin:             pty,
+//        Stdout:            pty,
+//        Stderr:            pty,
+//        TerminalSizeQueue: pty,
+//        Tty:               true,
+//    })
+//}
 
 //type PodController2 struct {
 //    //APIVersion        string            `json:"apiVersion"`
