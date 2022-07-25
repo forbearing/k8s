@@ -494,23 +494,6 @@ func (h *Handler) getReadyContainers(pod *corev1.Pod) []Container {
 	return cl
 }
 
-//type PodExecOptions struct {
-//    metav1.TypeMeta `json:",inline"`
-//    Stdin bool `json:"stdin,omitempty" protobuf:"varint,1,opt,name=stdin"`
-//    Stdout bool `json:"stdout,omitempty" protobuf:"varint,2,opt,name=stdout"`
-//    Stderr bool `json:"stderr,omitempty" protobuf:"varint,3,opt,name=stderr"`
-//    TTY bool `json:"tty,omitempty" protobuf:"varint,4,opt,name=tty"`
-//    Container string `json:"container,omitempty" protobuf:"bytes,5,opt,name=container"`
-//    Command []string `json:"command" protobuf:"bytes,6,rep,name=command"`
-//}
-//type StreamOptions struct {
-//    Stdin             io.Reader
-//    Stdout            io.Writer
-//    Stderr            io.Writer
-//    Tty               bool
-//    TerminalSizeQueue TerminalSizeQueue
-//}
-
 // references:
 //    https://miminar.fedorapeople.org/_preview/openshift-enterprise/registry-redeploy/go_client/executing_remote_processes.html
 //    https://stackoverflow.com/questions/43314689/example-of-exec-in-k8ss-pod-by-using-go-client
@@ -546,8 +529,8 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 		containerName = pod.Spec.Containers[0].Name
 	}
 
-	// Prepare the API URL used to execute another process within the Pod. In
-	// this case, we'll run a remote shell.
+	// Prepare the API URL used to execute another process within the Pod.
+	// In this case, we'll run a remote shell.
 	req := h.restClient.Post().
 		Namespace(h.namespace).
 		Resource("pods").
@@ -567,9 +550,8 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 		return err
 	}
 
-	// if passed ptyhandler is nil
+	// Connect the process std(in,out,err) to the remote shell process.
 	if pty == nil || reflect.ValueOf(pty).IsNil() {
-		// Connect the process std(in,out,err) to the remote shell process.
 		return exec.Stream(remotecommand.StreamOptions{
 			Stdin:  os.Stdin,
 			Stdout: os.Stdout,
@@ -647,128 +629,4 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 //        TerminalSizeQueue: pty,
 //        Tty:               true,
 //    })
-//}
-
-//type PodController2 struct {
-//    //APIVersion        string            `json:"apiVersion"`
-//    //Kind              string            `json:"kind"`
-//    //Name              string            `json:"name"`
-//    //UID               string            `json:"uid"`
-//    //Controller        bool              `json:"controller"`
-//    //BlockOwnerDeletion    bool `json:"blockOwnerDeletion"`
-//    Labels            map[string]string `json:"labels"`
-//    Ready             string            `json:"ready"`
-//    Images            []string          `json:"images"`
-//    CreationTimestamp metav1.Time       `json:"creationTimestamp"`
-
-//    metav1.OwnerReference `json:"ownerReference"`
-//}
-
-//// GetController returns a *PodController object by pod name if the controllee(pod) has a controller
-//func (h *Handler) GetController2(name string) (*PodController2, error) {
-//    var (
-//        podHandler *Handler
-//        stsHandler *statefulset.Handler
-//        dsHandler  *daemonset.Handler
-//        jobHandler *job.Handler
-//        rsHandler  *replicaset.Handler
-//        rcHandler  *replicationcontroller.Handler
-//    )
-
-//    if len(name) == 0 {
-//        return nil, fmt.Errorf("not set the pod name")
-//    }
-//    pod, err := h.Get(name)
-//    if err != nil {
-//        return nil, err
-//    }
-
-//    // GetControllerOf returns a pointer to a copy of the controllerRef if controllee has a controller
-//    ownerRef := metav1.GetControllerOf(pod)
-//    if ownerRef == nil {
-//        return nil, fmt.Errorf("the pod %q doesn't have controller", name)
-//    }
-//    oc := PodController2{OwnerReference: *ownerRef}
-
-//    // get containers image
-//    containers, err := h.GetContainers(name)
-//    if err != nil {
-//        return nil, err
-//    }
-//    for _, c := range containers {
-//        oc.Images = append(oc.Images, c.Image)
-//    }
-
-//    switch strings.ToLower(ownerRef.Kind) {
-//    case typed.ResourceKindPod:
-//        var pod *corev1.Pod
-//        if podHandler, err = New(h.ctx, h.namespace, h.kubeconfig); err != nil {
-//            return nil, err
-//        }
-//        if pod, err = podHandler.Get(oc.Name); err != nil {
-//            return nil, err
-//        }
-//        oc.Labels = pod.Labels
-//        rcs, _ := h.GetReadyContainers(oc.Name)
-//        oc.Ready = fmt.Sprintf("%d/%d", len(rcs), len(pod.Spec.Containers))
-//        oc.CreationTimestamp = pod.CreationTimestamp
-//    case typed.ResourceKindDaemonSet:
-//        var ds *appsv1.DaemonSet
-//        if dsHandler, err = daemonset.New(h.ctx, h.namespace, h.kubeconfig); err != nil {
-//            return nil, err
-//        }
-//        if ds, err = dsHandler.Get(oc.Name); err != nil {
-//            return nil, err
-//        }
-//        oc.Labels = ds.Labels
-//        oc.Ready = fmt.Sprintf("%d/%d", ds.Status.NumberReady, ds.Status.DesiredNumberScheduled)
-//        oc.CreationTimestamp = ds.CreationTimestamp
-//    case typed.ResourceKindStatefulSet:
-//        var sts *appsv1.StatefulSet
-//        if stsHandler, err = statefulset.New(h.ctx, h.namespace, h.kubeconfig); err != nil {
-//            return nil, err
-//        }
-//        if sts, err = stsHandler.Get(oc.Name); err != nil {
-//            return nil, err
-//        }
-//        oc.Labels = sts.Labels
-//        oc.Ready = fmt.Sprintf("%d/%d", sts.Status.ReadyReplicas, sts.Status.Replicas)
-//        oc.CreationTimestamp = sts.CreationTimestamp
-//    case typed.ResourceKindJob:
-//        var j *batchv1.Job
-//        if jobHandler, err = job.New(h.ctx, h.namespace, h.kubeconfig); err != nil {
-//            return nil, err
-//        }
-//        if j, err = jobHandler.Get(oc.Name); err != nil {
-//            return nil, err
-//        }
-//        oc.Labels = j.Labels
-//        oc.Ready = fmt.Sprintf("%d/%d", j.Status.Succeeded, *j.Spec.Completions)
-//        oc.CreationTimestamp = j.CreationTimestamp
-//    case typed.ResourceKindReplicaSet:
-//        var rs *appsv1.ReplicaSet
-//        if rsHandler, err = replicaset.New(h.ctx, h.namespace, h.kubeconfig); err != nil {
-//            return nil, err
-//        }
-//        if rs, err = rsHandler.Get(oc.Name); err != nil {
-//            return nil, err
-//        }
-//        oc.Labels = rs.Labels
-//        oc.Ready = fmt.Sprintf("%d/%d", rs.Status.ReadyReplicas, rs.Status.Replicas)
-//        oc.CreationTimestamp = rs.CreationTimestamp
-//    case typed.ResourceKindReplicationController:
-//        var rc *corev1.ReplicationController
-//        if rcHandler, err = replicationcontroller.New(h.ctx, h.namespace, h.kubeconfig); err != nil {
-//            return nil, err
-//        }
-//        if rc, err = rcHandler.Get(oc.Name); err != nil {
-//            return nil, err
-//        }
-//        oc.Labels = rc.Labels
-//        oc.Ready = fmt.Sprintf("%d/%d", rc.Status.ReadyReplicas, rc.Status.Replicas)
-//        oc.CreationTimestamp = rc.CreationTimestamp
-//    default:
-//        return nil, fmt.Errorf("unknown reference kind: %s", ownerRef.Kind)
-//    }
-//    return &oc, nil
 //}
