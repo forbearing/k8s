@@ -1,4 +1,4 @@
-package typed
+package types
 
 type Handler interface {
 	Creater
