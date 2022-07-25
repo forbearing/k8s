@@ -70,7 +70,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *corev1.Service:
-			handler, err := service.New(ctx, "", kubeconfig)
+			handler, err := service.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -78,7 +78,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *corev1.ConfigMap:
-			handler, err := configmap.New(ctx, "", kubeconfig)
+			handler, err := configmap.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -86,7 +86,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *corev1.Secret:
-			handler, err := secret.New(ctx, "", kubeconfig)
+			handler, err := secret.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -94,7 +94,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *corev1.ServiceAccount:
-			handler, err := serviceaccount.New(ctx, "", kubeconfig)
+			handler, err := serviceaccount.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -102,7 +102,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *corev1.Pod:
-			handler, err := pod.New(ctx, "", kubeconfig)
+			handler, err := pod.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -118,7 +118,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *corev1.PersistentVolumeClaim:
-			handler, err := persistentvolumeclaim.New(ctx, "", kubeconfig)
+			handler, err := persistentvolumeclaim.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -126,7 +126,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *appsv1.Deployment:
-			handler, err := deployment.New(ctx, "", kubeconfig)
+			handler, err := deployment.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -134,7 +134,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *appsv1.StatefulSet:
-			handler, err := statefulset.New(ctx, "", kubeconfig)
+			handler, err := statefulset.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -142,7 +142,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *appsv1.DaemonSet:
-			handler, err := daemonset.New(ctx, "", kubeconfig)
+			handler, err := daemonset.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -150,7 +150,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *networking.Ingress:
-			handler, err := ingress.New(ctx, "", kubeconfig)
+			handler, err := ingress.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -166,7 +166,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *networking.NetworkPolicy:
-			handler, err := networkpolicy.New(ctx, "", kubeconfig)
+			handler, err := networkpolicy.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -174,7 +174,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *batchv1.Job:
-			handler, err := job.New(ctx, "", kubeconfig)
+			handler, err := job.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -182,7 +182,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *batchv1.CronJob:
-			handler, err := cronjob.New(ctx, "", kubeconfig)
+			handler, err := cronjob.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -190,7 +190,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *rbacv1.Role:
-			handler, err := role.New(ctx, "", kubeconfig)
+			handler, err := role.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -198,7 +198,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *rbacv1.RoleBinding:
-			handler, err := rolebinding.New(ctx, "", kubeconfig)
+			handler, err := rolebinding.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -222,7 +222,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *appsv1.ReplicaSet:
-			handler, err := replicaset.New(ctx, "", kubeconfig)
+			handler, err := replicaset.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -230,7 +230,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 				log.Error(err)
 			}
 		case *corev1.ReplicationController:
-			handler, err := replicationcontroller.New(ctx, "", kubeconfig)
+			handler, err := replicationcontroller.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}

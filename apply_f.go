@@ -74,7 +74,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply namespace %q failed: %v\n", ns.Name, err)
 			}
 		case *corev1.Service:
-			handler, err := service.New(ctx, "", kubeconfig)
+			handler, err := service.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -82,7 +82,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply service %q failed: %v\n", svc.Name, err)
 			}
 		case *corev1.ConfigMap:
-			handler, err := configmap.New(ctx, "", kubeconfig)
+			handler, err := configmap.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -90,7 +90,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply configmap %q failed: %v\n", cm.Name, err)
 			}
 		case *corev1.Secret:
-			handler, err := secret.New(ctx, "", kubeconfig)
+			handler, err := secret.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -98,7 +98,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply secret %q failed: %v\n", sec.Name, err)
 			}
 		case *corev1.ServiceAccount:
-			handler, err := serviceaccount.New(ctx, "", kubeconfig)
+			handler, err := serviceaccount.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -106,7 +106,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply serviceaccount %q failed: %v\n", sa.Name, err)
 			}
 		case *corev1.Pod:
-			handler, err := pod.New(ctx, "", kubeconfig)
+			handler, err := pod.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -122,7 +122,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply persistentvolume %q failed: %v\n", pv.Name, err)
 			}
 		case *corev1.PersistentVolumeClaim:
-			handler, err := persistentvolumeclaim.New(ctx, "", kubeconfig)
+			handler, err := persistentvolumeclaim.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -130,7 +130,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply persistentvolumeclaim %q failed: %v\n", pvc.Name, err)
 			}
 		case *appsv1.Deployment:
-			handler, err := deployment.New(ctx, "", kubeconfig)
+			handler, err := deployment.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -138,7 +138,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply deployment %q failed: %v\n", deploy.Name, err)
 			}
 		case *appsv1.StatefulSet:
-			handler, err := statefulset.New(ctx, "", kubeconfig)
+			handler, err := statefulset.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -146,7 +146,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply statefulset %q failed: %v\n", sts.Name, err)
 			}
 		case *appsv1.DaemonSet:
-			handler, err := daemonset.New(ctx, "", kubeconfig)
+			handler, err := daemonset.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -154,7 +154,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply daemonset %q failed: %v\n", ds.Name, err)
 			}
 		case *networking.Ingress:
-			handler, err := ingress.New(ctx, "", kubeconfig)
+			handler, err := ingress.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -170,7 +170,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply ingressclass %q failed: %v\n", ingc.Name, err)
 			}
 		case *networking.NetworkPolicy:
-			handler, err := networkpolicy.New(ctx, "", kubeconfig)
+			handler, err := networkpolicy.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -178,7 +178,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply networkpolicy %q failed: %v\n", netpol.Name, err)
 			}
 		case *batchv1.Job:
-			handler, err := job.New(ctx, "", kubeconfig)
+			handler, err := job.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -186,7 +186,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply job %q failed: %v\n", j.Name, err)
 			}
 		case *batchv1.CronJob:
-			handler, err := cronjob.New(ctx, "", kubeconfig)
+			handler, err := cronjob.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -194,7 +194,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply cronjob %q failed: %v\n", cj.Name, err)
 			}
 		case *rbacv1.Role:
-			handler, err := role.New(ctx, "", kubeconfig)
+			handler, err := role.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -202,7 +202,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply role %q failed: %v\n", r.Name, err)
 			}
 		case *rbacv1.RoleBinding:
-			handler, err := rolebinding.New(ctx, "", kubeconfig)
+			handler, err := rolebinding.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -226,7 +226,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply clusterrolebinding %q failed: %v\n", crb.Name, err)
 			}
 		case *corev1.ReplicationController:
-			handler, err := replicationcontroller.New(ctx, "", kubeconfig)
+			handler, err := replicationcontroller.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
@@ -234,7 +234,7 @@ func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 				log.Errorf("apply replicationcontroller %q failed: %v\n", rc.Name, err)
 			}
 		case *appsv1.ReplicaSet:
-			handler, err := replicaset.New(ctx, "", kubeconfig)
+			handler, err := replicaset.New(ctx, kubeconfig, "")
 			if err != nil {
 				return err
 			}
