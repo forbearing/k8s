@@ -18,13 +18,13 @@ func TestK8S(t *testing.T) {
 	defer cancel()
 
 	err := ApplyF(ctx, kubeconfig, filename)
-	myerr(t, "ApplyF", err)
+	checkErr(t, "ApplyF", err)
 
 	err = DeleteF(ctx, kubeconfig, filename)
-	myerr(t, "DeleteF", err)
+	checkErr(t, "DeleteF", err)
 }
 
-func myerr(t *testing.T, name string, err error) {
+func checkErr(t *testing.T, name string, err error) {
 	if err != nil {
 		t.Errorf("%s failed: %v", name, err)
 	} else {
