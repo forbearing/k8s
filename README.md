@@ -4,8 +4,8 @@
 
 The library implements various handlers to more easy manipulate k8s resources such as pods, deployments, etc, inside or outside k8s cluster. A program that uses the library and runs in a k8s pod meant to be inside k8s cluster. If you simply run [examples](./examples) in your pc/mac or server, it meant outside k8s cluster. Both of inside and outside k8s cluster is supported by the library.
 
-To create a handler for outside cluster just call `deployment.New(ctx, namespace, kubeconfig)`.
-To create a handler for the inside cluster just call `deployment.New(ctx, namespace, "")`.
+To create a handler for outside cluster just call `deployment.New(ctx, kubeconfig, namespace)`.
+To create a handler for the inside cluster just call `deployment.New(ctx, "", namespace)`.
 
 The variable `namespace` is used to limit the scope of the handler. If `namespace=test`, the handler is only allowed to create/update/delete deployments in namespace/test. Of course, handler.WithNamespace(newNamespace) returns a new temporary handler that allowed to create/update/delete deployments in the new namespace, for examples:
 
@@ -13,7 +13,7 @@ The variable `namespace` is used to limit the scope of the handler. If `namespac
 namespace1 := "test"
 namespace2 := "test2"
 // Inside cluster. the program run within k8s pod.
-handler, _ := deployment.New(ctx, namespace1, "")
+handler, _ := deployment.New(ctx, "", namespace1)
 // handler is only allowed to create/update/delete deployment in namespace/test.
 handler.Create(filename)
 // handler is only allowed to create/update/delete deployment in namespace/test2.
@@ -28,7 +28,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ## Installation
 
-```go get -u github.com/forbearing/k8s```
+```go get github.com/forbearing/k8s```
 
 
 
@@ -65,7 +65,7 @@ func cleanup(handler *pod.Handler) {
 }
 
 func Pod_Tools() {
-	handler, err := pod.New(ctx, namespace, kubeconfig)
+	handler, err := pod.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -292,7 +292,7 @@ func cleanup(handler *deployment.Handler) {
 
 func Deployment_Create() {
 	// New returns a handler used to multiples deployment.
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -360,7 +360,7 @@ import (
 
 func Deployment_Update() {
 	// New returns a handler used to multiples deployment.
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -432,7 +432,7 @@ import (
 // it will updates deployment if already exist.
 func Deployment_Apply() {
 	// New returns a handler used to multiples deployment.
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -528,7 +528,7 @@ import (
 )
 
 func Deployment_Delete() {
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -598,7 +598,7 @@ import (
 
 func Deployment_Get() {
 	// New returns a handler used to multiples deployment.
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -675,7 +675,7 @@ import (
 
 func Deployment_List() {
 	// New returns a handler used to multiples deployment.
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -743,7 +743,7 @@ import (
 
 func Deployment_Watch() {
 	// New returns a handler used to multiples deployment.
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -851,7 +851,7 @@ import (
 )
 
 func Deployment_Tools() {
-	handler, err := deployment.New(ctx, namespace, kubeconfig)
+	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
