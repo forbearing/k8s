@@ -105,9 +105,9 @@ func (h *Handler) getLog(namespace, name string, logOptions *LogOptions) error {
 	defer readCloser.Close()
 
 	scanner := bufio.NewScanner(readCloser)
-	scanner.Split(bufio.ScanBytes)
+	scanner.Split(bufio.ScanRunes)
 	for scanner.Scan() {
-		fmt.Fprintf(logOptions, scanner.Text())
+		fmt.Fprintf(logOptions.Writer, "%s", scanner.Text())
 	}
 
 	//// if logOptions.Writer already closed, return nil.
