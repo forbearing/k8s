@@ -3,7 +3,9 @@ package pod
 import (
 	"fmt"
 	"io"
+	"os"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/remotecommand"
 )
 
@@ -20,4 +22,14 @@ type PtyHandler interface {
 	io.Reader
 	io.Writer
 	remotecommand.TerminalSizeQueue
+}
+
+type LogOptions struct {
+	corev1.PodLogOptions
+	io.Writer
+}
+
+var DefaultLogOptions = &LogOptions{
+	PodLogOptions: corev1.PodLogOptions{},
+	Writer:        os.Stdout,
 }
