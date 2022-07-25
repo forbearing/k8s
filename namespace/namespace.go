@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/forbearing/k8s/typed"
+	"github.com/forbearing/k8s/types"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -32,7 +32,7 @@ type Handler struct {
 	informerFactory informers.SharedInformerFactory
 	informer        cache.SharedIndexInformer
 
-	Options *typed.HandlerOptions
+	Options *types.HandlerOptions
 
 	l sync.Mutex
 }
@@ -111,7 +111,7 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	handler.discoveryClient = discoveryClient
 	handler.informerFactory = informerFactory
 	handler.informer = informerFactory.Core().V1().Namespaces().Informer()
-	handler.Options = &typed.HandlerOptions{}
+	handler.Options = &types.HandlerOptions{}
 
 	return handler, nil
 }
@@ -135,7 +135,7 @@ func (in *Handler) DeepCopy() *Handler {
 	out.informerFactory = in.informerFactory
 	out.informer = in.informer
 
-	out.Options = &typed.HandlerOptions{}
+	out.Options = &types.HandlerOptions{}
 	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()
 	out.Options.GetOptions = *in.Options.GetOptions.DeepCopy()
 	out.Options.CreateOptions = *in.Options.CreateOptions.DeepCopy()
