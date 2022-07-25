@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/forbearing/k8s/typed"
+	"github.com/forbearing/k8s/types"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -33,15 +33,15 @@ type Handler struct {
 	informerFactory informers.SharedInformerFactory
 	informer        cache.SharedIndexInformer
 
-	Options *typed.HandlerOptions
+	Options *types.HandlerOptions
 
 	l sync.Mutex
 }
 
 // NewOrDie simply call New() to get a statefulset handler.
 // panic if there is any error occurs.
-func NewOrDie(ctx context.Context, namespace, kubeconfig string) *Handler {
-	handler, err := New(ctx, namespace, kubeconfig)
+func NewOrDie(ctx context.Context, kubeconfig, namespace string) *Handler {
+	handler, err := New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +49,7 @@ func NewOrDie(ctx context.Context, namespace, kubeconfig string) *Handler {
 }
 
 // New returns a StatefulSet handler from kubeconfig or in-cluster config.
-func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, err error) {
+func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, err error) {
 	var (
 		config          *rest.Config
 		httpClient      *http.Client
@@ -116,7 +116,7 @@ func New(ctx context.Context, namespace, kubeconfig string) (handler *Handler, e
 	handler.discoveryClient = discoveryClient
 	handler.informerFactory = informerFactory
 	handler.informer = informerFactory.Apps().V1().StatefulSets().Informer()
-	handler.Options = &typed.HandlerOptions{}
+	handler.Options = &types.HandlerOptions{}
 
 	return handler, nil
 }
@@ -139,7 +139,7 @@ func (in *Handler) DeepCopy() *Handler {
 	out.informerFactory = in.informerFactory
 	out.informer = in.informer
 
-	out.Options = &typed.HandlerOptions{}
+	out.Options = &types.HandlerOptions{}
 	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()
 	out.Options.GetOptions = *in.Options.GetOptions.DeepCopy()
 	out.Options.CreateOptions = *in.Options.CreateOptions.DeepCopy()
