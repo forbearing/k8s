@@ -11,7 +11,7 @@ func Pod_Logs() {
 	if err != nil {
 		panic(err)
 	}
-	//defer cleanup(handler)
+	defer cleanup(handler)
 
 	// create a pod
 	_, err = handler.Apply(LogPodData)
