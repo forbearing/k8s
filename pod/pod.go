@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 	"sync"
-	"time"
 
 	//_ "k8s.io/client-go/kubernetes/types/core/v1"
 
@@ -20,9 +19,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	listerscorev1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -38,8 +35,6 @@ type Handler struct {
 	dynamicClient   dynamic.Interface
 	discoveryClient *discovery.DiscoveryClient
 	informerFactory informers.SharedInformerFactory
-	informer        cache.SharedIndexInformer
-	lister          listerscorev1.PodLister
 	client          typedcorev1.PodInterface
 
 	Options *types.HandlerOptions
@@ -119,7 +114,7 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 	}
 	// create a sharedInformerFactory for all namespaces.
 	// NewSharedInformerFactory constructs a new instance of sharedInformerFactory for all namespaces.
-	informerFactory = informers.NewSharedInformerFactory(clientset, time.Second*30)
+	informerFactory = informers.NewSharedInformerFactory(clientset, 0)
 
 	if len(namespace) == 0 {
 		namespace = metav1.NamespaceDefault
@@ -134,8 +129,6 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 	handler.dynamicClient = dynamicClient
 	handler.discoveryClient = discoveryClient
 	handler.informerFactory = informerFactory
-	handler.informer = informerFactory.Core().V1().Pods().Informer()
-	handler.lister = informerFactory.Core().V1().Pods().Lister()
 	handler.client = clientset.CoreV1().Pods(namespace)
 	handler.Options = &types.HandlerOptions{}
 
@@ -162,8 +155,6 @@ func (in *Handler) DeepCopy() *Handler {
 	out.dynamicClient = in.dynamicClient
 	out.discoveryClient = in.discoveryClient
 	out.informerFactory = in.informerFactory
-	out.informer = in.informer
-	out.lister = in.lister
 	out.client = in.client
 
 	out.Options = &types.HandlerOptions{}
