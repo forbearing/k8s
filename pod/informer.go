@@ -1,15 +1,68 @@
 package pod
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/informers"
+	informerscorev1 "k8s.io/client-go/informers/core/v1"
 	listerscorev1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
+/*
+ref:
+	https://mp.weixin.qq.com/s/_mWiqvKeq-Uvu6QxE0f-qQ
+	https://github.com/kubernetes-sigs/controller-runtime/issues/521
+
+1.Informer 只会调用 kubernetes List 和 Watch 两种类型的 API. Informer 在初始化
+  的时候, 先调用 Kubernetes List API 获得某种 resource 的全部 Object, 缓存在
+  内存中,然后调用 Watch API 去 watch 这种 resource, 去维护这份缓存, 最后 Informer
+  就不再调用 kubernetes 的任何 API.
+2.用 List/Watch 去维护缓存,保持一致性是非常典型的做法,但令人费解的是, Informer
+  只在初始化调用一次 List API, 之后完全依赖 Watch API 去维护缓存,没有任何 resync 机制.
+3.按照多数人思路,通过 resync 机制,重新 List 一遍 resource 下所有 Object, 可以更好
+  的保证 Informer 缓存和 Kubernetes 中数据的一致性.
+4.咨询过Google 内部 Kubernetes开发人员之后，得到的回复是:
+  在 Informer 设计之初,确实存在一个 relist 无法去执行 resync 操作,但后来被取消了,
+  原因是现在的这种 List/Watch 机制,完全能够保证永远不会漏掉任何事件,因为完全没有
+  必要再添加 relist 方法去 resync informer 的缓存. 这种做法也说明了 kubernetes
+  完全信任 etcd.
+*/
+
+// SetInformerResyncPeriod will set informer resync period.
+func (h *Handler) SetInformerResyncPeriod(resyncPeriod time.Duration) {
+	h.informerFactory = informers.NewSharedInformerFactory(h.clientset, resyncPeriod)
+}
+
+// InformerFactory returns underlying SharedInformerFactory which provides
+// shared informer for resources in all known API group version.
+func (h *Handler) InformerFactory() informers.SharedInformerFactory {
+	return h.informerFactory
+}
+
+// PodInformer returns underlying PodInformer which provides access to a shared
+// informer and lister for pod.
+func (h *Handler) PodInformer() informerscorev1.PodInformer {
+	return h.informerFactory.Core().V1().Pods()
+}
+
+// Informer returns underlying SharedIndexInformer which provides add and Indexers
+// ability based on SharedInformer.
+func (h *Handler) Informer() cache.SharedIndexInformer {
+	return h.informerFactory.Core().V1().Pods().Informer()
+}
+
+// Lister returns underlying PodLister which helps list pods.
+func (h *Handler) Lister() listerscorev1.PodLister {
+	return h.informerFactory.Core().V1().Pods().Lister()
+}
+
+// TestInformer
 func (h *Handler) TestInformer(stopCh chan struct{}) {
-	h.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	h.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			myObj := obj.(metav1.Object)
 			log.Printf("New Pod Added to Store: %s", myObj.GetName())
@@ -20,7 +73,6 @@ func (h *Handler) TestInformer(stopCh chan struct{}) {
 			if newPod.ResourceVersion != oldPod.ResourceVersion {
 				log.Printf("Pod Updated to Store: %s\n", newPod.Name)
 			}
-
 			//if !reflect.DeepEqual(newObj, oldObj) {
 			//    log.Printf("Pod Updated to Store: %s\n", newObj.(metav1.Object).GetName())
 			//}
@@ -32,26 +84,26 @@ func (h *Handler) TestInformer(stopCh chan struct{}) {
 	})
 	h.informerFactory.WaitForCacheSync(stopCh)
 	//cache.WaitForCacheSync(stopCh, h.informer.HasSynced)
-	h.informer.Run(stopCh)
+	h.Informer().Run(stopCh)
 }
 
-// addFunc, updateFunc, stopChan
-// informer 的三个回调函数 addFunc, updateFunc, deleteFunc
-// 这个管道用来存放回调函数处理的 k8s 资源对象
 // RunInformer
+// addFunc, updateFunc, stopChan 分别是
+// informer 的三个回调函数 addFunc, updateFunc, deleteFunc
+// 管道用来存放回调函数处理的 k8s 资源对象
 func (h *Handler) RunInformer(
 	addFunc func(obj interface{}),
 	updateFunc func(oldObj, newObj interface{}),
 	deleteFunc func(obj interface{}),
 	stopCh chan struct{}) {
-	h.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	h.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    addFunc,
 		UpdateFunc: updateFunc,
 		DeleteFunc: deleteFunc,
 	})
 	h.informerFactory.WaitForCacheSync(stopCh)
 	//cache.WaitForCacheSync(stopCh, h.informer.HasSynced)
-	h.informer.Run(stopCh)
+	h.Informer().Run(stopCh)
 
 	//h.informer.AddIndexers(cache.Indexers{
 	//    controllerUIDIndex: func(obj interface{}) ([]string, error) {
@@ -63,20 +115,9 @@ func (h *Handler) RunInformer(
 	//})
 }
 
-//func (h *Handler) Informer(resync time.Duration) informerscorev1.PodInformer {
-//    return informers.NewSharedInformerFactory(h.clientset, resync).Core().V1().Pods()
-//}
-
-func (h *Handler) Informer() cache.SharedIndexInformer {
-	return h.informer
-}
-func (h *Handler) Lister() listerscorev1.PodLister {
-	return h.lister
-}
-
 // 1.PodInformer 继承了 SharedIndexInformer 和 PodLister
 // 2.SharedIndexInformer 继承了 SharedInformer
-// 3.SharedInformer 拥有 AddEventHandler, AddEventHandlerWithResyncPeriod  等各种方法
+// 3.SharedInformer 拥有 AddEventHandler, AddEventHandlerWithResyncPeriod, HasSynced 等各种方法
 // 4.最终关系是: PodInformer -> SharedIndexInformer -> SharedInformer
 //   SharedIndexInformer 和 PodLister 是同级别的关系
 
