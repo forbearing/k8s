@@ -34,9 +34,8 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ## Planning
 
-- Simplify the use of client-go informer, lister
-- 完成测试代码的编写和使用示例, 使用示例放在 examples 中
-- 代码优化
+- [ ] Simplify the use of client-go informer, lister
+- [ ] create/delete/update/delete/get ... by dyanmic client.
 
 ## How to execute command within pod by handler.
 
