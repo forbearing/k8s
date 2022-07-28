@@ -7,12 +7,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Log get pod logs from type string, []byte, *corev1.pod, corev1.pod,
-// runtime.Object or map[string]interface{}.
+// runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
+// or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call LogByName instead of LogFromFile.
 // You should always explicitly call LogFromFile to get pod logs from file path.
@@ -26,8 +28,14 @@ func (h *Handler) Log(obj interface{}, logOptions *LogOptions) error {
 		return h.LogFromObject(val, logOptions)
 	case corev1.Pod:
 		return h.LogFromObject(&val, logOptions)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.LogFromObject(val, logOptions)
+	case *unstructured.Unstructured:
 		return h.LogFromUnstructured(val, logOptions)
+	case unstructured.Unstructured:
+		return h.LogFromUnstructured(&val, logOptions)
+	case map[string]interface{}:
+		return h.LogFromMap(val, logOptions)
 	default:
 		return ERR_TYPE_CREATE
 	}
@@ -66,13 +74,23 @@ func (h *Handler) LogFromBytes(data []byte, logOptions *LogOptions) error {
 func (h *Handler) LogFromObject(obj runtime.Object, logOptions *LogOptions) error {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
-		return fmt.Errorf("object is not *corev1.Pod")
+		return fmt.Errorf("object type is not *corev1.Pod")
 	}
 	return h.logPod(pod, logOptions)
 }
 
-// LogFromUnstructured get logs from map[string]interface{}.
-func (h *Handler) LogFromUnstructured(u map[string]interface{}, logOptions *LogOptions) error {
+// LogFromUnstructured get logs from *unstructured.Unstructured.
+func (h *Handler) LogFromUnstructured(u *unstructured.Unstructured, logOptions *LogOptions) error {
+	pod := &corev1.Pod{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), pod)
+	if err != nil {
+		return err
+	}
+	return h.logPod(pod, logOptions)
+}
+
+// LogFromMap get logs from map[string]interface{}.
+func (h *Handler) LogFromMap(u map[string]interface{}, logOptions *LogOptions) error {
 	pod := &corev1.Pod{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, pod)
 	if err != nil {
