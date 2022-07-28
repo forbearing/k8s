@@ -42,6 +42,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Support crate/update/delete/get... `LimitRange` resources
 - [ ] Support crate/update/delete/get... `PriorityClass` resources
 - [ ] Support crate/update/delete/get... `ResourceQuota` resources
+- [ ] handler add method: GVK()
 
 ## How to execute command within pod by handler.
 
