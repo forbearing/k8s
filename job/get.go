@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*batchv1.Job, error) {
 	}
 
 	job := &batchv1.Job{}
-	err = json.Unmarshal(jobJson, job)
-	if err != nil {
+	if err = json.Unmarshal(jobJson, job); err != nil {
 		return nil, err
 	}
 	return h.getJob(job)

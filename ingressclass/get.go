@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*networkingv1.IngressClass, error) 
 	}
 
 	ingc := &networkingv1.IngressClass{}
-	err = json.Unmarshal(ingcJson, ingc)
-	if err != nil {
+	if err = json.Unmarshal(ingcJson, ingc); err != nil {
 		return nil, err
 	}
 	return h.getIngressclass(ingc)

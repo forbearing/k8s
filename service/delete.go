@@ -61,8 +61,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	svc := &corev1.Service{}
-	err = json.Unmarshal(svcJson, svc)
-	if err != nil {
+	if err = json.Unmarshal(svcJson, svc); err != nil {
 		return err
 	}
 	return h.deleteService(svc)

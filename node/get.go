@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.Node, error) {
 	}
 
 	node := &corev1.Node{}
-	err = json.Unmarshal(nodeJson, node)
-	if err != nil {
+	if err = json.Unmarshal(nodeJson, node); err != nil {
 		return nil, err
 	}
 	return h.getNode(node)

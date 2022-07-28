@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	pod := &corev1.Pod{}
-	err = json.Unmarshal(podJson, pod)
-	if err != nil {
+	if err = json.Unmarshal(podJson, pod); err != nil {
 		return err
 	}
 	return h.deletePod(pod)

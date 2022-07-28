@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	ns := &corev1.Namespace{}
-	err = json.Unmarshal(nsJson, ns)
-	if err != nil {
+	if err = json.Unmarshal(nsJson, ns); err != nil {
 		return err
 	}
 	return h.deleteNamespace(ns)

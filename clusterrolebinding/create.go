@@ -54,8 +54,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.ClusterRoleBinding, erro
 	}
 
 	crb := &rbacv1.ClusterRoleBinding{}
-	err = json.Unmarshal(crbJson, crb)
-	if err != nil {
+	if err = json.Unmarshal(crbJson, crb); err != nil {
 		return nil, err
 	}
 	return h.createCRB(crb)

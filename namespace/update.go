@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.Namespace, error) {
 	}
 
 	ns := &corev1.Namespace{}
-	err = json.Unmarshal(nsJson, ns)
-	if err != nil {
+	if err = json.Unmarshal(nsJson, ns); err != nil {
 		return nil, err
 	}
 	return h.updateNamespace(ns)

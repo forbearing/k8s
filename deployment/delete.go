@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	deploy := &appsv1.Deployment{}
-	err = json.Unmarshal(deployJson, deploy)
-	if err != nil {
+	if err = json.Unmarshal(deployJson, deploy); err != nil {
 		return err
 	}
 	return h.deleteDeployment(deploy)

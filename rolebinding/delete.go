@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	rb := &rbacv1.RoleBinding{}
-	err = json.Unmarshal(rbJson, rb)
-	if err != nil {
+	if err = json.Unmarshal(rbJson, rb); err != nil {
 		return err
 	}
 	return h.deleteRolebinding(rb)

@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	rs := &appsv1.ReplicaSet{}
-	err = json.Unmarshal(rsJson, rs)
-	if err != nil {
+	if err = json.Unmarshal(rsJson, rs); err != nil {
 		return err
 	}
 	return h.deleteReplicaset(rs)

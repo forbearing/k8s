@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*networkingv1.NetworkPolicy, error)
 	}
 
 	netpol := &networkingv1.NetworkPolicy{}
-	err = json.Unmarshal(netpolJson, netpol)
-	if err != nil {
+	if err = json.Unmarshal(netpolJson, netpol); err != nil {
 		return nil, err
 	}
 	return h.getNetpol(netpol)

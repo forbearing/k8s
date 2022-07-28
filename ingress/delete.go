@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	ing := &networkingv1.Ingress{}
-	err = json.Unmarshal(ingJson, ing)
-	if err != nil {
+	if err = json.Unmarshal(ingJson, ing); err != nil {
 		return err
 	}
 	return h.deleteIngress(ing)

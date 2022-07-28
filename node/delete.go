@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	node := &corev1.Node{}
-	err = json.Unmarshal(nodeJson, node)
-	if err != nil {
+	if err = json.Unmarshal(nodeJson, node); err != nil {
 		return err
 	}
 	return h.deleteNode(node)

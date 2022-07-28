@@ -54,8 +54,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.Role, error) {
 	}
 
 	role := &rbacv1.Role{}
-	err = json.Unmarshal(roleJson, role)
-	if err != nil {
+	if err = json.Unmarshal(roleJson, role); err != nil {
 		return nil, err
 	}
 	return h.createRole(role)

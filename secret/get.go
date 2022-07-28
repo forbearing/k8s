@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.Secret, error) {
 	}
 
 	secret := &corev1.Secret{}
-	err = json.Unmarshal(secretJson, secret)
-	if err != nil {
+	if err = json.Unmarshal(secretJson, secret); err != nil {
 		return nil, err
 	}
 	return h.getSecret(secret)

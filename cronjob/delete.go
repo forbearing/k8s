@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	cm := &batchv1.CronJob{}
-	err = json.Unmarshal(cmJson, cm)
-	if err != nil {
+	if err = json.Unmarshal(cmJson, cm); err != nil {
 		return err
 	}
 	return h.deleteCronjob(cm)

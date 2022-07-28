@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	rc := &corev1.ReplicationController{}
-	err = json.Unmarshal(rcJson, rc)
-	if err != nil {
+	if err = json.Unmarshal(rcJson, rc); err != nil {
 		return err
 	}
 	return h.deleteRS(rc)

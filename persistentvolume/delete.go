@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	pv := &corev1.PersistentVolume{}
-	err = json.Unmarshal(pvJson, pv)
-	if err != nil {
+	if err = json.Unmarshal(pvJson, pv); err != nil {
 		return err
 	}
 	return h.deletePV(pv)

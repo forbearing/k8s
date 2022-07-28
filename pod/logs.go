@@ -63,8 +63,7 @@ func (h *Handler) LogFromBytes(data []byte, logOptions *LogOptions) error {
 	}
 
 	pod := &corev1.Pod{}
-	err = json.Unmarshal(podJson, pod)
-	if err != nil {
+	if err = json.Unmarshal(podJson, pod); err != nil {
 		return err
 	}
 	return h.logPod(pod, logOptions)

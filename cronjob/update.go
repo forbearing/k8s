@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*batchv1.CronJob, error) {
 	}
 
 	cj := &batchv1.CronJob{}
-	err = json.Unmarshal(cjJson, cj)
-	if err != nil {
+	if err = json.Unmarshal(cjJson, cj); err != nil {
 		return nil, err
 	}
 	return h.updateCronjob(cj)

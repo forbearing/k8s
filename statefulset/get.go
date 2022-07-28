@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*appsv1.StatefulSet, error) {
 	}
 
 	sts := &appsv1.StatefulSet{}
-	err = json.Unmarshal(stsJson, sts)
-	if err != nil {
+	if err = json.Unmarshal(stsJson, sts); err != nil {
 		return nil, err
 	}
 	return h.getStatefulset(sts)

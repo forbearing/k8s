@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.ReplicationController, erro
 	}
 
 	rc := &corev1.ReplicationController{}
-	err = json.Unmarshal(rcJson, rc)
-	if err != nil {
+	if err = json.Unmarshal(rcJson, rc); err != nil {
 		return nil, err
 	}
 	return h.getRS(rc)

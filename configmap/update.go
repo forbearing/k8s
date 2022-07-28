@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.ConfigMap, error) {
 	}
 
 	cm := &corev1.ConfigMap{}
-	err = json.Unmarshal(cmJson, cm)
-	if err != nil {
+	if err = json.Unmarshal(cmJson, cm); err != nil {
 		return nil, err
 	}
 	return h.updateConfigmap(cm)

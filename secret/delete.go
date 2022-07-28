@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	secret := &corev1.Secret{}
-	err = json.Unmarshal(secretJson, secret)
-	if err != nil {
+	if err = json.Unmarshal(secretJson, secret); err != nil {
 		return err
 	}
 	return h.deleteSecret(secret)

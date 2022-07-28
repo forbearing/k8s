@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 	}
 
 	cr := &rbacv1.ClusterRole{}
-	err = json.Unmarshal(crJson, cr)
-	if err != nil {
+	if err = json.Unmarshal(crJson, cr); err != nil {
 		return nil, err
 	}
 	return h.updateCR(cr)

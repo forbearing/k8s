@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
 	}
 
 	rb := &rbacv1.RoleBinding{}
-	err = json.Unmarshal(rbJson, rb)
-	if err != nil {
+	if err = json.Unmarshal(rbJson, rb); err != nil {
 		return nil, err
 	}
 	return h.updateRolebinding(rb)

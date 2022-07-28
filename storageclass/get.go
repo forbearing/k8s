@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*storagev1.StorageClass, error) {
 	}
 
 	sc := &storagev1.StorageClass{}
-	err = json.Unmarshal(scJson, sc)
-	if err != nil {
+	if err = json.Unmarshal(scJson, sc); err != nil {
 		return nil, err
 	}
 	return h.getSC(sc)

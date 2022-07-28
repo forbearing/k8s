@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.ServiceAccount, error) {
 	}
 
 	sa := &corev1.ServiceAccount{}
-	err = json.Unmarshal(saJson, sa)
-	if err != nil {
+	if err = json.Unmarshal(saJson, sa); err != nil {
 		return nil, err
 	}
 	return h.getSA(sa)

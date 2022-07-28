@@ -61,8 +61,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.Service, error) {
 	}
 
 	svc := &corev1.Service{}
-	err = json.Unmarshal(svcJson, svc)
-	if err != nil {
+	if err = json.Unmarshal(svcJson, svc); err != nil {
 		return nil, err
 	}
 	return h.getService(svc)

@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	sa := &corev1.ServiceAccount{}
-	err = json.Unmarshal(saJson, sa)
-	if err != nil {
+	if err = json.Unmarshal(saJson, sa); err != nil {
 		return err
 	}
 	return h.deleteSA(sa)

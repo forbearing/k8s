@@ -166,8 +166,7 @@ func (m *MetricsHandler) PodRaw(name string) (*PodMetrics, error) {
 	}
 
 	podMetrics := &v1beta1.PodMetrics{}
-	err = json.Unmarshal(data, podMetrics)
-	if err != nil {
+	if err = json.Unmarshal(data, podMetrics); err != nil {
 		return nil, err
 	}
 
@@ -187,8 +186,7 @@ func (m *MetricsHandler) PodsRaw() ([]PodMetrics, error) {
 	}
 
 	podMetricsList := new(v1beta1.PodMetricsList)
-	err = json.Unmarshal(data, podMetricsList)
-	if err != nil {
+	if err = json.Unmarshal(data, podMetricsList); err != nil {
 		return nil, err
 	}
 
@@ -209,8 +207,7 @@ func (m *MetricsHandler) PodAllRaw() ([]PodMetrics, error) {
 	}
 
 	podMetricsList := new(v1beta1.PodMetricsList)
-	err = json.Unmarshal(data, podMetricsList)
-	if err != nil {
+	if err = json.Unmarshal(data, podMetricsList); err != nil {
 		return nil, err
 	}
 
@@ -260,8 +257,7 @@ func (m *MetricsHandler) NodeRaw(name string) (*NodeMetrics, error) {
 	}
 
 	nodeMetrics := &v1beta1.NodeMetrics{}
-	err = json.Unmarshal(data, nodeMetrics)
-	if err != nil {
+	if err = json.Unmarshal(data, nodeMetrics); err != nil {
 		return nil, err
 	}
 
@@ -277,8 +273,7 @@ func (m *MetricsHandler) NodeAllRaw() ([]NodeMetrics, error) {
 	}
 
 	nodeMetricsList := new(v1beta1.NodeMetricsList)
-	err = json.Unmarshal(data, nodeMetricsList)
-	if err != nil {
+	if err = json.Unmarshal(data, nodeMetricsList); err != nil {
 		return nil, err
 	}
 

@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	cr := &rbacv1.ClusterRole{}
-	err = json.Unmarshal(crJson, cr)
-	if err != nil {
+	if err = json.Unmarshal(crJson, cr); err != nil {
 		return err
 	}
 	return h.deleteCR(cr)

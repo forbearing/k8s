@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	ds := &appsv1.DaemonSet{}
-	err = json.Unmarshal(dsJson, ds)
-	if err != nil {
+	if err = json.Unmarshal(dsJson, ds); err != nil {
 		return err
 	}
 	return h.deleteDaemonset(ds)

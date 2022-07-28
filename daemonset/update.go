@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*appsv1.DaemonSet, error) {
 	}
 
 	ds := &appsv1.DaemonSet{}
-	err = json.Unmarshal(dsJson, ds)
-	if err != nil {
+	if err = json.Unmarshal(dsJson, ds); err != nil {
 		return nil, err
 	}
 	return h.updateDaemonset(ds)

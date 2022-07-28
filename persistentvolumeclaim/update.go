@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.PersistentVolumeClaim, e
 	}
 
 	pvc := &corev1.PersistentVolumeClaim{}
-	err = json.Unmarshal(pvcJson, pvc)
-	if err != nil {
+	if err = json.Unmarshal(pvcJson, pvc); err != nil {
 		return nil, err
 	}
 	return h.updatePVC(pvc)

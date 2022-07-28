@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.PersistentVolume, error)
 	}
 
 	pv := &corev1.PersistentVolume{}
-	err = json.Unmarshal(pvJson, pv)
-	if err != nil {
+	if err = json.Unmarshal(pvJson, pv); err != nil {
 		return nil, err
 	}
 	return h.updatePV(pv)

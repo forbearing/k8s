@@ -54,8 +54,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.NetworkPolicy, err
 	}
 
 	netpol := &networkingv1.NetworkPolicy{}
-	err = json.Unmarshal(netpolJson, netpol)
-	if err != nil {
+	if err = json.Unmarshal(netpolJson, netpol); err != nil {
 		return nil, err
 	}
 	return h.createNetpol(netpol)

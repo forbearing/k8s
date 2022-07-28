@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	netpol := &networkingv1.NetworkPolicy{}
-	err = json.Unmarshal(netpolJson, netpol)
-	if err != nil {
+	if err = json.Unmarshal(netpolJson, netpol); err != nil {
 		return err
 	}
 	return h.deleteNetpol(netpol)

@@ -54,8 +54,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*appsv1.Deployment, error) {
 	}
 
 	deploy := &appsv1.Deployment{}
-	err = json.Unmarshal(deployJson, deploy)
-	if err != nil {
+	if err = json.Unmarshal(deployJson, deploy); err != nil {
 		return nil, err
 	}
 	return h.createDeployment(deploy)

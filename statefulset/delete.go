@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	sts := &appsv1.StatefulSet{}
-	err = json.Unmarshal(stsJson, sts)
-	if err != nil {
+	if err = json.Unmarshal(stsJson, sts); err != nil {
 		return err
 	}
 	return h.deleteStatefulset(sts)

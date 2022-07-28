@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	job := &batchv1.Job{}
-	err = json.Unmarshal(jobJson, job)
-	if err != nil {
+	if err = json.Unmarshal(jobJson, job); err != nil {
 		return err
 	}
 	return h.deleteJob(job)

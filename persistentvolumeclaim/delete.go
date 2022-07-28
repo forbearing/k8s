@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	pvc := &corev1.PersistentVolumeClaim{}
-	err = json.Unmarshal(pvcJson, pvc)
-	if err != nil {
+	if err = json.Unmarshal(pvcJson, pvc); err != nil {
 		return err
 	}
 	return h.deletePVC(pvc)

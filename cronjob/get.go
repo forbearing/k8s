@@ -62,8 +62,7 @@ func (h *Handler) GetFromBytes(data []byte) (*batchv1.CronJob, error) {
 	}
 
 	cm := &batchv1.CronJob{}
-	err = json.Unmarshal(cmJson, cm)
-	if err != nil {
+	if err = json.Unmarshal(cmJson, cm); err != nil {
 		return nil, err
 	}
 	return h.getCronjob(cm)

@@ -62,8 +62,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	}
 
 	sc := &storagev1.StorageClass{}
-	err = json.Unmarshal(scJson, sc)
-	if err != nil {
+	if err = json.Unmarshal(scJson, sc); err != nil {
 		return err
 	}
 	return h.deleteSC(sc)

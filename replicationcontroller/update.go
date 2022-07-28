@@ -54,8 +54,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.ReplicationController, e
 	}
 
 	rc := &corev1.ReplicationController{}
-	err = json.Unmarshal(rcJson, rc)
-	if err != nil {
+	if err = json.Unmarshal(rcJson, rc); err != nil {
 		return nil, err
 	}
 	return h.updateRS(rc)

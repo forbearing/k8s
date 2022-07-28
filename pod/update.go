@@ -52,8 +52,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.Pod, error) {
 	}
 
 	pod := &corev1.Pod{}
-	err = json.Unmarshal(podJson, pod)
-	if err != nil {
+	if err = json.Unmarshal(podJson, pod); err != nil {
 		return nil, err
 	}
 	return h.updatePod(pod)
