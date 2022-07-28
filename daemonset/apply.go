@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (ds *appsv1.DaemonSet, err error) 
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.DaemonSet, error) {
 	ds, ok := obj.(*appsv1.DaemonSet)
 	if !ok {
-		return nil, fmt.Errorf("object is not *appsv1.DaemonSet")
+		return nil, fmt.Errorf("object type is not *appsv1.DaemonSet")
 	}
 	return h.applyDaemonset(ds)
 }

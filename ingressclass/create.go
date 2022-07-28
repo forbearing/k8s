@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.IngressClass, erro
 func (h *Handler) CreateFromObject(obj runtime.Object) (*networkingv1.IngressClass, error) {
 	ingc, ok := obj.(*networkingv1.IngressClass)
 	if !ok {
-		return nil, fmt.Errorf("object is not *networkingv1.IngressClass")
+		return nil, fmt.Errorf("object type is not *networkingv1.IngressClass")
 	}
 	return h.createIngressclass(ingc)
 }

@@ -64,7 +64,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.Service, error) {
 func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Service, error) {
 	svc, ok := obj.(*corev1.Service)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.Service")
+		return nil, fmt.Errorf("object type is not *corev1.Service")
 	}
 	return h.createService(svc)
 }

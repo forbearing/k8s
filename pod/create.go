@@ -63,7 +63,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.Pod, error) {
 func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Pod, error) {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.Pod")
+		return nil, fmt.Errorf("object type is not *corev1.Pod")
 	}
 	return h.createPod(pod)
 }

@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*appsv1.StatefulSet, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*appsv1.StatefulSet, error) {
 	sts, ok := obj.(*appsv1.StatefulSet)
 	if !ok {
-		return nil, fmt.Errorf("object is not *appsv1.StatefulSet")
+		return nil, fmt.Errorf("object type is not *appsv1.StatefulSet")
 	}
 	return h.getStatefulset(sts)
 }

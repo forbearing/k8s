@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	job, ok := obj.(*batchv1.Job)
 	if !ok {
-		return fmt.Errorf("object is not *batchv1.Job")
+		return fmt.Errorf("object type is not *batchv1.Job")
 	}
 	return h.deleteJob(job)
 }

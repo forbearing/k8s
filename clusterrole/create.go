@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.ClusterRole, error) {
 	cr, ok := obj.(*rbacv1.ClusterRole)
 	if !ok {
-		return nil, fmt.Errorf("object is not *rbacv1.ClusterRole")
+		return nil, fmt.Errorf("object type is not *rbacv1.ClusterRole")
 	}
 	return h.createCR(cr)
 }

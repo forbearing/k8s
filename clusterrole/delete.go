@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	cr, ok := obj.(*rbacv1.ClusterRole)
 	if !ok {
-		return fmt.Errorf("object is not *rbacv1.ClusterRole")
+		return fmt.Errorf("object type is not *rbacv1.ClusterRole")
 	}
 	return h.deleteCR(cr)
 }

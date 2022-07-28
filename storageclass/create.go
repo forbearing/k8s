@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*storagev1.StorageClass, error) 
 func (h *Handler) CreateFromObject(obj runtime.Object) (*storagev1.StorageClass, error) {
 	sc, ok := obj.(*storagev1.StorageClass)
 	if !ok {
-		return nil, fmt.Errorf("object is not *storagev1.StorageClass")
+		return nil, fmt.Errorf("object type is not *storagev1.StorageClass")
 	}
 	return h.createSC(sc)
 }

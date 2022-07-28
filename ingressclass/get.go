@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*networkingv1.IngressClass, error) 
 func (h *Handler) GetFromObject(obj runtime.Object) (*networkingv1.IngressClass, error) {
 	ingc, ok := obj.(*networkingv1.IngressClass)
 	if !ok {
-		return nil, fmt.Errorf("object is not *networkingv1.IngressClass")
+		return nil, fmt.Errorf("object type is not *networkingv1.IngressClass")
 	}
 	return h.getIngressclass(ingc)
 }

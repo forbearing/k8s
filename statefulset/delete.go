@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	sts, ok := obj.(*appsv1.StatefulSet)
 	if !ok {
-		return fmt.Errorf("object is not *appsv1.StatefulSet")
+		return fmt.Errorf("object type is not *appsv1.StatefulSet")
 	}
 	return h.deleteStatefulset(sts)
 }

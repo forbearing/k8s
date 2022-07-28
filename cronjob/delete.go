@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	cm, ok := obj.(*batchv1.CronJob)
 	if !ok {
-		return fmt.Errorf("object is not *batchv1.CronJob")
+		return fmt.Errorf("object type is not *batchv1.CronJob")
 	}
 	return h.deleteCronjob(cm)
 }

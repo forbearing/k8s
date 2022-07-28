@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (rc *corev1.ReplicationController,
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.ReplicationController, error) {
 	rc, ok := obj.(*corev1.ReplicationController)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.ReplicationController")
+		return nil, fmt.Errorf("object type is not *corev1.ReplicationController")
 	}
 	return h.applyRS(rc)
 }

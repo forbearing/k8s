@@ -65,7 +65,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.PersistentVolumeClaim, e
 func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.PersistentVolumeClaim, error) {
 	pvc, ok := obj.(*corev1.PersistentVolumeClaim)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.PersistentVolumeClaim")
+		return nil, fmt.Errorf("object type is not *corev1.PersistentVolumeClaim")
 	}
 	return h.updatePVC(pvc)
 }

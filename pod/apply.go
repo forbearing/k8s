@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (pod *corev1.Pod, err error) {
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Pod, error) {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.Pod")
+		return nil, fmt.Errorf("object type is not *corev1.Pod")
 	}
 	return h.applyPod(pod)
 }

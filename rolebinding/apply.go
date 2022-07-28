@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (rb *rbacv1.RoleBinding, err error
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error) {
 	rb, ok := obj.(*rbacv1.RoleBinding)
 	if !ok {
-		return nil, fmt.Errorf("object is not *rbacv1.RoleBinding")
+		return nil, fmt.Errorf("object type is not *rbacv1.RoleBinding")
 	}
 	return h.applyRolebinding(rb)
 }

@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*batchv1.Job, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*batchv1.Job, error) {
 	job, ok := obj.(*batchv1.Job)
 	if !ok {
-		return nil, fmt.Errorf("object is not *batchv1.Job")
+		return nil, fmt.Errorf("object type is not *batchv1.Job")
 	}
 	return h.getJob(job)
 }

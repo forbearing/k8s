@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*appsv1.Deployment, error) {
 func (h *Handler) CreateFromObject(obj runtime.Object) (*appsv1.Deployment, error) {
 	deploy, ok := obj.(*appsv1.Deployment)
 	if !ok {
-		return nil, fmt.Errorf("object is not *appsv1.Deployment")
+		return nil, fmt.Errorf("object type is not *appsv1.Deployment")
 	}
 	return h.createDeployment(deploy)
 }

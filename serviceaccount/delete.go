@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	sa, ok := obj.(*corev1.ServiceAccount)
 	if !ok {
-		return fmt.Errorf("object is not *corev1.ServiceAccount")
+		return fmt.Errorf("object type is not *corev1.ServiceAccount")
 	}
 	return h.deleteSA(sa)
 }

@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (cm *corev1.ConfigMap, err error) 
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.ConfigMap, error) {
 	cm, ok := obj.(*corev1.ConfigMap)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.ConfigMap")
+		return nil, fmt.Errorf("object type is not *corev1.ConfigMap")
 	}
 	return h.applyConfigmap(cm)
 }

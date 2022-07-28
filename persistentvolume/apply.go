@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (pv *corev1.PersistentVolume, err 
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.PersistentVolume, error) {
 	pv, ok := obj.(*corev1.PersistentVolume)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.PersistentVolume")
+		return nil, fmt.Errorf("object type is not *corev1.PersistentVolume")
 	}
 	return h.applyPV(pv)
 }

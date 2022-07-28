@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
-		return fmt.Errorf("object is not *corev1.Secret")
+		return fmt.Errorf("object type is not *corev1.Secret")
 	}
 	return h.deleteSecret(secret)
 }

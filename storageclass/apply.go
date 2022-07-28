@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (sc *storagev1.StorageClass, err e
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*storagev1.StorageClass, error) {
 	sc, ok := obj.(*storagev1.StorageClass)
 	if !ok {
-		return nil, fmt.Errorf("object is not *storagev1.StorageClass")
+		return nil, fmt.Errorf("object type is not *storagev1.StorageClass")
 	}
 	return h.applySC(sc)
 }

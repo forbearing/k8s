@@ -65,7 +65,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.Namespace, error) {
 func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.Namespace, error) {
 	ns, ok := obj.(*corev1.Namespace)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.Namespace")
+		return nil, fmt.Errorf("object type is not *corev1.Namespace")
 	}
 	return h.updateNamespace(ns)
 }

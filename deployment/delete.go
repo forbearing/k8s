@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	deploy, ok := obj.(*appsv1.Deployment)
 	if !ok {
-		return fmt.Errorf("object is not *appsv1.Deployment")
+		return fmt.Errorf("object type is not *appsv1.Deployment")
 	}
 	return h.deleteDeployment(deploy)
 }

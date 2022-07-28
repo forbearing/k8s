@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (secret *corev1.Secret, err error)
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Secret, error) {
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.Secret")
+		return nil, fmt.Errorf("object type is not *corev1.Secret")
 	}
 	return h.applySecret(secret)
 }

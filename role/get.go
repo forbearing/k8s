@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*rbacv1.Role, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*rbacv1.Role, error) {
 	role, ok := obj.(*rbacv1.Role)
 	if !ok {
-		return nil, fmt.Errorf("object is not *rbacv1.Role")
+		return nil, fmt.Errorf("object type is not *rbacv1.Role")
 	}
 	return h.getRole(role)
 }

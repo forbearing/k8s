@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.PersistentVolume, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.PersistentVolume, error) {
 	pv, ok := obj.(*corev1.PersistentVolume)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.PersistentVolume")
+		return nil, fmt.Errorf("object type is not *corev1.PersistentVolume")
 	}
 	return h.getPV(pv)
 }

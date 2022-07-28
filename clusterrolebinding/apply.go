@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (crb *rbacv1.ClusterRoleBinding, e
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.ClusterRoleBinding, error) {
 	crb, ok := obj.(*rbacv1.ClusterRoleBinding)
 	if !ok {
-		return nil, fmt.Errorf("object is not *rbacv1.ClusterRoleBinding")
+		return nil, fmt.Errorf("object type is not *rbacv1.ClusterRoleBinding")
 	}
 	return h.applyCRB(crb)
 }

@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	ing, ok := obj.(*networkingv1.Ingress)
 	if !ok {
-		return fmt.Errorf("object is not *networkingv1.Ingress")
+		return fmt.Errorf("object type is not *networkingv1.Ingress")
 	}
 	return h.deleteIngress(ing)
 }

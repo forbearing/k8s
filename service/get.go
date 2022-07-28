@@ -72,7 +72,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.Service, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.Service, error) {
 	svc, ok := obj.(*corev1.Service)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.Service")
+		return nil, fmt.Errorf("object type is not *corev1.Service")
 	}
 	return h.getService(svc)
 }

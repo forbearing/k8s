@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (role *rbacv1.Role, err error) {
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.Role, error) {
 	role, ok := obj.(*rbacv1.Role)
 	if !ok {
-		return nil, fmt.Errorf("object is not *rbacv1.Role")
+		return nil, fmt.Errorf("object type is not *rbacv1.Role")
 	}
 	return h.applyRole(role)
 }

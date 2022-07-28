@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error) {
 	rb, ok := obj.(*rbacv1.RoleBinding)
 	if !ok {
-		return nil, fmt.Errorf("object is not *rbacv1.RoleBinding")
+		return nil, fmt.Errorf("object type is not *rbacv1.RoleBinding")
 	}
 	return h.getRolebinding(rb)
 }

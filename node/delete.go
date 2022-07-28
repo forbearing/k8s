@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	node, ok := obj.(*corev1.Node)
 	if !ok {
-		return fmt.Errorf("object is not *corev1.Node")
+		return fmt.Errorf("object type is not *corev1.Node")
 	}
 	return h.deleteNode(node)
 }

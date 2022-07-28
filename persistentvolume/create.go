@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.PersistentVolume, error)
 func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.PersistentVolume, error) {
 	pv, ok := obj.(*corev1.PersistentVolume)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.PersistentVolume")
+		return nil, fmt.Errorf("object type is not *corev1.PersistentVolume")
 	}
 	return h.createPV(pv)
 }

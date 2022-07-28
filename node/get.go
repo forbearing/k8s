@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.Node, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.Node, error) {
 	node, ok := obj.(*corev1.Node)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.Node")
+		return nil, fmt.Errorf("object type is not *corev1.Node")
 	}
 	return h.getNode(node)
 }

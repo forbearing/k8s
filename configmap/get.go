@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.ConfigMap, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.ConfigMap, error) {
 	cm, ok := obj.(*corev1.ConfigMap)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.ConfigMap")
+		return nil, fmt.Errorf("object type is not *corev1.ConfigMap")
 	}
 	return h.getConfigmap(cm)
 }

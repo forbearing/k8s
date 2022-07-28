@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	netpol, ok := obj.(*networkingv1.NetworkPolicy)
 	if !ok {
-		return fmt.Errorf("object is not *networkingv1.NetworkPolicy")
+		return fmt.Errorf("object type is not *networkingv1.NetworkPolicy")
 	}
 	return h.deleteNetpol(netpol)
 }

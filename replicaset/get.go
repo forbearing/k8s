@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*appsv1.ReplicaSet, error) {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
-		return nil, fmt.Errorf("object is not *appsv1.ReplicaSet")
+		return nil, fmt.Errorf("object type is not *appsv1.ReplicaSet")
 	}
 	return h.getReplicaset(rs)
 }

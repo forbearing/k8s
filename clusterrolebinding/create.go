@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.ClusterRoleBinding, erro
 func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.ClusterRoleBinding, error) {
 	crb, ok := obj.(*rbacv1.ClusterRoleBinding)
 	if !ok {
-		return nil, fmt.Errorf("object is not *rbacv1.ClusterRoleBinding")
+		return nil, fmt.Errorf("object type is not *rbacv1.ClusterRoleBinding")
 	}
 	return h.createCRB(crb)
 }

@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.ServiceAccount, error) {
 func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.ServiceAccount, error) {
 	sa, ok := obj.(*corev1.ServiceAccount)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.ServiceAccount")
+		return nil, fmt.Errorf("object type is not *corev1.ServiceAccount")
 	}
 	return h.createSA(sa)
 }

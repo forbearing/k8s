@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.Role, error) {
 func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.Role, error) {
 	role, ok := obj.(*rbacv1.Role)
 	if !ok {
-		return nil, fmt.Errorf("object is not *rbacv1.Role")
+		return nil, fmt.Errorf("object type is not *rbacv1.Role")
 	}
 	return h.createRole(role)
 }

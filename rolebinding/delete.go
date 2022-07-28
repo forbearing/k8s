@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	rb, ok := obj.(*rbacv1.RoleBinding)
 	if !ok {
-		return fmt.Errorf("object is not *rbacv1.RoleBinding")
+		return fmt.Errorf("object type is not *rbacv1.RoleBinding")
 	}
 	return h.deleteRolebinding(rb)
 }

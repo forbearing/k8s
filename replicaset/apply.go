@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (rs *appsv1.ReplicaSet, err error)
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.ReplicaSet, error) {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
-		return nil, fmt.Errorf("object is not *appsv1.ReplicaSet")
+		return nil, fmt.Errorf("object type is not *appsv1.ReplicaSet")
 	}
 	return h.applyReplicaset(rs)
 }

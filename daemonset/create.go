@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*appsv1.DaemonSet, error) {
 func (h *Handler) CreateFromObject(obj runtime.Object) (*appsv1.DaemonSet, error) {
 	ds, ok := obj.(*appsv1.DaemonSet)
 	if !ok {
-		return nil, fmt.Errorf("object is not *appsv1.DaemonSet")
+		return nil, fmt.Errorf("object type is not *appsv1.DaemonSet")
 	}
 	return h.createDaemonset(ds)
 }

@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	sc, ok := obj.(*storagev1.StorageClass)
 	if !ok {
-		return fmt.Errorf("object is not *storagev1.StorageClass")
+		return fmt.Errorf("object type is not *storagev1.StorageClass")
 	}
 	return h.deleteSC(sc)
 }

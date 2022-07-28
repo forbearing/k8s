@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (netpol *networkingv1.NetworkPolic
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*networkingv1.NetworkPolicy, error) {
 	netpol, ok := obj.(*networkingv1.NetworkPolicy)
 	if !ok {
-		return nil, fmt.Errorf("object is not *networkingv1.NetworkPolicy")
+		return nil, fmt.Errorf("object type is not *networkingv1.NetworkPolicy")
 	}
 	return h.applyNetpol(netpol)
 }

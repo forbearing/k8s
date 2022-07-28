@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	cm, ok := obj.(*corev1.ConfigMap)
 	if !ok {
-		return fmt.Errorf("object is not *corev1.ConfigMap")
+		return fmt.Errorf("object type is not *corev1.ConfigMap")
 	}
 	return h.deleteConfigmap(cm)
 }

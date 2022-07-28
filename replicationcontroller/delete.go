@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	rc, ok := obj.(*corev1.ReplicationController)
 	if !ok {
-		return fmt.Errorf("object is not *corev1.ReplicationController")
+		return fmt.Errorf("object type is not *corev1.ReplicationController")
 	}
 	return h.deleteRS(rc)
 }

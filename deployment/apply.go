@@ -69,7 +69,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (deploy *appsv1.Deployment, err er
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.Deployment, error) {
 	deploy, ok := obj.(*appsv1.Deployment)
 	if !ok {
-		return nil, fmt.Errorf("object is not *appsv1.Deployment")
+		return nil, fmt.Errorf("object type is not *appsv1.Deployment")
 	}
 	return h.applyDeployment(deploy)
 }

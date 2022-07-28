@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	pvc, ok := obj.(*corev1.PersistentVolumeClaim)
 	if !ok {
-		return fmt.Errorf("object is not *corev1.PersistentVolumeClaim")
+		return fmt.Errorf("object type is not *corev1.PersistentVolumeClaim")
 	}
 	return h.deletePVC(pvc)
 }

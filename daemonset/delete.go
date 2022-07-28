@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	ds, ok := obj.(*appsv1.DaemonSet)
 	if !ok {
-		return fmt.Errorf("object is not *appsv1.DaemonSet")
+		return fmt.Errorf("object type is not *appsv1.DaemonSet")
 	}
 	return h.deleteDaemonset(ds)
 }

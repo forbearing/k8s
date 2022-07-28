@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
-		return fmt.Errorf("object is not *appsv1.ReplicaSet")
+		return fmt.Errorf("object type is not *appsv1.ReplicaSet")
 	}
 	return h.deleteReplicaset(rs)
 }

@@ -65,7 +65,7 @@ func (h *Handler) CreateFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
 func (h *Handler) CreateFromObject(obj runtime.Object) (*appsv1.ReplicaSet, error) {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
-		return nil, fmt.Errorf("object is not *appsv1.ReplicaSet")
+		return nil, fmt.Errorf("object type is not *appsv1.ReplicaSet")
 	}
 	return h.createReplicaset(rs)
 }

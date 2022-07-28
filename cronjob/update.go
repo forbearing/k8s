@@ -65,7 +65,7 @@ func (h *Handler) UpdateFromBytes(data []byte) (*batchv1.CronJob, error) {
 func (h *Handler) UpdateFromObject(obj runtime.Object) (*batchv1.CronJob, error) {
 	cj, ok := obj.(*batchv1.CronJob)
 	if !ok {
-		return nil, fmt.Errorf("object is not *batchv1.CronJob")
+		return nil, fmt.Errorf("object type is not *batchv1.CronJob")
 	}
 	return h.updateCronjob(cj)
 }

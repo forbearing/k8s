@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*batchv1.CronJob, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*batchv1.CronJob, error) {
 	cm, ok := obj.(*batchv1.CronJob)
 	if !ok {
-		return nil, fmt.Errorf("object is not *batchv1.CronJob")
+		return nil, fmt.Errorf("object type is not *batchv1.CronJob")
 	}
 	return h.getCronjob(cm)
 }

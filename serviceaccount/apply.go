@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (sa *corev1.ServiceAccount, err er
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.ServiceAccount, error) {
 	sa, ok := obj.(*corev1.ServiceAccount)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.ServiceAccount")
+		return nil, fmt.Errorf("object type is not *corev1.ServiceAccount")
 	}
 	return h.applySA(sa)
 }

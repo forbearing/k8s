@@ -57,7 +57,7 @@ func (h *Handler) ApplyFromBytes(data []byte) (cm *batchv1.CronJob, err error) {
 func (h *Handler) ApplyFromObject(obj runtime.Object) (*batchv1.CronJob, error) {
 	cm, ok := obj.(*batchv1.CronJob)
 	if !ok {
-		return nil, fmt.Errorf("object is not *batchv1.CronJob")
+		return nil, fmt.Errorf("object type is not *batchv1.CronJob")
 	}
 	return h.applyCronjob(cm)
 }

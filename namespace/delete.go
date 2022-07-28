@@ -73,7 +73,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	ns, ok := obj.(*corev1.Namespace)
 	if !ok {
-		return fmt.Errorf("object is not *corev1.Namespace")
+		return fmt.Errorf("object type is not *corev1.Namespace")
 	}
 	return h.deleteNamespace(ns)
 }

@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.ReplicationController, erro
 func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.ReplicationController, error) {
 	rc, ok := obj.(*corev1.ReplicationController)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.ReplicationController")
+		return nil, fmt.Errorf("object type is not *corev1.ReplicationController")
 	}
 	return h.getRS(rc)
 }

@@ -73,7 +73,7 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.Secret, error) {
 func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.Secret, error) {
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
-		return nil, fmt.Errorf("object is not *corev1.Secret")
+		return nil, fmt.Errorf("object type is not *corev1.Secret")
 	}
 	return h.getSecret(secret)
 }
