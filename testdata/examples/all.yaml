@@ -46,19 +46,19 @@ spec:
         resources:
           limits:
             cpu: 100m
-#---
-#apiVersion: v1
-#kind: Pod
-#metadata:
-#  name: test
-#  labels:
-#    app: nginx
-#    type: pod
-#spec:
-#  terminationGracePeriodSeconds: 1
-#  containers:
-#  - name: nginx
-#    image: nginx
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test
+  labels:
+    app: nginx
+    type: pod
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+  - name: nginx
+    image: nginx
 
 
 
