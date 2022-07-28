@@ -73,7 +73,7 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*appsv1.StatefulSet, err
 // UpdateFromUnstructured updates statefulset from *unstructured.Unstructured.
 func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*appsv1.StatefulSet, error) {
 	sts := &appsv1.StatefulSet{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sts)
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), sts)
 	if err != nil {
 		return nil, err
 	}

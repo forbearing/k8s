@@ -65,7 +65,7 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.StatefulSet, erro
 // ApplyFromUnstructured applies statefulset from *unstructured.Unstructured.
 func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*appsv1.StatefulSet, error) {
 	sts := &appsv1.StatefulSet{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sts)
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), sts)
 	if err != nil {
 		return nil, err
 	}
