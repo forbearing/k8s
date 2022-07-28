@@ -5,11 +5,13 @@ import (
 
 	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies ingress from type string, []byte, *networkingv1.Ingress,
-// networkingv1.Ingress, runtime.Object or map[string]interface{}.
+// networkingv1.Ingress, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*networkingv1.Ingress, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*networkingv1.Ingress, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*networkingv1.Ingress, er
 	return h.applyIngress(ing)
 }
 
-// ApplyFromUnstructured applies ingress from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*networkingv1.Ingress, error) {
+// ApplyFromUnstructured applies ingress from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*networkingv1.Ingress, error) {
+	ing := &networkingv1.Ingress{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), ing)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyIngress(ing)
+}
+
+// ApplyFromMap applies ingress from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*networkingv1.Ingress, error) {
 	ing := &networkingv1.Ingress{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ing)
 	if err != nil {

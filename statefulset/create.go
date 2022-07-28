@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates statefulset from type string, []byte, *appsv1.StatefulSet,
-// appsv1.StatefulSet, runtime.Object or map[string]interface{}.
+// appsv1.StatefulSet, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*appsv1.StatefulSet, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*appsv1.StatefulSet, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*appsv1.StatefulSet, err
 	return h.createStatefulset(sts)
 }
 
-// CreateFromUnstructured creates statefulset from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*appsv1.StatefulSet, error) {
+// CreateFromUnstructured creates statefulset from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*appsv1.StatefulSet, error) {
+	sts := &appsv1.StatefulSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), sts)
+	if err != nil {
+		return nil, err
+	}
+	return h.createStatefulset(sts)
+}
+
+// CreateFromMap creates statefulset from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*appsv1.StatefulSet, error) {
 	sts := &appsv1.StatefulSet{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sts)
 	if err != nil {

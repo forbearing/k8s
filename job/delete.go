@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Delete deletes job from type string, []byte, *batchv1.Job,
-// batchv1.Job, runtime.Object or map[string]interface{}.
+// batchv1.Job, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a job from file path.
@@ -27,8 +29,12 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromObject(&val)
 	case runtime.Object:
 		return h.DeleteFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.DeleteFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.DeleteFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.DeleteFromMap(val)
 	default:
 		return ERR_TYPE_DELETE
 	}
@@ -72,8 +78,18 @@ func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	return h.deleteJob(job)
 }
 
-// DeleteFromUnstructured deletes job from map[string]interface{}.
-func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
+// DeleteFromUnstructured deletes job from *unstructured.Unstructured.
+func (h *Handler) DeleteFromUnstructured(u *unstructured.Unstructured) error {
+	job := &batchv1.Job{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), job)
+	if err != nil {
+		return err
+	}
+	return h.deleteJob(job)
+}
+
+// DeleteFromMap deletes job from map[string]interface{}.
+func (h *Handler) DeleteFromMap(u map[string]interface{}) error {
 	job := &batchv1.Job{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, job)
 	if err != nil {

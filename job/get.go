@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets job from type string, []byte, *batchv1.Job,
-// batchv1.Job, runtime.Object or map[string]interface{}.
+// batchv1.Job, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a job from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*batchv1.Job, error) {
 		return h.GetFromObject(val)
 	case batchv1.Job:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*batchv1.Job, error) {
 	return h.getJob(job)
 }
 
-// GetFromUnstructured gets job from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*batchv1.Job, error) {
+// GetFromUnstructured gets job from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*batchv1.Job, error) {
+	job := &batchv1.Job{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), job)
+	if err != nil {
+		return nil, err
+	}
+	return h.getJob(job)
+}
+
+// GetFromMap gets job from unstructured.Unstructured.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*batchv1.Job, error) {
 	job := &batchv1.Job{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, job)
 	if err != nil {

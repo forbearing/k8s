@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates serviceaccount from type string, []byte, *corev1.ServiceAccount,
-// corev1.ServiceAccount, runtime.Object or map[string]interface{}.
+// corev1.ServiceAccount, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*corev1.ServiceAccount, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*corev1.ServiceAccount, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.ServiceAccount, 
 	return h.updateSA(sa)
 }
 
-// UpdateFromUnstructured updates serviceaccount from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*corev1.ServiceAccount, error) {
+// UpdateFromUnstructured updates serviceaccount from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*corev1.ServiceAccount, error) {
+	sa := &corev1.ServiceAccount{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), sa)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateSA(sa)
+}
+
+// UpdateFromMap updates serviceaccount from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*corev1.ServiceAccount, error) {
 	sa := &corev1.ServiceAccount{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sa)
 	if err != nil {

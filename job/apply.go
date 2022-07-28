@@ -5,11 +5,13 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies job from type string, []byte, *batchv1.Job,
-// batchv1.Job, runtime.Object or map[string]interface{}.
+// batchv1.Job, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*batchv1.Job, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*batchv1.Job, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*batchv1.Job, error) {
 	return h.applyJob(job)
 }
 
-// ApplyFromUnstructured applies job from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*batchv1.Job, error) {
+// ApplyFromUnstructured applies job from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*batchv1.Job, error) {
+	job := &batchv1.Job{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), job)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyJob(job)
+}
+
+// ApplyFromMap applies job from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*batchv1.Job, error) {
 	job := &batchv1.Job{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, job)
 	if err != nil {

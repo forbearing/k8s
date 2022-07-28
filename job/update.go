@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates job from type string, []byte, *batchv1.Job,
-// batchv1.Job, runtime.Object or map[string]interface{}.
+// batchv1.Job, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*batchv1.Job, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*batchv1.Job, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*batchv1.Job, error) {
 	return h.updateJob(job)
 }
 
-// UpdateFromUnstructured updates job from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*batchv1.Job, error) {
+// UpdateFromUnstructured updates job from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*batchv1.Job, error) {
+	job := &batchv1.Job{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), job)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateJob(job)
+}
+
+// UpdateFromMap updates job from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*batchv1.Job, error) {
 	job := &batchv1.Job{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, job)
 	if err != nil {

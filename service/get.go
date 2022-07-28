@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -25,8 +26,14 @@ func (h *Handler) Get(obj interface{}) (*corev1.Service, error) {
 		return h.GetFromObject(val)
 	case corev1.Service:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +77,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.Service, error) {
 	return h.getService(svc)
 }
 
-// GetFromUnstructured gets service from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*corev1.Service, error) {
+// GetFromUnstructured gets service from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*corev1.Service, error) {
+	svc := &corev1.Service{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), svc)
+	if err != nil {
+		return nil, err
+	}
+	return h.getService(svc)
+}
+
+// GetFromMap gets service from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*corev1.Service, error) {
 	svc := &corev1.Service{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, svc)
 	if err != nil {

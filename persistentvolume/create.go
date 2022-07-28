@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates persistentvolume from type string, []byte, *corev1.PersistentVolume,
-// corev1.PersistentVolume, runtime.Object or map[string]interface{}.
+// corev1.PersistentVolume, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*corev1.PersistentVolume, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*corev1.PersistentVolume, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.PersistentVolume
 	return h.createPV(pv)
 }
 
-// CreateFromUnstructured creates persistentvolume from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*corev1.PersistentVolume, error) {
+// CreateFromUnstructured creates persistentvolume from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*corev1.PersistentVolume, error) {
+	pv := &corev1.PersistentVolume{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), pv)
+	if err != nil {
+		return nil, err
+	}
+	return h.createPV(pv)
+}
+
+// CreateFromMap creates persistentvolume from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*corev1.PersistentVolume, error) {
 	pv := &corev1.PersistentVolume{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, pv)
 	if err != nil {

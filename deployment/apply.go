@@ -22,7 +22,8 @@ import (
 )
 
 // Apply applies deployment from type string, []byte, *appsv1.Deployment,
-// appsv1.Deployment, runtime.Object or map[string]interface{}.
+// appsv1.Deployment, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*appsv1.Deployment, error) {
 	switch val := obj.(type) {
 	case string:
@@ -35,8 +36,12 @@ func (h *Handler) Apply(obj interface{}) (*appsv1.Deployment, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -69,8 +74,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.Deployment, error
 	return h.applyDeployment(deploy)
 }
 
-// ApplyFromUnstructured applies deployment from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*appsv1.Deployment, error) {
+// ApplyFromUnstructured applies deployment from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*appsv1.Deployment, error) {
+	deploy := &appsv1.Deployment{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), deploy)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyDeployment(deploy)
+}
+
+// ApplyFromMap applies deployment from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*appsv1.Deployment, error) {
 	deploy := &appsv1.Deployment{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, deploy)
 	if err != nil {
@@ -81,20 +96,6 @@ func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*appsv1.Deplo
 
 // applyDeployment
 func (h *Handler) applyDeployment(deploy *appsv1.Deployment) (*appsv1.Deployment, error) {
-	//var namespace string
-	//if len(deploy.Namespace) != 0 {
-	//    namespace = deploy.Namespace
-	//} else {
-	//    namespace = h.namespace
-	//}
-
-	//// 这里不能再用 deploy 来接收 Create 的结果, 以为如果 Create 失败了, 返回的
-	//// 是一个空的 deploy, 后续的 Update deployment 就会失败.
-	//_, err := h.clientset.AppsV1().Deployments(namespace).Create(h.ctx, deploy, h.Options.CreateOptions)
-	//if k8serrors.IsAlreadyExists(err) {
-	//    deploy, err = h.clientset.AppsV1().Deployments(namespace).Update(h.ctx, deploy, h.Options.UpdateOptions)
-	//}
-	//return deploy, err
 	_, err := h.createDeployment(deploy)
 	if k8serrors.IsAlreadyExists(err) {
 		return h.updateDeployment(deploy)

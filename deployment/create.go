@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates deployment from type string, []byte, *appsv1.Deployment,
-// appsv1.Deployment, runtime.Object or map[string]interface{}.
+// appsv1.Deployment, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*appsv1.Deployment, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*appsv1.Deployment, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*appsv1.Deployment, erro
 	return h.createDeployment(deploy)
 }
 
-// CreateFromUnstructured creates deployment from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*appsv1.Deployment, error) {
+// CreateFromUnstructured creates deployment from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*appsv1.Deployment, error) {
+	deploy := &appsv1.Deployment{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), deploy)
+	if err != nil {
+		return nil, err
+	}
+	return h.createDeployment(deploy)
+}
+
+// CreateFromMap creates deployment from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*appsv1.Deployment, error) {
 	deploy := &appsv1.Deployment{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, deploy)
 	if err != nil {

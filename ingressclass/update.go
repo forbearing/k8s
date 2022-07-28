@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates ingressclass from type string, []byte, *networkingv1.IngressClass,
-// networkingv1.IngressClass, runtime.Object or map[string]interface{}.
+// networkingv1.IngressClass, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*networkingv1.IngressClass, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*networkingv1.IngressClass, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*networkingv1.IngressCla
 	return h.updateIngressclass(ingc)
 }
 
-// UpdateFromUnstructured updates ingressclass from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*networkingv1.IngressClass, error) {
+// UpdateFromUnstructured updates ingressclass from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*networkingv1.IngressClass, error) {
+	ingc := &networkingv1.IngressClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), ingc)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateIngressclass(ingc)
+}
+
+// UpdateFromMap updates ingressclass from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*networkingv1.IngressClass, error) {
 	ingc := &networkingv1.IngressClass{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ingc)
 	if err != nil {

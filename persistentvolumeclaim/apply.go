@@ -5,11 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies persistentvolumeclaim from type string, []byte, *corev1.PersistentVolumeClaim,
-// corev1.PersistentVolumeClaim, runtime.Object or map[string]interface{}.
+// corev1.PersistentVolumeClaim, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.PersistentVolumeClaim, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*corev1.PersistentVolumeClaim, error) 
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.PersistentVolumeC
 	return h.applyPVC(pvc)
 }
 
-// ApplyFromUnstructured applies persistentvolumeclaim from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*corev1.PersistentVolumeClaim, error) {
+// ApplyFromUnstructured applies persistentvolumeclaim from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*corev1.PersistentVolumeClaim, error) {
+	pvc := &corev1.PersistentVolumeClaim{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), pvc)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyPVC(pvc)
+}
+
+// ApplyFromMap applies persistentvolumeclaim from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*corev1.PersistentVolumeClaim, error) {
 	pvc := &corev1.PersistentVolumeClaim{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, pvc)
 	if err != nil {

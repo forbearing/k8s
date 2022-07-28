@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates job from type string, []byte, *batchv1.Job,
-// batchv1.Job, runtime.Object or map[string]interface{}.
+// batchv1.Job, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*batchv1.Job, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*batchv1.Job, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*batchv1.Job, error) {
 	return h.createJob(job)
 }
 
-// CreateFromUnstructured creates job from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*batchv1.Job, error) {
+// CreateFromUnstructured creates job from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*batchv1.Job, error) {
+	job := &batchv1.Job{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), job)
+	if err != nil {
+		return nil, err
+	}
+	return h.createJob(job)
+}
+
+// CreateFromMap creates job from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*batchv1.Job, error) {
 	job := &batchv1.Job{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, job)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -24,8 +25,12 @@ func (h *Handler) Update(obj interface{}) (*corev1.Service, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +69,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.Service, error) 
 	return h.updateService(svc)
 }
 
-// UpdateFromUnstructured updates service from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*corev1.Service, error) {
+// UpdateFromUnstructured updates service from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*corev1.Service, error) {
+	svc := &corev1.Service{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), svc)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateService(svc)
+}
+
+// UpdateFromMap updates service from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*corev1.Service, error) {
 	svc := &corev1.Service{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, svc)
 	if err != nil {

@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets secret from type string, []byte, *corev1.Secret,
-// corev1.Secret, runtime.Object or map[string]interface{}.
+// corev1.Secret, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a secret from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*corev1.Secret, error) {
 		return h.GetFromObject(val)
 	case corev1.Secret:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.Secret, error) {
 	return h.getSecret(secret)
 }
 
-// GetFromUnstructured gets secret from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*corev1.Secret, error) {
+// GetFromUnstructured gets secret from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*corev1.Secret, error) {
+	secret := &corev1.Secret{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), secret)
+	if err != nil {
+		return nil, err
+	}
+	return h.getSecret(secret)
+}
+
+// GetFromMap gets secret from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, secret)
 	if err != nil {

@@ -5,11 +5,13 @@ import (
 
 	storagev1 "k8s.io/api/storage/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies storageclass from type string, []byte, *storagev1.StorageClass,
-// storagev1.StorageClass, runtime.Object or map[string]interface{}.
+// storagev1.StorageClass, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*storagev1.StorageClass, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*storagev1.StorageClass, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*storagev1.StorageClass, 
 	return h.applySC(sc)
 }
 
-// ApplyFromUnstructured applies storageclass from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*storagev1.StorageClass, error) {
+// ApplyFromUnstructured applies storageclass from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*storagev1.StorageClass, error) {
+	sc := &storagev1.StorageClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), sc)
+	if err != nil {
+		return nil, err
+	}
+	return h.applySC(sc)
+}
+
+// ApplyFromMap applies storageclass from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*storagev1.StorageClass, error) {
 	sc := &storagev1.StorageClass{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sc)
 	if err != nil {

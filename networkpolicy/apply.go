@@ -5,11 +5,13 @@ import (
 
 	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies networkpolicy from type string, []byte, *networkingv1.NetworkPolicy,
-// networkingv1.NetworkPolicy, runtime.Object or map[string]interface{}.
+// networkingv1.NetworkPolicy, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*networkingv1.NetworkPoli
 	return h.applyNetpol(netpol)
 }
 
-// ApplyFromUnstructured applies networkpolicy from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
+// ApplyFromUnstructured applies networkpolicy from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*networkingv1.NetworkPolicy, error) {
+	netpol := &networkingv1.NetworkPolicy{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), netpol)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyNetpol(netpol)
+}
+
+// ApplyFromMap applies networkpolicy from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
 	netpol := &networkingv1.NetworkPolicy{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, netpol)
 	if err != nil {

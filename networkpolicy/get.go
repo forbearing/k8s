@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets networkpolicy from type string, []byte, *networkingv1.NetworkPolicy,
-// networkingv1.NetworkPolicy, runtime.Object or map[string]interface{}.
+// networkingv1.NetworkPolicy, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a networkpolicy from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 		return h.GetFromObject(val)
 	case networkingv1.NetworkPolicy:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*networkingv1.NetworkPolicy
 	return h.getNetpol(netpol)
 }
 
-// GetFromUnstructured gets networkpolicy from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
+// GetFromUnstructured gets networkpolicy from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*networkingv1.NetworkPolicy, error) {
+	netpol := &networkingv1.NetworkPolicy{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), netpol)
+	if err != nil {
+		return nil, err
+	}
+	return h.getNetpol(netpol)
+}
+
+// GetFromMap gets networkpolicy from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
 	netpol := &networkingv1.NetworkPolicy{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, netpol)
 	if err != nil {

@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates secret from type string, []byte, *corev1.Secret,
-// corev1.Secret, runtime.Object or map[string]interface{}.
+// corev1.Secret, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*corev1.Secret, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*corev1.Secret, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Secret, error) {
 	return h.createSecret(secret)
 }
 
-// CreateFromUnstructured creates secret from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*corev1.Secret, error) {
+// CreateFromUnstructured creates secret from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*corev1.Secret, error) {
+	secret := &corev1.Secret{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), secret)
+	if err != nil {
+		return nil, err
+	}
+	return h.createSecret(secret)
+}
+
+// CreateFromMap creates secret from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, secret)
 	if err != nil {

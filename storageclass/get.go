@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	storagev1 "k8s.io/api/storage/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets storageclass from type string, []byte, *storagev1.StorageClass,
-// storagev1.StorageClass, runtime.Object or map[string]interface{}.
+// storagev1.StorageClass, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a storageclass from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*storagev1.StorageClass, error) {
 		return h.GetFromObject(val)
 	case storagev1.StorageClass:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*storagev1.StorageClass, er
 	return h.getSC(sc)
 }
 
-// GetFromUnstructured gets storageclass from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*storagev1.StorageClass, error) {
+// GetFromUnstructured gets storageclass from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*storagev1.StorageClass, error) {
+	sc := &storagev1.StorageClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), sc)
+	if err != nil {
+		return nil, err
+	}
+	return h.getSC(sc)
+}
+
+// GetFromMap gets storageclass from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*storagev1.StorageClass, error) {
 	sc := &storagev1.StorageClass{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sc)
 	if err != nil {

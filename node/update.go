@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates node from type string, []byte, *corev1.Node,
-// corev1.Node, runtime.Object or map[string]interface{}.
+// corev1.Node, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*corev1.Node, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*corev1.Node, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.Node, error) {
 	return h.updateNode(node)
 }
 
-// UpdateFromUnstructured updates node from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*corev1.Node, error) {
+// UpdateFromUnstructured updates node from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*corev1.Node, error) {
+	node := &corev1.Node{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), node)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateNode(node)
+}
+
+// UpdateFromMap updates node from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*corev1.Node, error) {
 	node := &corev1.Node{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, node)
 	if err != nil {

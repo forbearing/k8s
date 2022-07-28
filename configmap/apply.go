@@ -5,11 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies configmap from type string, []byte, *corev1.ConfigMap,
-// corev1.ConfigMap, runtime.Object or map[string]interface{}.
+// corev1.ConfigMap, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.ConfigMap, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*corev1.ConfigMap, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.ConfigMap, error)
 	return h.applyConfigmap(cm)
 }
 
-// ApplyFromUnstructured applies configmap from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*corev1.ConfigMap, error) {
+// ApplyFromUnstructured applies configmap from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*corev1.ConfigMap, error) {
+	cm := &corev1.ConfigMap{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), cm)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyConfigmap(cm)
+}
+
+// ApplyFromMap applies configmap from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*corev1.ConfigMap, error) {
 	cm := &corev1.ConfigMap{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cm)
 	if err != nil {

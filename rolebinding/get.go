@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets rolebinding from type string, []byte, *rbacv1.RoleBinding,
-// rbacv1.RoleBinding, runtime.Object or map[string]interface{}.
+// rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a rolebinding from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*rbacv1.RoleBinding, error) {
 		return h.GetFromObject(val)
 	case rbacv1.RoleBinding:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error)
 	return h.getRolebinding(rb)
 }
 
-// GetFromUnstructured gets rolebinding from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*rbacv1.RoleBinding, error) {
+// GetFromUnstructured gets rolebinding from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*rbacv1.RoleBinding, error) {
+	rb := &rbacv1.RoleBinding{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), rb)
+	if err != nil {
+		return nil, err
+	}
+	return h.getRolebinding(rb)
+}
+
+// GetFromMap gets rolebinding from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*rbacv1.RoleBinding, error) {
 	rb := &rbacv1.RoleBinding{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rb)
 	if err != nil {

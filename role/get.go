@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets role from type string, []byte, *rbacv1.Role,
-// rbacv1.Role, runtime.Object or map[string]interface{}.
+// rbacv1.Role, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a role from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*rbacv1.Role, error) {
 		return h.GetFromObject(val)
 	case rbacv1.Role:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*rbacv1.Role, error) {
 	return h.getRole(role)
 }
 
-// GetFromUnstructured gets role from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*rbacv1.Role, error) {
+// GetFromUnstructured gets role from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*rbacv1.Role, error) {
+	role := &rbacv1.Role{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), role)
+	if err != nil {
+		return nil, err
+	}
+	return h.getRole(role)
+}
+
+// GetFromMap gets role from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*rbacv1.Role, error) {
 	role := &rbacv1.Role{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, role)
 	if err != nil {

@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates daemonset from type string, []byte, *appsv1.DaemonSet,
-// appsv1.DaemonSet, runtime.Object or map[string]interface{}.
+// appsv1.DaemonSet, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*appsv1.DaemonSet, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*appsv1.DaemonSet, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*appsv1.DaemonSet, error
 	return h.updateDaemonset(ds)
 }
 
-// UpdateFromUnstructured updates daemonset from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*appsv1.DaemonSet, error) {
+// UpdateFromUnstructured updates daemonset from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*appsv1.DaemonSet, error) {
+	ds := &appsv1.DaemonSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), ds)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateDaemonset(ds)
+}
+
+// UpdateFromMap updates daemonset from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*appsv1.DaemonSet, error) {
 	ds := &appsv1.DaemonSet{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ds)
 	if err != nil {

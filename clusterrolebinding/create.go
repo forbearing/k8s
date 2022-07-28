@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// Create creates clusterrolebinding from type string, []byte, *rbacv1.ClusterRoleBinding,
-// rbacv1.ClusterRoleBinding, runtime.Object or map[string]interface{}.
+// Create creates clusterrolebinding from type string, []byte,
+// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, runtime.Object,
+// *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.ClusterRoleBindi
 	return h.createCRB(crb)
 }
 
-// CreateFromUnstructured creates clusterrolebinding from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*rbacv1.ClusterRoleBinding, error) {
+// CreateFromUnstructured creates clusterrolebinding from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*rbacv1.ClusterRoleBinding, error) {
+	crb := &rbacv1.ClusterRoleBinding{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), crb)
+	if err != nil {
+		return nil, err
+	}
+	return h.createCRB(crb)
+}
+
+// CreateFromMap creates clusterrolebinding from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	crb := &rbacv1.ClusterRoleBinding{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, crb)
 	if err != nil {

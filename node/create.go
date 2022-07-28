@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates node from type string, []byte, *corev1.Node,
-// corev1.Node, runtime.Object or map[string]interface{}.
+// corev1.Node, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*corev1.Node, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*corev1.Node, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Node, error) {
 	return h.createNode(node)
 }
 
-// CreateFromUnstructured creates node from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*corev1.Node, error) {
+// CreateFromUnstructured creates node from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*corev1.Node, error) {
+	node := &corev1.Node{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), node)
+	if err != nil {
+		return nil, err
+	}
+	return h.createNode(node)
+}
+
+// CreateFromMap creates node from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*corev1.Node, error) {
 	node := &corev1.Node{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, node)
 	if err != nil {

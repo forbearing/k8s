@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates role from type string, []byte, *rbacv1.Role,
-// rbacv1.Role, runtime.Object or map[string]interface{}.
+// rbacv1.Role, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*rbacv1.Role, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*rbacv1.Role, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.Role, error) {
 	return h.createRole(role)
 }
 
-// CreateFromUnstructured creates role from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*rbacv1.Role, error) {
+// CreateFromUnstructured creates role from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*rbacv1.Role, error) {
+	role := &rbacv1.Role{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), role)
+	if err != nil {
+		return nil, err
+	}
+	return h.createRole(role)
+}
+
+// CreateFromMap creates role from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*rbacv1.Role, error) {
 	role := &rbacv1.Role{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, role)
 	if err != nil {

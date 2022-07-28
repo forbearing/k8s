@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates clusterrole from type string, []byte, *rbacv1.ClusterRole,
-// rbacv1.ClusterRole, runtime.Object or map[string]interface{}.
+// rbacv1.ClusterRole, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*rbacv1.ClusterRole, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*rbacv1.ClusterRole, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.ClusterRole, err
 	return h.updateCR(cr)
 }
 
-// UpdateFromUnstructured updates clusterrole from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*rbacv1.ClusterRole, error) {
+// UpdateFromUnstructured updates clusterrole from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*rbacv1.ClusterRole, error) {
+	cr := &rbacv1.ClusterRole{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), cr)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateCR(cr)
+}
+
+// UpdateFromMap updates clusterrole from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*rbacv1.ClusterRole, error) {
 	cr := &rbacv1.ClusterRole{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cr)
 	if err != nil {

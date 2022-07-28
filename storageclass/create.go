@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	storagev1 "k8s.io/api/storage/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates storageclass from type string, []byte, *storagev1.StorageClass,
-// storagev1.StorageClass, runtime.Object or map[string]interface{}.
+// storagev1.StorageClass, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*storagev1.StorageClass, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*storagev1.StorageClass, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*storagev1.StorageClass,
 	return h.createSC(sc)
 }
 
-// CreateFromUnstructured creates storageclass from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*storagev1.StorageClass, error) {
+// CreateFromUnstructured creates storageclass from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*storagev1.StorageClass, error) {
+	sc := &storagev1.StorageClass{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), sc)
+	if err != nil {
+		return nil, err
+	}
+	return h.createSC(sc)
+}
+
+// CreateFromMap creates storageclass from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*storagev1.StorageClass, error) {
 	sc := &storagev1.StorageClass{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sc)
 	if err != nil {

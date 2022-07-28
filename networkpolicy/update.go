@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates networkpolicy from type string, []byte, *networkingv1.NetworkPolicy,
-// networkingv1.NetworkPolicy, runtime.Object or map[string]interface{}.
+// networkingv1.NetworkPolicy, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*networkingv1.NetworkPol
 	return h.updateNetpol(netpol)
 }
 
-// UpdateFromUnstructured updates networkpolicy from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
+// UpdateFromUnstructured updates networkpolicy from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*networkingv1.NetworkPolicy, error) {
+	netpol := &networkingv1.NetworkPolicy{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), netpol)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateNetpol(netpol)
+}
+
+// UpdateFromMap updates networkpolicy from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*networkingv1.NetworkPolicy, error) {
 	netpol := &networkingv1.NetworkPolicy{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, netpol)
 	if err != nil {

@@ -5,11 +5,13 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies replicaset from type string, []byte, *appsv1.ReplicaSet,
-// appsv1.ReplicaSet, runtime.Object or map[string]interface{}.
+// appsv1.ReplicaSet, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*appsv1.ReplicaSet, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*appsv1.ReplicaSet, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.ReplicaSet, error
 	return h.applyReplicaset(rs)
 }
 
-// ApplyFromUnstructured applies replicaset from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*appsv1.ReplicaSet, error) {
+// ApplyFromUnstructured applies replicaset from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*appsv1.ReplicaSet, error) {
+	rs := &appsv1.ReplicaSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), rs)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyReplicaset(rs)
+}
+
+// ApplyFromMap applies replicaset from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*appsv1.ReplicaSet, error) {
 	rs := &appsv1.ReplicaSet{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rs)
 	if err != nil {

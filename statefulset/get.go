@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets statefulset from type string, []byte, *appsv1.StatefulSet,
-// appsv1.StatefulSet, runtime.Object or map[string]interface{}.
+// appsv1.StatefulSet, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a statefulset from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*appsv1.StatefulSet, error) {
 		return h.GetFromObject(val)
 	case appsv1.StatefulSet:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*appsv1.StatefulSet, error)
 	return h.getStatefulset(sts)
 }
 
-// GetFromUnstructured gets statefulset from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*appsv1.StatefulSet, error) {
+// GetFromUnstructured gets statefulset from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*appsv1.StatefulSet, error) {
+	sts := &appsv1.StatefulSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), sts)
+	if err != nil {
+		return nil, err
+	}
+	return h.getStatefulset(sts)
+}
+
+// GetFromMap gets statefulset from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*appsv1.StatefulSet, error) {
 	sts := &appsv1.StatefulSet{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, sts)
 	if err != nil {

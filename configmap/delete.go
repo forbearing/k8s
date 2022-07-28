@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Delete deletes configmap from type string, []byte, *corev1.ConfigMap,
-// corev1.ConfigMap, runtime.Object or map[string]interface{}.
+// corev1.ConfigMap, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a configmap from file path.
@@ -27,8 +29,12 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromObject(&val)
 	case runtime.Object:
 		return h.DeleteFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.DeleteFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.DeleteFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.DeleteFromMap(val)
 	default:
 		return ERR_TYPE_DELETE
 	}
@@ -72,8 +78,18 @@ func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	return h.deleteConfigmap(cm)
 }
 
-// DeleteFromUnstructured deletes configmap from map[string]interface{}.
-func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
+// DeleteFromUnstructured deletes configmap from *unstructured.Unstructured.
+func (h *Handler) DeleteFromUnstructured(u *unstructured.Unstructured) error {
+	cm := &corev1.ConfigMap{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), cm)
+	if err != nil {
+		return err
+	}
+	return h.deleteConfigmap(cm)
+}
+
+// DeleteFromMap deletes configmap from map[string]interface{}.
+func (h *Handler) DeleteFromMap(u map[string]interface{}) error {
 	cm := &corev1.ConfigMap{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cm)
 	if err != nil {

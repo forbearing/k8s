@@ -5,11 +5,13 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies daemonset from type string, []byte, *appsv1.DaemonSet,
-// appsv1.DaemonSet, runtime.Object or map[string]interface{}.
+// appsv1.DaemonSet, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*appsv1.DaemonSet, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*appsv1.DaemonSet, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.DaemonSet, error)
 	return h.applyDaemonset(ds)
 }
 
-// ApplyFromUnstructured applies daemonset from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*appsv1.DaemonSet, error) {
+// ApplyFromUnstructured applies daemonset from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*appsv1.DaemonSet, error) {
+	ds := &appsv1.DaemonSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), ds)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyDaemonset(ds)
+}
+
+// ApplyFromMap applies daemonset from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*appsv1.DaemonSet, error) {
 	ds := &appsv1.DaemonSet{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ds)
 	if err != nil {

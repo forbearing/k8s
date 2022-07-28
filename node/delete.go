@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Delete deletes node from type string, []byte, *corev1.Node,
-// corev1.Node, runtime.Object or map[string]interface{}.
+// corev1.Node, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a node from file path.
@@ -27,8 +29,12 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromObject(&val)
 	case runtime.Object:
 		return h.DeleteFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.DeleteFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.DeleteFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.DeleteFromMap(val)
 	default:
 		return ERR_TYPE_DELETE
 	}
@@ -72,8 +78,18 @@ func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	return h.deleteNode(node)
 }
 
-// DeleteFromUnstructured deletes node from map[string]interface{}.
-func (h *Handler) DeleteFromUnstructured(u map[string]interface{}) error {
+// DeleteFromUnstructured deletes node from *unstructured.Unstructured.
+func (h *Handler) DeleteFromUnstructured(u *unstructured.Unstructured) error {
+	node := &corev1.Node{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), node)
+	if err != nil {
+		return err
+	}
+	return h.deleteNode(node)
+}
+
+// DeleteFromMap deletes node from map[string]interface{}.
+func (h *Handler) DeleteFromMap(u map[string]interface{}) error {
 	node := &corev1.Node{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, node)
 	if err != nil {

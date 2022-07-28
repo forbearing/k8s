@@ -5,11 +5,13 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies cronjob from type string, []byte, *batchv1.CronJob,
-// batchv1.CronJob, runtime.Object or map[string]interface{}.
+// batchv1.CronJob, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*batchv1.CronJob, error) {
 	switch val := obj.(type) {
 	case string:
@@ -22,8 +24,12 @@ func (h *Handler) Apply(obj interface{}) (*batchv1.CronJob, error) {
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
 		return h.ApplyFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.ApplyFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.ApplyFromMap(val)
 	default:
 		return nil, ERR_TYPE_APPLY
 	}
@@ -56,8 +62,18 @@ func (h *Handler) ApplyFromObject(obj runtime.Object) (*batchv1.CronJob, error) 
 	return h.applyCronjob(cm)
 }
 
-// ApplyFromUnstructured applies cronjob from map[string]interface{}.
-func (h *Handler) ApplyFromUnstructured(u map[string]interface{}) (*batchv1.CronJob, error) {
+// ApplyFromUnstructured applies cronjob from *unstructured.Unstructured.
+func (h *Handler) ApplyFromUnstructured(u *unstructured.Unstructured) (*batchv1.CronJob, error) {
+	cm := &batchv1.CronJob{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), cm)
+	if err != nil {
+		return nil, err
+	}
+	return h.applyCronjob(cm)
+}
+
+// ApplyFromMap applies cronjob from map[string]interface{}.
+func (h *Handler) ApplyFromMap(u map[string]interface{}) (*batchv1.CronJob, error) {
 	cm := &batchv1.CronJob{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cm)
 	if err != nil {

@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets ingress from type string, []byte, *networkingv1.Ingress,
-// networkingv1.Ingress, runtime.Object or map[string]interface{}.
+// networkingv1.Ingress, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a ingress from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*networkingv1.Ingress, error) {
 		return h.GetFromObject(val)
 	case networkingv1.Ingress:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*networkingv1.Ingress, erro
 	return h.getIngress(ing)
 }
 
-// GetFromUnstructured gets ingress from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*networkingv1.Ingress, error) {
+// GetFromUnstructured gets ingress from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*networkingv1.Ingress, error) {
+	ing := &networkingv1.Ingress{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), ing)
+	if err != nil {
+		return nil, err
+	}
+	return h.getIngress(ing)
+}
+
+// GetFromMap gets ingress from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*networkingv1.Ingress, error) {
 	ing := &networkingv1.Ingress{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ing)
 	if err != nil {

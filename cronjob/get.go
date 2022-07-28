@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets cronjob from type string, []byte, *batchv1.CronJob,
-// batchv1.CronJob, runtime.Object or map[string]interface{}.
+// batchv1.CronJob, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a cronjob from file path.
@@ -25,8 +27,14 @@ func (h *Handler) Get(obj interface{}) (*batchv1.CronJob, error) {
 		return h.GetFromObject(val)
 	case batchv1.CronJob:
 		return h.GetFromObject(&val)
-	case map[string]interface{}:
+	case runtime.Object:
+		return h.GetFromObject(val)
+	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.GetFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.GetFromMap(val)
 	default:
 		return nil, ERR_TYPE_GET
 	}
@@ -70,8 +78,18 @@ func (h *Handler) GetFromObject(obj runtime.Object) (*batchv1.CronJob, error) {
 	return h.getCronjob(cm)
 }
 
-// GetFromUnstructured gets cronjob from map[string]interface{}.
-func (h *Handler) GetFromUnstructured(u map[string]interface{}) (*batchv1.CronJob, error) {
+// GetFromUnstructured gets cronjob from *unstructured.Unstructured.
+func (h *Handler) GetFromUnstructured(u *unstructured.Unstructured) (*batchv1.CronJob, error) {
+	cm := &batchv1.CronJob{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), cm)
+	if err != nil {
+		return nil, err
+	}
+	return h.getCronjob(cm)
+}
+
+// GetFromMap gets cronjob from map[string]interface{}.
+func (h *Handler) GetFromMap(u map[string]interface{}) (*batchv1.CronJob, error) {
 	cm := &batchv1.CronJob{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cm)
 	if err != nil {

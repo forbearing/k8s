@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates ingress from type string, []byte, *networkingv1.Ingress,
-// networkingv1.Ingress, runtime.Object or map[string]interface{}.
+// networkingv1.Ingress, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*networkingv1.Ingress, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Create(obj interface{}) (*networkingv1.Ingress, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*networkingv1.Ingress, e
 	return h.createIngress(ing)
 }
 
-// CreateFromUnstructured creates ingress from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*networkingv1.Ingress, error) {
+// CreateFromUnstructured creates ingress from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*networkingv1.Ingress, error) {
+	ing := &networkingv1.Ingress{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), ing)
+	if err != nil {
+		return nil, err
+	}
+	return h.createIngress(ing)
+}
+
+// CreateFromMap creates ingress from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*networkingv1.Ingress, error) {
 	ing := &networkingv1.Ingress{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ing)
 	if err != nil {

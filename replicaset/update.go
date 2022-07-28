@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates replicaset from type string, []byte, *appsv1.ReplicaSet,
-// appsv1.ReplicaSet, runtime.Object or map[string]interface{}.
+// appsv1.ReplicaSet, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*appsv1.ReplicaSet, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*appsv1.ReplicaSet, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*appsv1.ReplicaSet, erro
 	return h.updateReplicaset(rs)
 }
 
-// UpdateFromUnstructured updates replicaset from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*appsv1.ReplicaSet, error) {
+// UpdateFromUnstructured updates replicaset from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*appsv1.ReplicaSet, error) {
+	rs := &appsv1.ReplicaSet{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), rs)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateReplicaset(rs)
+}
+
+// UpdateFromMap updates replicaset from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*appsv1.ReplicaSet, error) {
 	rs := &appsv1.ReplicaSet{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rs)
 	if err != nil {

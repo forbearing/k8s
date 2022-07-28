@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates namespace from type string, []byte, *corev1.Namespace,
-// corev1.Namespace, runtime.Object or map[string]interface{}.
+// corev1.Namespace, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*corev1.Namespace, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*corev1.Namespace, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.Namespace, error
 	return h.updateNamespace(ns)
 }
 
-// UpdateFromUnstructured updates namespace from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*corev1.Namespace, error) {
+// UpdateFromUnstructured updates namespace from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*corev1.Namespace, error) {
+	ns := &corev1.Namespace{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), ns)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateNamespace(ns)
+}
+
+// UpdateFromMap updates namespace from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*corev1.Namespace, error) {
 	ns := &corev1.Namespace{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, ns)
 	if err != nil {

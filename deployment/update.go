@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates deployment from type string, []byte, *appsv1.Deployment,
-// appsv1.Deployment, runtime.Object or map[string]interface{}.
+// appsv1.Deployment, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*appsv1.Deployment, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*appsv1.Deployment, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*appsv1.Deployment, erro
 	return h.updateDeployment(deploy)
 }
 
-// UpdateFromUnstructured updates deployment from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*appsv1.Deployment, error) {
+// UpdateFromUnstructured updates deployment from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*appsv1.Deployment, error) {
+	deploy := &appsv1.Deployment{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), deploy)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateDeployment(deploy)
+}
+
+// UpdateFromMap updates deployment from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*appsv1.Deployment, error) {
 	deploy := &appsv1.Deployment{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, deploy)
 	if err != nil {
@@ -82,7 +98,7 @@ func (h *Handler) updateDeployment(deploy *appsv1.Deployment) (*appsv1.Deploymen
 	} else {
 		namespace = h.namespace
 	}
-	//// resourceVersion cann't be set, the resourceVersion field is empty.
+	// resourceVersion cann't be set, the resourceVersion field is empty.
 	deploy.ResourceVersion = ""
 	deploy.UID = ""
 	return h.clientset.AppsV1().Deployments(namespace).Update(h.ctx, deploy, h.Options.UpdateOptions)

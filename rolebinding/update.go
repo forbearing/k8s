@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates rolebinding from type string, []byte, *rbacv1.RoleBinding,
-// rbacv1.RoleBinding, runtime.Object or map[string]interface{}.
+// rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*rbacv1.RoleBinding, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*rbacv1.RoleBinding, error) {
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.RoleBinding, err
 	return h.updateRolebinding(rb)
 }
 
-// UpdateFromUnstructured updates rolebinding from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*rbacv1.RoleBinding, error) {
+// UpdateFromUnstructured updates rolebinding from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*rbacv1.RoleBinding, error) {
+	rb := &rbacv1.RoleBinding{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), rb)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateRolebinding(rb)
+}
+
+// UpdateFromMap updates rolebinding from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*rbacv1.RoleBinding, error) {
 	rb := &rbacv1.RoleBinding{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rb)
 	if err != nil {

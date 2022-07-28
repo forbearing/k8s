@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
@@ -24,8 +25,12 @@ func (h *Handler) Create(obj interface{}) (*corev1.Service, error) {
 		return h.CreateFromObject(&val)
 	case runtime.Object:
 		return h.CreateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.CreateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.CreateFromMap(val)
 	default:
 		return nil, ERR_TYPE_CREATE
 	}
@@ -64,8 +69,18 @@ func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Service, error) 
 	return h.createService(svc)
 }
 
-// CreateFromUnstructured creates service from map[string]interface{}.
-func (h *Handler) CreateFromUnstructured(u map[string]interface{}) (*corev1.Service, error) {
+// CreateFromUnstructured creates service from *unstructured.Unstructured.
+func (h *Handler) CreateFromUnstructured(u *unstructured.Unstructured) (*corev1.Service, error) {
+	svc := &corev1.Service{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), svc)
+	if err != nil {
+		return nil, err
+	}
+	return h.createService(svc)
+}
+
+// CreateFromMap creates service from map[string]interface{}.
+func (h *Handler) CreateFromMap(u map[string]interface{}) (*corev1.Service, error) {
 	svc := &corev1.Service{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, svc)
 	if err != nil {

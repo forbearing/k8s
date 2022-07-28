@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// Update updates replicationcontroller from type string, []byte, *corev1.ReplicationController,
-// corev1.ReplicationController, runtime.Object or map[string]interface{}.
+// Update updates replicationcontroller from type string, []byte,
+// *corev1.ReplicationController, corev1.ReplicationController, runtime.Object,
+// *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*corev1.ReplicationController, error) {
 	switch val := obj.(type) {
 	case string:
@@ -24,8 +26,12 @@ func (h *Handler) Update(obj interface{}) (*corev1.ReplicationController, error)
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
 		return h.UpdateFromObject(val)
-	case map[string]interface{}:
+	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
+	case unstructured.Unstructured:
+		return h.UpdateFromUnstructured(&val)
+	case map[string]interface{}:
+		return h.UpdateFromMap(val)
 	default:
 		return nil, ERR_TYPE_UPDATE
 	}
@@ -64,8 +70,18 @@ func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.ReplicationContr
 	return h.updateRS(rc)
 }
 
-// UpdateFromUnstructured updates replicationcontroller from map[string]interface{}.
-func (h *Handler) UpdateFromUnstructured(u map[string]interface{}) (*corev1.ReplicationController, error) {
+// UpdateFromUnstructured updates replicationcontroller from *unstructured.Unstructured.
+func (h *Handler) UpdateFromUnstructured(u *unstructured.Unstructured) (*corev1.ReplicationController, error) {
+	rc := &corev1.ReplicationController{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), rc)
+	if err != nil {
+		return nil, err
+	}
+	return h.updateRS(rc)
+}
+
+// UpdateFromMap updates replicationcontroller from map[string]interface{}.
+func (h *Handler) UpdateFromMap(u map[string]interface{}) (*corev1.ReplicationController, error) {
 	rc := &corev1.ReplicationController{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, rc)
 	if err != nil {
