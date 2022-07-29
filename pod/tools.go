@@ -545,21 +545,21 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 			TTY:       true,
 		}, scheme.ParameterCodec)
 
-	exec, err := remotecommand.NewSPDYExecutor(h.config, "POST", req.URL())
+	executor, err := remotecommand.NewSPDYExecutor(h.config, "POST", req.URL())
 	if err != nil {
 		return err
 	}
 
 	// Connect the process std(in,out,err) to the remote shell process.
 	if pty == nil || reflect.ValueOf(pty).IsNil() {
-		return exec.Stream(remotecommand.StreamOptions{
+		return executor.Stream(remotecommand.StreamOptions{
 			Stdin:  os.Stdin,
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
 			Tty:    true,
 		})
 	}
-	return exec.Stream(remotecommand.StreamOptions{
+	return executor.Stream(remotecommand.StreamOptions{
 		Stdin:             pty,
 		Stdout:            pty,
 		Stderr:            pty,
