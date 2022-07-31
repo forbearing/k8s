@@ -1,6 +1,41 @@
 package node
 
-import "k8s.io/client-go/tools/cache"
+import (
+	"time"
+
+	"k8s.io/client-go/informers"
+	informerscore "k8s.io/client-go/informers/core/v1"
+	listerscore "k8s.io/client-go/listers/core/v1"
+	"k8s.io/client-go/tools/cache"
+)
+
+// SetInformerResyncPeriod will set informer resync period.
+func (h *Handler) SetInformerResyncPeriod(resyncPeriod time.Duration) {
+	h.informerFactory = informers.NewSharedInformerFactory(h.clientset, resyncPeriod)
+}
+
+// InformerFactory returns underlying SharedInformerFactory which provides
+// shared informer for resources in all known API group version.
+func (h *Handler) InformerFactory() informers.SharedInformerFactory {
+	return h.informerFactory
+}
+
+// NodeInformer returns underlying NodeInformer which provides access to a shared
+// informer and lister for node.
+func (h *Handler) NodeInformer() informerscore.NodeInformer {
+	return h.informerFactory.Core().V1().Nodes()
+}
+
+// Informer returns underlying SharedIndexInformer which provides add and Indexers
+// ability based on SharedInformer.
+func (h *Handler) Informer() cache.SharedIndexInformer {
+	return h.informerFactory.Core().V1().Nodes().Informer()
+}
+
+// Lister returns underlying NodeLister which helps list nodes.
+func (h *Handler) Lister() listerscore.NodeLister {
+	return h.informerFactory.Core().V1().Nodes().Lister()
+}
 
 // RunInformer
 func (h *Handler) RunInformer(
@@ -8,10 +43,10 @@ func (h *Handler) RunInformer(
 	updateFunc func(oldObj, newObj interface{}),
 	deleteFunc func(obj interface{}),
 	stopCh chan struct{}) {
-	h.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	h.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    addFunc,
 		UpdateFunc: updateFunc,
 		DeleteFunc: deleteFunc,
 	})
-	h.informer.Run(stopCh)
+	h.Informer().Run(stopCh)
 }

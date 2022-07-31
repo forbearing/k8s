@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"sync"
-	"time"
 
 	//_ "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	//_ "k8s.io/client-go/applyconfigurations/apps/v1"
@@ -19,9 +18,7 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
-	listersappsv1 "k8s.io/client-go/listers/apps/v1"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -38,8 +35,6 @@ type Handler struct {
 	discoveryClient    *discovery.DiscoveryClient
 	discoveryInterface discovery.DiscoveryInterface
 	informerFactory    informers.SharedInformerFactory
-	informer           cache.SharedIndexInformer
-	lister             listersappsv1.DeploymentLister
 
 	Options *types.HandlerOptions
 
@@ -152,7 +147,7 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 	}
 
 	// create a sharedInformerFactory for all namespaces.
-	informerFactory = informers.NewSharedInformerFactory(clientset, time.Second*30)
+	informerFactory = informers.NewSharedInformerFactory(clientset, 0)
 	//discoveryClient = clientset.DiscoveryClient
 	//discoveryInterface = clientset.Discovery()
 
@@ -170,8 +165,6 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 	handler.dynamicClient = dynamicClient
 	handler.discoveryClient = discoveryClient
 	handler.informerFactory = informerFactory
-	handler.informer = informerFactory.Apps().V1().Deployments().Informer()
-	handler.lister = informerFactory.Apps().V1().Deployments().Lister()
 	//handler.discoveryInterface = discoveryInterface
 	_ = discoveryInterface
 
@@ -200,8 +193,6 @@ func (in *Handler) DeepCopy() *Handler {
 	out.dynamicClient = in.dynamicClient
 	out.discoveryClient = in.discoveryClient
 	out.informerFactory = in.informerFactory
-	out.informer = in.informer
-	out.lister = in.lister
 
 	out.Options = &types.HandlerOptions{}
 	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()

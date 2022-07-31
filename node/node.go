@@ -8,7 +8,6 @@ import (
 	"context"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/forbearing/k8s/types"
 	corev1 "k8s.io/api/core/v1"
@@ -20,7 +19,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -35,7 +33,6 @@ type Handler struct {
 	dynamicClient   dynamic.Interface
 	discoveryClient *discovery.DiscoveryClient
 	informerFactory informers.SharedInformerFactory
-	informer        cache.SharedIndexInformer
 
 	Options *types.HandlerOptions
 
@@ -104,7 +101,7 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 		return nil, err
 	}
 	// create a sharedInformerFactory for all namespaces.
-	informerFactory = informers.NewSharedInformerFactory(clientset, time.Minute)
+	informerFactory = informers.NewSharedInformerFactory(clientset, 0)
 
 	handler.kubeconfig = kubeconfig
 	handler.ctx = ctx
@@ -115,7 +112,6 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	handler.dynamicClient = dynamicClient
 	handler.discoveryClient = discoveryClient
 	handler.informerFactory = informerFactory
-	handler.informer = informerFactory.Core().V1().Nodes().Informer()
 	handler.Options = &types.HandlerOptions{}
 
 	return handler, nil
@@ -136,7 +132,6 @@ func (in *Handler) DeepCopy() *Handler {
 	out.dynamicClient = in.dynamicClient
 	out.discoveryClient = in.discoveryClient
 	out.informerFactory = in.informerFactory
-	out.informer = in.informer
 
 	out.Options = &types.HandlerOptions{}
 	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()

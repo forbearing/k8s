@@ -7,8 +7,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
-	informerscorev1 "k8s.io/client-go/informers/core/v1"
-	listerscorev1 "k8s.io/client-go/listers/core/v1"
+	informerscore "k8s.io/client-go/informers/core/v1"
+	listerscore "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -45,7 +45,7 @@ func (h *Handler) InformerFactory() informers.SharedInformerFactory {
 
 // PodInformer returns underlying PodInformer which provides access to a shared
 // informer and lister for pod.
-func (h *Handler) PodInformer() informerscorev1.PodInformer {
+func (h *Handler) PodInformer() informerscore.PodInformer {
 	return h.informerFactory.Core().V1().Pods()
 }
 
@@ -56,7 +56,7 @@ func (h *Handler) Informer() cache.SharedIndexInformer {
 }
 
 // Lister returns underlying PodLister which helps list pods.
-func (h *Handler) Lister() listerscorev1.PodLister {
+func (h *Handler) Lister() listerscore.PodLister {
 	return h.informerFactory.Core().V1().Pods().Lister()
 }
 

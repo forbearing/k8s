@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/forbearing/k8s/types"
 	batchv1 "k8s.io/api/batch/v1"
@@ -17,7 +16,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -33,7 +31,6 @@ type Handler struct {
 	dynamicClient   dynamic.Interface
 	discoveryClient *discovery.DiscoveryClient
 	informerFactory informers.SharedInformerFactory
-	informer        cache.SharedIndexInformer
 
 	Options *types.HandlerOptions
 
@@ -102,7 +99,7 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 		return nil, err
 	}
 	// create a sharedInformerFactory for all namespaces.
-	informerFactory = informers.NewSharedInformerFactory(clientset, time.Minute)
+	informerFactory = informers.NewSharedInformerFactory(clientset, 0)
 
 	if len(namespace) == 0 {
 		namespace = metav1.NamespaceDefault
@@ -117,7 +114,6 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 	handler.dynamicClient = dynamicClient
 	handler.discoveryClient = discoveryClient
 	handler.informerFactory = informerFactory
-	handler.informer = informerFactory.Batch().V1().CronJobs().Informer()
 	handler.Options = &types.HandlerOptions{}
 	handler.SetPropagationPolicy("background")
 
@@ -143,7 +139,6 @@ func (in *Handler) DeepCopy() *Handler {
 	out.dynamicClient = in.dynamicClient
 	out.discoveryClient = in.discoveryClient
 	out.informerFactory = in.informerFactory
-	out.informer = in.informer
 
 	out.Options = &types.HandlerOptions{}
 	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()
