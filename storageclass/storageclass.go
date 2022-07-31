@@ -203,12 +203,17 @@ func GVR() schema.GroupVersionResource {
 	}
 }
 
-// Group returns Group name of storageclass resource.
+// Group returns the Group name of storageclass resource.
 func Group() string {
-	return storagev1.SchemeGroupVersion.Group
+	return GVR().Group
 }
 
-// Version returns Version name of storageclass resource.
+// Version returns the Version name of storageclass resource.
 func Version() string {
-	return storagev1.SchemeGroupVersion.Version
+	return GVR().Version
+}
+
+// Resource returns the Resource name of storageclass resource.
+func Resource() string {
+	return GVR().Resource
 }

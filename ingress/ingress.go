@@ -221,12 +221,17 @@ func GVR() schema.GroupVersionResource {
 	}
 }
 
-// Group returns Group name of ingress resource.
+// Group returns the Group name of ingress resource.
 func Group() string {
-	return networkingv1.SchemeGroupVersion.Group
+	return GVR().Group
 }
 
-// Version returns Version name of ingress resource.
+// Version returns the Version name of ingress resource.
 func Version() string {
-	return networkingv1.SchemeGroupVersion.Version
+	return GVR().Version
+}
+
+// Resource returns the Resource name of ingress resource.
+func Resource() string {
+	return GVR().Resource
 }

@@ -252,12 +252,17 @@ func GVR() schema.GroupVersionResource {
 	}
 }
 
-// Group returns Group name of job resource.
+// Group returns the Group name of job resource.
 func Group() string {
-	return batchv1.SchemeGroupVersion.Group
+	return GVR().Group
 }
 
-// Version returns Version name of job resource.
+// Version returns the Version name of job resource.
 func Version() string {
-	return batchv1.SchemeGroupVersion.Version
+	return GVR().Version
+}
+
+// Resource returns the Resource name of job resource.
+func Resource() string {
+	return GVR().Resource
 }

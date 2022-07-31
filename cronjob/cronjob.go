@@ -37,7 +37,7 @@ type Handler struct {
 	l sync.RWMutex
 }
 
-// NewOrDie simply call New() to get a configmap handler.
+// NewOrDie simply call New() to get a cronjob handler.
 // panic if there is any error occurs.
 func NewOrDie(ctx context.Context, kubeconfig, namespace string) *Handler {
 	handler, err := New(ctx, kubeconfig, namespace)
@@ -252,12 +252,17 @@ func GVR() schema.GroupVersionResource {
 	}
 }
 
-// Group returns Group name of cronjob resource.
+// Group returns the Group name of cronjob resource.
 func Group() string {
-	return batchv1.SchemeGroupVersion.Group
+	return GVR().Group
 }
 
-// Version returns Version name of cronjob resource.
+// Version returns the Version name of cronjob resource.
 func Version() string {
-	return batchv1.SchemeGroupVersion.Version
+	return GVR().Version
+}
+
+// Resource returns the Resource name of cronjob resource.
+func Resource() string {
+	return GVR().Resource
 }
