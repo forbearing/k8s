@@ -35,7 +35,7 @@ type Handler struct {
 	informer        cache.SharedIndexInformer
 	Options         *types.HandlerOptions
 
-	l sync.Mutex
+	l sync.RWMutex
 }
 
 // NewOrDie simply call New() to get a ingress handler.

@@ -36,7 +36,7 @@ type Handler struct {
 
 	Options *types.HandlerOptions
 
-	l sync.Mutex
+	l sync.RWMutex
 }
 
 // NewOrDie simply call New() to get a serviceaccount handler.

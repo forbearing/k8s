@@ -43,7 +43,7 @@ type Handler struct {
 
 	Options *types.HandlerOptions
 
-	l sync.Mutex
+	l sync.RWMutex
 }
 
 //// Discovery retrieves the DiscoveryClient
@@ -211,7 +211,7 @@ func (in *Handler) DeepCopy() *Handler {
 	out.Options.PatchOptions = *in.Options.PatchOptions.DeepCopy()
 	out.Options.ApplyOptions = *in.Options.ApplyOptions.DeepCopy()
 
-	// 锁 sync.Mutex 不需要拷贝, 也不能拷贝. 拷贝 sync.Mutex 会直接 panic
+	// 锁 sync.RWMutex 不需要拷贝, 也不能拷贝. 拷贝 sync.RWMutex 会直接 panic
 
 	return out
 }
