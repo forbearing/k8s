@@ -222,3 +222,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "replicasets",
 	}
 }
+
+// Group returns Group name of replicaset resource.
+func Group() string {
+	return appsv1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of replicaset resource.
+func Version() string {
+	return appsv1.SchemeGroupVersion.Version
+}

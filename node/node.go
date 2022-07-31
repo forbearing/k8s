@@ -196,3 +196,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "nodes",
 	}
 }
+
+// Group returns Group name of node resource.
+func Group() string {
+	return corev1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of node resource.
+func Version() string {
+	return corev1.SchemeGroupVersion.Version
+}

@@ -222,3 +222,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "roles",
 	}
 }
+
+// Group returns Group name of role resource.
+func Group() string {
+	return rbacv1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of role resource.
+func Version() string {
+	return rbacv1.SchemeGroupVersion.Version
+}

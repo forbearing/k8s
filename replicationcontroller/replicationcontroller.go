@@ -222,3 +222,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "replicationcontrollers",
 	}
 }
+
+// Group returns Group name of replicationcontroller resource.
+func Group() string {
+	return corev1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of replicationcontroller resource.
+func Version() string {
+	return corev1.SchemeGroupVersion.Version
+}

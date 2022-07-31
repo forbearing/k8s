@@ -221,3 +221,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "networkpolicies",
 	}
 }
+
+// Group returns Group name of networkpolicy resource.
+func Group() string {
+	return networkingv1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of networkpolicy resource.
+func Version() string {
+	return networkingv1.SchemeGroupVersion.Version
+}

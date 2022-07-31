@@ -202,3 +202,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "persistentvolumes",
 	}
 }
+
+// Group returns Group name of persistentvolume resource.
+func Group() string {
+	return corev1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of persistentvolume resource.
+func Version() string {
+	return corev1.SchemeGroupVersion.Version
+}

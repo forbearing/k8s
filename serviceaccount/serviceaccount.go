@@ -221,3 +221,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "serviceaccounts",
 	}
 }
+
+// Group returns Group name of serviceaccount resource.
+func Group() string {
+	return corev1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of serviceaccount resource.
+func Version() string {
+	return corev1.SchemeGroupVersion.Version
+}

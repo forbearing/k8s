@@ -221,3 +221,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "statefulsets",
 	}
 }
+
+// Group returns Group name of statefulset resource.
+func Group() string {
+	return appsv1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of statefulset resource.
+func Version() string {
+	return appsv1.SchemeGroupVersion.Version
+}

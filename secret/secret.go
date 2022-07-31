@@ -221,3 +221,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "secrets",
 	}
 }
+
+// Group returns Group name of secret resource.
+func Group() string {
+	return corev1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of secret resource.
+func Version() string {
+	return corev1.SchemeGroupVersion.Version
+}

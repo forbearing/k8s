@@ -202,3 +202,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "namespaces",
 	}
 }
+
+// Group returns Group name of cnamespaceresource.
+func Group() string {
+	return corev1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of namespace resource.
+func Version() string {
+	return corev1.SchemeGroupVersion.Version
+}

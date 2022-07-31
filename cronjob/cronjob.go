@@ -251,3 +251,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "cronjobs",
 	}
 }
+
+// Group returns Group name of cronjob resource.
+func Group() string {
+	return batchv1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of cronjob resource.
+func Version() string {
+	return batchv1.SchemeGroupVersion.Version
+}

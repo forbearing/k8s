@@ -279,3 +279,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "deployments",
 	}
 }
+
+// Group returns Group name of deployment resource.
+func Group() string {
+	return appsv1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of deployment resource.
+func Version() string {
+	return appsv1.SchemeGroupVersion.Version
+}

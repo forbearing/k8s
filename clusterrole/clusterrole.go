@@ -202,3 +202,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "clusterroles",
 	}
 }
+
+// Group returns Group name of clusterrole resource.
+func Group() string {
+	return rbacv1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of clusterrole resource.
+func Version() string {
+	return rbacv1.SchemeGroupVersion.Version
+}

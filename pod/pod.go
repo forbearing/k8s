@@ -241,3 +241,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "pods",
 	}
 }
+
+// Group returns Group name of pod resource.
+func Group() string {
+	return corev1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of pod resource.
+func Version() string {
+	return corev1.SchemeGroupVersion.Version
+}

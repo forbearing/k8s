@@ -221,3 +221,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "configmaps",
 	}
 }
+
+// Group returns Group name of configmap resource.
+func Group() string {
+	return corev1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of configmap resource.
+func Version() string {
+	return corev1.SchemeGroupVersion.Version
+}

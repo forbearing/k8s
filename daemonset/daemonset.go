@@ -227,3 +227,13 @@ func GVR() schema.GroupVersionResource {
 		Resource: "daemonsets",
 	}
 }
+
+// Group returns Group name of daemonset resource.
+func Group() string {
+	return appsv1.SchemeGroupVersion.Group
+}
+
+// Version returns Version name of daemonset resource.
+func Version() string {
+	return appsv1.SchemeGroupVersion.Version
+}
