@@ -272,10 +272,10 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 }
 
 // GVR returns the name of Group, Version, Resource of deployment resource.
-func (h *Handler) GVR() *schema.GroupVersionResource {
-	return &schema.GroupVersionResource{
-		Group:    h.config.GroupVersion.Group,
-		Version:  h.config.GroupVersion.Version,
+func GVR() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    appsv1.SchemeGroupVersion.Group,
+		Version:  appsv1.SchemeGroupVersion.Version,
 		Resource: "deployments",
 	}
 }

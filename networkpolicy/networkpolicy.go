@@ -214,10 +214,10 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 }
 
 // GVR returns the name of Group, Version, Resource of networkpolicy resource.
-func (h *Handler) GVR() *schema.GroupVersionResource {
-	return &schema.GroupVersionResource{
-		Group:    h.config.GroupVersion.Group,
-		Version:  h.config.GroupVersion.Version,
+func GVR() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group:    networkingv1.SchemeGroupVersion.Group,
+		Version:  networkingv1.SchemeGroupVersion.Version,
 		Resource: "networkpolicies",
 	}
 }
