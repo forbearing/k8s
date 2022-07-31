@@ -121,6 +121,9 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	return handler, nil
 }
 func (in *Handler) DeepCopy() *Handler {
+	if in == nil {
+		return nil
+	}
 	out := new(Handler)
 
 	out.kubeconfig = in.kubeconfig

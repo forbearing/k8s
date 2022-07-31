@@ -183,9 +183,11 @@ func (h *Handler) Namespace() string {
 	return h.namespace
 }
 func (in *Handler) DeepCopy() *Handler {
+	if in == nil {
+		return nil
+	}
 	out := new(Handler)
 
-	// 值拷贝即是深拷贝
 	out.kubeconfig = in.kubeconfig
 	out.namespace = in.namespace
 
@@ -210,11 +212,6 @@ func (in *Handler) DeepCopy() *Handler {
 	out.Options.ApplyOptions = *in.Options.ApplyOptions.DeepCopy()
 
 	// 锁 sync.Mutex 不需要拷贝, 也不能拷贝. 拷贝 sync.Mutex 会直接 panic
-
-	//fmt.Printf("%#v\n", oldHandler)
-	//fmt.Println()
-	//fmt.Printf("%#v\n", out)
-	//select {}
 
 	return out
 }

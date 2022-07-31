@@ -142,7 +142,6 @@ func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
 	}
-
 	out := new(Handler)
 
 	out.kubeconfig = in.kubeconfig
