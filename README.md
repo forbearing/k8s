@@ -42,7 +42,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Support crate/update/delete/get... `LimitRange` resources
 - [ ] Support crate/update/delete/get... `PriorityClass` resources
 - [ ] Support crate/update/delete/get... `ResourceQuota` resources
-- [ ] handler add method: GVK()
+- [ ] Add function: GVK() returns the Group, version, Resource name of k8s resources.
 
 ## How to execute command within pod by handler.
 
