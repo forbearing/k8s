@@ -78,7 +78,8 @@ func main() {
 	Deployment_List()
 	//Deployment_Watch()
 	//Deployment_Informer()
-	//Deployment_Tools()
+	Deployment_Tools()
+	//Deployment_Others()
 
 	// Output:
 
