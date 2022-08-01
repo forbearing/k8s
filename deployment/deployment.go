@@ -5,10 +5,6 @@ import (
 	"net/http"
 	"sync"
 
-	//_ "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
-	//_ "k8s.io/client-go/applyconfigurations/apps/v1"
-	//_ "k8s.io/client-go/applyconfigurations/meta/v1"
-
 	"github.com/forbearing/k8s/types"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

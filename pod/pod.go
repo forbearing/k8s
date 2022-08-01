@@ -1,14 +1,9 @@
 package pod
 
-// TODO:
-// 1. 加了 Options 参数之后可能要修改的东西: List, Watch, WaitReady
-// 2. 精简代码, 比如返回值
 import (
 	"context"
 	"net/http"
 	"sync"
-
-	//_ "k8s.io/client-go/kubernetes/types/core/v1"
 
 	"github.com/forbearing/k8s/types"
 	corev1 "k8s.io/api/core/v1"
