@@ -28,7 +28,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ## Installation
 
-```go get github.com/forbearing/k8s@v0.4.4```
+```go get github.com/forbearing/k8s@v0.5.0```
 
 
 
@@ -43,7 +43,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Support crate/update/delete/get... `PriorityClass` resources
 - [ ] Support crate/update/delete/get... `ResourceQuota` resources
 - [x] Add function: GVK(), Group(), Version(), Resource().
-- [ ] execute command within pod container could be canceled by signal SIGINT and SIGTERM
+- [ ] execute command with in pod container c
 
 ## How to execute command within pod by handler.
 
