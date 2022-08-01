@@ -34,7 +34,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ## Planning
 
-- [ ] Simplify the use of client-go informer, lister
+- [x] Simplify the use of client-go informer, lister
 - [ ] create/delete/update/delete/get ... all kinds of k8s resources by dyanmic client.
 - [ ] Support crate/update/delete/get... `Event` resources
 - [ ] Support crate/update/delete/get... `Endpoint` resources
@@ -42,7 +42,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Support crate/update/delete/get... `LimitRange` resources
 - [ ] Support crate/update/delete/get... `PriorityClass` resources
 - [ ] Support crate/update/delete/get... `ResourceQuota` resources
-- [ ] Add function: GVK() returns the Group, version, Resource name of k8s resources.
+- [x] Add function: GVK(), Group(), Version(), Resource().
 
 ## How to execute command within pod by handler.
 
