@@ -59,9 +59,11 @@ var (
 func main() {
 	defer cancel()
 
-	//Pod_Tools()
+	Pod_Tools()
 	Pod_Logs()
 	//Pod_Informer()
+	//Pod_List()
+	//Pod_Others()
 }
 
 func cleanup(handler *pod.Handler) {
