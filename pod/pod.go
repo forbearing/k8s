@@ -135,9 +135,6 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 
 	return handler, nil
 }
-func (p *Handler) Namespace() string {
-	return p.namespace
-}
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
