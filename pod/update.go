@@ -24,6 +24,8 @@ func (h *Handler) Update(obj interface{}) (*corev1.Pod, error) {
 		return h.UpdateFromObject(val)
 	case corev1.Pod:
 		return h.UpdateFromObject(&val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
 	case unstructured.Unstructured:
