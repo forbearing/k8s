@@ -123,13 +123,14 @@ func (h *Handler) getLog(namespace, name string, logOptions *LogOptions) error {
 
 	scanner := bufio.NewScanner(readCloser)
 	scanner.Split(bufio.ScanLines)
+	if !logOptions.NewLine {
+		for scanner.Scan() {
+			fmt.Fprintf(logOptions.Writer, "%s", scanner.Text())
+		}
+		return scanner.Err()
+	}
 	for scanner.Scan() {
 		fmt.Fprintf(logOptions.Writer, "%s\n", scanner.Text())
 	}
-
-	//// if logOptions.Writer already closed, return nil.
-	//if errors.Is(scanner.Err(), os.ErrClosed) {
-	//    return nil
-	//}
 	return scanner.Err()
 }
