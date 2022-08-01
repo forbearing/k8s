@@ -3,6 +3,7 @@ module github.com/forbearing/k8s
 go 1.17
 
 require (
+	github.com/google/uuid v1.1.2
 	github.com/sirupsen/logrus v1.8.1
 	k8s.io/api v0.24.2
 	k8s.io/apimachinery v0.24.2
