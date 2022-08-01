@@ -25,6 +25,9 @@ type PtyHandler interface {
 }
 
 type LogOptions struct {
+	// add '\n' after the string that will be written to "io.Writer"
+	NewLine bool
+
 	corev1.PodLogOptions
 	io.Writer
 }
@@ -32,4 +35,5 @@ type LogOptions struct {
 var DefaultLogOptions = &LogOptions{
 	PodLogOptions: corev1.PodLogOptions{},
 	Writer:        os.Stdout,
+	NewLine:       true,
 }
