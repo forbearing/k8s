@@ -43,6 +43,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Support crate/update/delete/get... `PriorityClass` resources
 - [ ] Support crate/update/delete/get... `ResourceQuota` resources
 - [x] Add function: GVK(), Group(), Version(), Resource().
+- [ ] execute command within pod container could be canceled by signal SIGINT and SIGTERM
 
 ## How to execute command within pod by handler.
 
