@@ -23,6 +23,8 @@ func (h *Handler) Apply(obj interface{}) (*corev1.Pod, error) {
 		return h.ApplyFromObject(val)
 	case corev1.Pod:
 		return h.ApplyFromObject(&val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
 	case unstructured.Unstructured:
