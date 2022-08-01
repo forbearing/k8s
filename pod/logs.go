@@ -122,7 +122,7 @@ func (h *Handler) getLog(namespace, name string, logOptions *LogOptions) error {
 	defer readCloser.Close()
 
 	scanner := bufio.NewScanner(readCloser)
-	scanner.Split(bufio.ScanLines)
+	scanner.Split(bufio.ScanBytes)
 	for scanner.Scan() {
 		fmt.Fprintf(logOptions.Writer, "%s", scanner.Text())
 	}
