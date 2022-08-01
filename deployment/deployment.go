@@ -172,9 +172,6 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 
 	return handler, nil
 }
-func (h *Handler) Namespace() string {
-	return h.namespace
-}
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
@@ -280,12 +277,17 @@ func GVR() schema.GroupVersionResource {
 	}
 }
 
-// Group returns Group name of deployment resource.
+// Group returns the Group name of deployment resource.
 func Group() string {
-	return appsv1.SchemeGroupVersion.Group
+	return GVR().Group
 }
 
-// Version returns Version name of deployment resource.
+// Version returns the Version name of deployment resource.
 func Version() string {
-	return appsv1.SchemeGroupVersion.Version
+	return GVR().Version
+}
+
+// Resource returns the Resource name of deployment resource.
+func Resource() string {
+	return GVR().Resource
 }
