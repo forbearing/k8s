@@ -24,6 +24,8 @@ func (h *Handler) Create(obj interface{}) (*corev1.Pod, error) {
 		return h.CreateFromObject(val)
 	case corev1.Pod:
 		return h.CreateFromObject(&val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
 	case unstructured.Unstructured:
