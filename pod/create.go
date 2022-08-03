@@ -27,6 +27,10 @@ func (h *Handler) Create(obj interface{}) (*corev1.Pod, error) {
 	case runtime.Object:
 		return h.CreateFromObject(val)
 	case *unstructured.Unstructured:
+		// - 如果传入的类型是 *unstructured.Unstructured 做类型断言时,它会自动转换成
+		//   runtime.Object 类型, 而不是 *unstructured.Unstructured
+		// - 所以不支持从 *unstructured.Unstructured 来创建 pod
+		//   只支持从 unstructured.Unstructured 来创建 pod
 		return h.CreateFromUnstructured(val)
 	case unstructured.Unstructured:
 		return h.CreateFromUnstructured(&val)
