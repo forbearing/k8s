@@ -37,16 +37,6 @@ type Handler struct {
 	l sync.RWMutex
 }
 
-//// Discovery retrieves the DiscoveryClient
-//func (c *Clientset) Discovery() discovery.DiscoveryInterface {
-//    if c == nil {
-//        return nil
-//    }
-//    return c.DiscoveryClient
-//}
-// clientset 调用 Discovery 方法可以得到一个 discovery.DiscoveryInterface
-// discovery.DiscoveryClient 其实就是 discovery.DiscoveryInterface 的一个实现
-
 // NewOrDie simply call New() to get a deployment handler.
 // panic if there is any error occurs.
 func NewOrDie(ctx context.Context, kubeconfig, namespace string) *Handler {
