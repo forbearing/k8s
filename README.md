@@ -234,52 +234,66 @@ func main() {
 
 	// Output:
 
-	//2022/07/22 22:52:47 create deployment from file success:
-	//2022/07/22 22:52:47 create deployment from bytes success:
-	//2022/07/22 22:52:47 create deployment from *appsv1.Deployment success:
-	//2022/07/22 22:52:47 create deployment from appsv1.Deployment success:
-	//2022/07/22 22:52:47 create deployment from runtime.Object success:
-	//2022/07/22 22:52:48 create deployment from unstructured data success:
-	//2022/07/22 22:52:48 update deployment from file success:
-	//2022/07/22 22:52:48 update deployment from bytes success:
-	//2022/07/22 22:52:48 update deployment from *appsv1.Deployment success:
-	//2022/07/22 22:52:48 update deployment from appsv1.Deployment success:
-	//2022/07/22 22:52:48 update deployment from runtime.Object success:
-	//2022/07/22 22:52:48 update deployment from unstructured data success:
-	//2022/07/22 22:52:49 apply deployment from file (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from file (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from bytes (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from bytes (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from *appsv1.Deployment (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from *appsv1.Deployment (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from appsv1.Deployment (deployment not exists) success:
-	//2022/07/22 22:52:50 apply deployment from appsv1.Deployment (deployment exists) success:
-	//2022/07/22 22:52:50 apply deployment from runtime.Object (deployment not exists) success:
-	//2022/07/22 22:52:51 apply deployment from runtime.Object (deployment exists) success:
-	//2022/07/22 22:52:51 apply deployment from unstructured data (deployment not exists) success:
-	//2022/07/22 22:52:51 apply deployment from unstructured data (deployment exists) success:
-	//2022/07/22 22:52:52 delete deployment by name success:
-	//2022/07/22 22:52:52 delete deployment from file success:
-	//2022/07/22 22:52:52 delete deployment from bytes success:
-	//2022/07/22 22:52:52 delete deployment from *appsv1.Deployment success:
-	//2022/07/22 22:52:52 delete deployment from appsv1.Deployment success:
-	//2022/07/22 22:52:53 delete deployment from runtime.Object success:
-	//2022/07/22 22:52:53 delete deployment from unstructured data success:
-	//2022/07/22 22:52:54 get deployment by name success: mydep
-	//2022/07/22 22:52:54 get deployment from file success: mydep
-	//2022/07/22 22:52:54 get deployment from bytes success: mydep
-	//2022/07/22 22:52:54 get deployment from *appsv1.Deployment success: mydep
-	//2022/07/22 22:52:54 get deployment from appsv1.Deployment success: mydep
-	//2022/07/22 22:52:54 get deployment from runtime.Object success: mydep
-	//2022/07/22 22:52:54 get deployment from unstructured data success: mydep-unstruct
-	//2022/07/22 22:52:54 ListByLabel success:
-	//2022/07/22 22:52:54 [nginx-deploy]
-	//2022/07/22 22:52:54 List success:
-	//2022/07/22 22:52:54 [nginx-deploy]
-	//2022/07/22 22:52:54 ListByNamespace success:
-	//2022/07/22 22:52:54 [nginx-deploy]
-	//2022/07/22 22:52:54 ListAll success:
-	//2022/07/22 22:52:54 [horus-operator ingress-controller calico-kube-controllers coredns metrics-server dashboard-metrics-scraper kubernetes-dashboard local-path-provisioner nfs-provisioner-nfs-subdir-external-provisioner nginx-deploy]
+	// Output:
+
+	//2022/08/03 20:56:05 create deployment from file success: mydep
+	//2022/08/03 20:56:05 create deployment from bytes success: mydep
+	//2022/08/03 20:56:05 create deployment from *appsv1.Deployment success: mydep
+	//2022/08/03 20:56:05 create deployment from appsv1.Deployment success: mydep
+	//2022/08/03 20:56:05 create deployment from runtime.Object success: mydep
+	//2022/08/03 20:56:05 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:56:06 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:56:06 create deployment from map[string]interface{} success: mydep-unstruct
+	//2022/08/03 20:56:07 update deployment from file success: mydep
+	//2022/08/03 20:56:07 update deployment from bytes success: mydep
+	//2022/08/03 20:56:07 update deployment from *appsv1.Deployment success: mydep
+	//2022/08/03 20:56:07 update deployment from appsv1.Deployment success: mydep
+	//2022/08/03 20:56:07 update deployment from runtime.Object success: mydep
+	//2022/08/03 20:56:07 update deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:56:07 update deployment from unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:56:07 update deployment from map[string]interface{} success: mydep-unstruct
+	//2022/08/03 20:56:08 apply deployment from file (deployment not exists) success: mydep
+	//2022/08/03 20:56:08 apply deployment from file (deployment exists) success: mydep
+	//2022/08/03 20:56:08 apply deployment from bytes (deployment not exists) success: mydep
+	//2022/08/03 20:56:08 apply deployment from bytes (deployment exists) success: mydep
+	//2022/08/03 20:56:08 apply deployment from *appsv1.Deployment (deployment not exists) success: mydep
+	//2022/08/03 20:56:08 apply deployment from *appsv1.Deployment (deployment exists) success: mydep
+	//2022/08/03 20:56:08 apply deployment from appsv1.Deployment (deployment not exists) success: mydep
+	//2022/08/03 20:56:09 apply deployment from appsv1.Deployment (deployment exists) success: mydep
+	//2022/08/03 20:56:09 apply deployment from runtime.Object (deployment not exists) success: mydep
+	//2022/08/03 20:56:10 apply deployment from runtime.Object (deployment exists) success: mydep
+	//2022/08/03 20:56:10 apply deployment from *unstructured.Unstructured (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:56:10 apply deployment from *unstructured.Unstructured (deployment exists) success: mydep-unstruct
+	//2022/08/03 20:56:11 apply deployment from unstructured.Unstructured (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:56:11 apply deployment from unstructured.Unstructured (deployment exists) success: mydep-unstruct
+	//2022/08/03 20:56:12 apply deployment from map[string]interface{} (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:56:12 apply deployment from map[string]interface{} (deployment exists) success: mydep-unstruct
+	//2022/08/03 20:56:13 delete deployment by name success:
+	//2022/08/03 20:56:13 delete deployment from file success:
+	//2022/08/03 20:56:13 delete deployment from bytes success:
+	//2022/08/03 20:56:13 delete deployment from *appsv1.Deployment success:
+	//2022/08/03 20:56:13 delete deployment from appsv1.Deployment success:
+	//2022/08/03 20:56:13 delete deployment from runtime.Object success:
+	//2022/08/03 20:56:14 delete deployment from *unstructured.Unstructured success:
+	//2022/08/03 20:56:14 delete deployment from unstructured.Unstructured success:
+	//2022/08/03 20:56:14 delete deployment from map[string]interface{} success:
+	//2022/08/03 20:56:15 get deployment by name success: mydep
+	//2022/08/03 20:56:15 get deployment from file success: mydep
+	//2022/08/03 20:56:15 get deployment from bytes success: mydep
+	//2022/08/03 20:56:15 get deployment from *appsv1.Deployment success: mydep
+	//2022/08/03 20:56:15 get deployment from appsv1.Deployment success: mydep
+	//2022/08/03 20:56:15 get deployment from runtime.Object success: mydep
+	//2022/08/03 20:56:15 get deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:56:15 get deployment from unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:56:15 get deployment from map[string]interface{} success: mydep-unstruct
+	//2022/08/03 20:56:16 ListByLabel success:
+	//2022/08/03 20:56:16 [nginx-deploy]
+	//2022/08/03 20:56:16 List success:
+	//2022/08/03 20:56:16 [nginx-deploy]
+	//2022/08/03 20:56:16 ListByNamespace success:
+	//2022/08/03 20:56:16 [nginx-deploy]
+	//2022/08/03 20:56:16 ListAll success:
+	//2022/08/03 20:56:16 [horus-operator ingress-controller calico-kube-controllers coredns metrics-server dashboard-metrics-scraper kubernetes-dashboard local-path-provisioner nfs-provisioner-nfs-subdir-external-provisioner nginx-deploy]
 }
 
 func checkErr(name string, val interface{}, err error) {
@@ -308,7 +322,7 @@ func Deployment_Create() {
 
 	// 1. create deployment from file.
 	deploy, err := handler.Create(filename)
-	checkErr("create deployment from file", "", err)
+	checkErr("create deployment from file", deploy.Name, err)
 	handler.Delete(name)
 
 	// 2. create deployment from bytes.
@@ -316,39 +330,50 @@ func Deployment_Create() {
 	if data, err = ioutil.ReadFile(filename); err != nil {
 		panic(err)
 	}
-	_, err = handler.Create(data)
-	checkErr("create deployment from bytes", "", err)
+	deploy2, err := handler.Create(data)
+	checkErr("create deployment from bytes", deploy2.Name, err)
 	handler.Delete(name)
 
 	// 3. create deployment from *appsv1.Deployment.
-	_, err = handler.Create(deploy)
-	checkErr("create deployment from *appsv1.Deployment", "", err)
+	deploy3, err := handler.Create(deploy2)
+	checkErr("create deployment from *appsv1.Deployment", deploy3.Name, err)
 	handler.Delete(name)
 
 	// 4. create deployment from appsv1.Deployment.
-	_, err = handler.Create(*deploy)
-	checkErr("create deployment from appsv1.Deployment", "", err)
+	deploy4, err := handler.Create(*deploy3)
+	checkErr("create deployment from appsv1.Deployment", deploy4.Name, err)
 	handler.Delete(name)
 
-	// 5. create deployment from object.Runtime.
-	object := runtime.Object(deploy)
-	_, err = handler.Create(object)
-	checkErr("create deployment from runtime.Object", "", err)
+	// 5. create deployment from runtime.Object.
+	deploy5, err := handler.Create(runtime.Object(deploy4))
+	checkErr("create deployment from runtime.Object", deploy5.Name, err)
 	handler.Delete(name)
 
-	// 6. create deployment from unstructured data, aka map[string]interface{}.
-	_, err = handler.Create(unstructData)
-	checkErr("create deployment from unstructured data", "", err)
-	handler.Delete(name)
+	// 6. create deployment from *unstructured.Unstructured
+	deploy6, err := handler.Create(&unstructured.Unstructured{Object: unstructData})
+	checkErr("create deployment from *unstructured.Unstructured", deploy6.Name, err)
+	handler.Delete(unstructName)
+
+	// 7. create deployment from unstructured.Unstructured
+	deploy7, err := handler.Create(unstructured.Unstructured{Object: unstructData})
+	checkErr("create deployment from *unstructured.Unstructured", deploy7.Name, err)
+	handler.Delete(unstructName)
+
+	// 8. create deployment from map[string]interface{}.
+	deploy8, err := handler.Create(unstructData)
+	checkErr("create deployment from map[string]interface{}", deploy8.Name, err)
+	handler.Delete(unstructData)
 
 	// Output:
 
-	//2022/07/22 20:53:36 create deployment from file success:
-	//2022/07/22 20:53:36 create deployment from bytes success:
-	//2022/07/22 20:53:36 create deployment from *appsv1.Deployment success:
-	//2022/07/22 20:53:36 create deployment from appsv1.Deployment success:
-	//2022/07/22 20:53:36 create deployment from runtime.Object success:
-	//2022/07/22 20:53:36 create deployment from unstructured data success:
+	//2022/08/03 19:56:41 create deployment from file success: mydep
+	//2022/08/03 19:56:41 create deployment from bytes success: mydep
+	//2022/08/03 19:56:41 create deployment from *appsv1.Deployment success: mydep
+	//2022/08/03 19:56:41 create deployment from appsv1.Deployment success: mydep
+	//2022/08/03 19:56:41 create deployment from runtime.Object success: mydep
+	//2022/08/03 19:56:41 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 19:56:42 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 19:56:42 create deployment from map[string]interface{} success: mydep-unstruct
 }
 ```
 
@@ -374,8 +399,7 @@ func Deployment_Update() {
 	}
 	defer cleanup(handler)
 
-	deploy, err := handler.Apply(filename)
-	if err != nil {
+	if _, err := handler.Apply(filename); err != nil {
 		panic(err)
 	}
 	if _, err := handler.Apply(unstructData); err != nil {
@@ -383,42 +407,51 @@ func Deployment_Update() {
 	}
 
 	// 1. update deployment from file.
-	_, err = handler.Update(updateFile)
-	checkErr("update deployment from file", "", err)
+	deploy, err := handler.Update(updateFile)
+	checkErr("update deployment from file", deploy.Name, err)
 
 	// 2. update deployment from bytes.
 	var data []byte
 	if data, err = ioutil.ReadFile(updateFile); err != nil {
 		panic(err)
 	}
-	_, err = handler.Update(data)
-	checkErr("update deployment from bytes", "", err)
+	deploy2, err := handler.Update(data)
+	checkErr("update deployment from bytes", deploy2.Name, err)
 
 	// 3. update deployment from *appsv1.Deployment
-	_, err = handler.Update(deploy)
-	checkErr("update deployment from *appsv1.Deployment", "", err)
+	deploy3, err := handler.Update(deploy2)
+	checkErr("update deployment from *appsv1.Deployment", deploy3.Name, err)
 
 	// 4. update deployment from appsv1.Deployment
-	_, err = handler.Update(*deploy)
-	checkErr("update deployment from appsv1.Deployment", "", err)
+	deploy4, err := handler.Update(*deploy3)
+	checkErr("update deployment from appsv1.Deployment", deploy4.Name, err)
 
 	// 5. update deployment from runtime.Object.
-	object := runtime.Object(deploy)
-	_, err = handler.Update(object)
-	checkErr("update deployment from runtime.Object", "", err)
+	deploy5, err := handler.Update(runtime.Object(deploy4))
+	checkErr("update deployment from runtime.Object", deploy5.Name, err)
 
-	// 6. update deployment from unstructured data, aka map[string]interface{}.
-	_, err = handler.Update(unstructData)
-	checkErr("update deployment from unstructured data", "", err)
+	// 6. update deployment from *unstructured.Unstructured
+	deploy6, err := handler.Update(&unstructured.Unstructured{Object: unstructData})
+	checkErr("update deployment from *unstructured.Unstructured", deploy6.Name, err)
+
+	// 7. update deployment from unstructured.Unstructured
+	deploy7, err := handler.Update(unstructured.Unstructured{Object: unstructData})
+	checkErr("update deployment from unstructured.Unstructured", deploy7.Name, err)
+
+	// 8. update deployment from map[string]interface{}.
+	deploy8, err := handler.Update(unstructData)
+	checkErr("update deployment from map[string]interface{}", deploy8.Name, err)
 
 	// Output:
 
-	//2022/07/22 23:09:31 update deployment from file success:
-	//2022/07/22 23:09:31 update deployment from bytes success:
-	//2022/07/22 23:09:31 update deployment from *appsv1.Deployment success:
-	//2022/07/22 23:09:31 update deployment from appsv1.Deployment success:
-	//2022/07/22 23:09:31 update deployment from runtime.Object success:
-	//2022/07/22 23:09:31 update deployment from unstructured data success:
+	//2022/08/03 20:07:08 update deployment from file success: mydep
+	//2022/08/03 20:07:08 update deployment from bytes success: mydep
+	//2022/08/03 20:07:08 update deployment from *appsv1.Deployment success: mydep
+	//2022/08/03 20:07:08 update deployment from appsv1.Deployment success: mydep
+	//2022/08/03 20:07:08 update deployment from runtime.Object success: mydep
+	//2022/08/03 20:07:08 update deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:07:08 update deployment from unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:07:08 update deployment from map[string]interface{} success: mydep-unstruct
 }
 ```
 
@@ -433,6 +466,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -448,10 +482,10 @@ func Deployment_Apply() {
 
 	// 1. apply deployment from file, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
-	_, err = handler.Apply(filename)
-	checkErr("apply deployment from file (deployment not exists)", "", err)
-	_, err = handler.Apply(updateFile)
-	checkErr("apply deployment from file (deployment exists)", "", err)
+	deploy, err := handler.Apply(filename)
+	checkErr("apply deployment from file (deployment not exists)", deploy.Name, err)
+	deploy, err = handler.Apply(updateFile)
+	checkErr("apply deployment from file (deployment exists)", deploy.Name, err)
 
 	// 2. apply deployment from bytes, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
@@ -462,62 +496,78 @@ func Deployment_Apply() {
 	if data2, err = ioutil.ReadFile(updateFile); err != nil {
 		panic(err)
 	}
-	deploy, err := handler.Apply(data)
-	checkErr("apply deployment from bytes (deployment not exists)", "", err)
-	_, err = handler.Apply(data2)
-	checkErr("apply deployment from bytes (deployment exists)", "", err)
+	deploy2, err := handler.Apply(data)
+	checkErr("apply deployment from bytes (deployment not exists)", deploy2.Name, err)
+	deploy2, err = handler.Apply(data2)
+	checkErr("apply deployment from bytes (deployment exists)", deploy2.Name, err)
 
 	// 3. apply deployment from *appsv1.Deployment, it will updates the deployment, if already exist, or creates it.
-	replicas := *deploy.Spec.Replicas
+	replicas := *deploy2.Spec.Replicas
 	handler.Delete(name)
-	_, err = handler.Apply(deploy)
-	checkErr("apply deployment from *appsv1.Deployment (deployment not exists)", "", err)
+	deploy3, err := handler.Apply(deploy2)
+	checkErr("apply deployment from *appsv1.Deployment (deployment not exists)", deploy3.Name, err)
 	replicas += 1
 	deploy.Spec.Replicas = &replicas
-	_, err = handler.Apply(deploy)
-	checkErr("apply deployment from *appsv1.Deployment (deployment exists)", "", err)
+	deploy3, err = handler.Apply(deploy)
+	checkErr("apply deployment from *appsv1.Deployment (deployment exists)", deploy3.Name, err)
 
 	// 4. apply deployment from appsv1.Deployment, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
-	_, err = handler.Apply(*deploy)
-	checkErr("apply deployment from appsv1.Deployment (deployment not exists)", "", err)
+	deploy4, err := handler.Apply(*deploy)
+	checkErr("apply deployment from appsv1.Deployment (deployment not exists)", deploy4.Name, err)
 	replicas += 1
 	deploy.Spec.Replicas = &replicas
-	_, err = handler.Apply(*deploy)
-	checkErr("apply deployment from appsv1.Deployment (deployment exists)", "", err)
+	deploy4, err = handler.Apply(*deploy)
+	checkErr("apply deployment from appsv1.Deployment (deployment exists)", deploy4.Name, err)
 
 	// 5. apply deployment from runtime.Object, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
-	object := runtime.Object(deploy)
-	replicas += 1
+	deploy5, err := handler.Apply(runtime.Object(deploy))
+	checkErr("apply deployment from runtime.Object (deployment not exists)", deploy5.Name, err)
+	replicas -= 1
 	deploy.Spec.Replicas = &replicas
-	object2 := runtime.Object(deploy)
-	_, err = handler.Apply(object)
-	checkErr("apply deployment from runtime.Object (deployment not exists)", "", err)
-	_, err = handler.Apply(object2)
-	checkErr("apply deployment from runtime.Object (deployment exists)", "", err)
+	deploy5, err = handler.Apply(runtime.Object(deploy))
+	checkErr("apply deployment from runtime.Object (deployment exists)", deploy5.Name, err)
 
-	// 6. apply deployment from unstructured data, aka map[string]interface{}, it will updates the deployment, if already exist, or creates it.
+	// 6. apply deployment from *unstructured.Unstructured, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(unstructName)
-	_, err = handler.Apply(unstructData)
-	checkErr("apply deployment from unstructured data (deployment not exists)", "", err)
-	_, err = handler.Apply(unstructData)
-	checkErr("apply deployment from unstructured data (deployment exists)", "", err)
+	deploy6, err := handler.Apply(&unstructured.Unstructured{Object: unstructData})
+	checkErr("apply deployment from *unstructured.Unstructured (deployment not exists)", deploy6.Name, err)
+	deploy6, err = handler.Apply(&unstructured.Unstructured{Object: unstructData})
+	checkErr("apply deployment from *unstructured.Unstructured (deployment exists)", deploy6.Name, err)
+
+	// 7. apply deployment from unstructured.Unstructured, it will updates the deployment, if already exist, or creates it.
+	handler.Delete(unstructName)
+	deploy7, err := handler.Apply(unstructured.Unstructured{Object: unstructData})
+	checkErr("apply deployment from unstructured.Unstructured (deployment not exists)", deploy7.Name, err)
+	deploy7, err = handler.Apply(unstructured.Unstructured{Object: unstructData})
+	checkErr("apply deployment from unstructured.Unstructured (deployment exists)", deploy7.Name, err)
+
+	// 8. apply deployment map[string]interface{}, it will updates the deployment, if already exist, or creates it.
+	handler.Delete(unstructName)
+	deploy8, err := handler.Apply(unstructData)
+	checkErr("apply deployment from map[string]interface{} (deployment not exists)", deploy8.Name, err)
+	deploy8, err = handler.Apply(unstructData)
+	checkErr("apply deployment from map[string]interface{} (deployment exists)", deploy8.Name, err)
 
 	// Output:
 
-	//2022/07/22 22:52:49 apply deployment from file (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from file (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from bytes (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from bytes (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from *appsv1.Deployment (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from *appsv1.Deployment (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from appsv1.Deployment (deployment not exists) success:
-	//2022/07/22 22:52:50 apply deployment from appsv1.Deployment (deployment exists) success:
-	//2022/07/22 22:52:50 apply deployment from runtime.Object (deployment not exists) success:
-	//2022/07/22 22:52:51 apply deployment from runtime.Object (deployment exists) success:
-	//2022/07/22 22:52:51 apply deployment from unstructured data (deployment not exists) success:
-	//2022/07/22 22:52:51 apply deployment from unstructured data (deployment exists) success:
+	//2022/08/03 20:24:08 apply deployment from file (deployment not exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from file (deployment exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from bytes (deployment not exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from bytes (deployment exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from *appsv1.Deployment (deployment not exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from *appsv1.Deployment (deployment exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from appsv1.Deployment (deployment not exists) success: mydep
+	//2022/08/03 20:24:09 apply deployment from appsv1.Deployment (deployment exists) success: mydep
+	//2022/08/03 20:24:09 apply deployment from runtime.Object (deployment not exists) success: mydep
+	//2022/08/03 20:24:09 apply deployment from runtime.Object (deployment exists) success: mydep
+	//2022/08/03 20:24:10 apply deployment from *unstructured.Unstructured (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:24:10 apply deployment from *unstructured.Unstructured (deployment exists) success: mydep-unstruct
+	//2022/08/03 20:24:11 apply deployment from unstructured.Unstructured (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:24:11 apply deployment from unstructured.Unstructured (deployment exists) success: mydep-unstruct
+	//2022/08/03 20:24:11 apply deployment from map[string]interface{} (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:24:12 apply deployment from map[string]interface{} (deployment exists) success: mydep-unstruct
 }
 ```
 
@@ -532,6 +582,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -571,22 +622,31 @@ func Deployment_Delete() {
 
 	// 6. delete deployment from runtime.Object.
 	deploy, _ = handler.Apply(filename)
-	object := runtime.Object(deploy)
-	checkErr("delete deployment from runtime.Object", "", handler.Delete(object))
+	checkErr("delete deployment from runtime.Object", "", handler.Delete(runtime.Object(deploy)))
 
-	// 7. delete deployment from unstructured data, aka map[string]interface{}.
+	// 7. delete deployment from *unstructured.Unstructured
 	handler.Apply(unstructData)
-	checkErr("delete deployment from unstructured data", "", handler.Delete(unstructData))
+	checkErr("delete deployment from *unstructured.Unstructured", "", handler.Delete(&unstructured.Unstructured{Object: unstructData}))
+
+	// 8. delete deployment from unstructured.Unstructured
+	handler.Apply(unstructData)
+	checkErr("delete deployment from unstructured.Unstructured", "", handler.Delete(unstructured.Unstructured{Object: unstructData}))
+
+	// 9. delete deployment from map[string]interface{}.
+	handler.Apply(unstructData)
+	checkErr("delete deployment from map[string]interface{}", "", handler.Delete(unstructData))
 
 	// Output:
 
-	//2022/07/22 22:20:18 delete deployment by name success:
-	//2022/07/22 22:20:18 delete deployment from file success:
-	//2022/07/22 22:20:18 delete deployment from bytes success:
-	//2022/07/22 22:20:18 delete deployment from *appsv1.Deployment success:
-	//2022/07/22 22:20:18 delete deployment from appsv1.Deployment success:
-	//2022/07/22 22:20:18 delete deployment from runtime.Object success:
-	//2022/07/22 22:20:19 delete deployment from unstructured data success:
+	//2022/08/03 20:55:20 delete deployment by name success:
+	//2022/08/03 20:55:20 delete deployment from file success:
+	//2022/08/03 20:55:20 delete deployment from bytes success:
+	//2022/08/03 20:55:20 delete deployment from *appsv1.Deployment success:
+	//2022/08/03 20:55:20 delete deployment from appsv1.Deployment success:
+	//2022/08/03 20:55:20 delete deployment from runtime.Object success:
+	//2022/08/03 20:55:20 delete deployment from *unstructured.Unstructured success:
+	//2022/08/03 20:55:21 delete deployment from unstructured.Unstructured success:
+	//2022/08/03 20:55:21 delete deployment from map[string]interface{} success:
 }
 ```
 
@@ -601,6 +661,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -646,23 +707,32 @@ func Deployment_Get() {
 	checkErr("get deployment from appsv1.Deployment", deploy5.Name, err)
 
 	// 6. get deployment from runtime.Object.
-	object := runtime.Object(deploy5)
-	deploy6, err := handler.Get(object)
+	deploy6, err := handler.Get(runtime.Object(deploy5))
 	checkErr("get deployment from runtime.Object", deploy6.Name, err)
 
-	// 7. get deployment from unstructured data, aka map[string]interface{}.
-	deploy7, err := handler.Get(unstructData)
-	checkErr("get deployment from unstructured data", deploy7.Name, err)
+	// 7. get deployment from *unstructured.Unstructured
+	deploy7, err := handler.Get(&unstructured.Unstructured{Object: unstructData})
+	checkErr("get deployment from *unstructured.Unstructured", deploy7.Name, err)
+
+	// 8. get deployment from unstructured.Unstructured
+	deploy8, err := handler.Get(unstructured.Unstructured{Object: unstructData})
+	checkErr("get deployment from unstructured.Unstructured", deploy8.Name, err)
+
+	// 9. get deployment from map[string]interface{}.
+	deploy9, err := handler.Get(unstructData)
+	checkErr("get deployment from map[string]interface{}", deploy9.Name, err)
 
 	// Output:
 
-	//2022/07/22 22:47:33 get deployment by name success: mydep
-	//2022/07/22 22:47:33 get deployment from file success: mydep
-	//2022/07/22 22:47:33 get deployment from bytes success: mydep
-	//2022/07/22 22:47:33 get deployment from *appsv1.Deployment success: mydep
-	//2022/07/22 22:47:33 get deployment from appsv1.Deployment success: mydep
-	//2022/07/22 22:47:33 get deployment from runtime.Object success: mydep
-	//2022/07/22 22:47:33 get deployment from unstructured data success: mydep-unstruct
+	//2022/08/03 20:43:38 get deployment by name success: mydep
+	//2022/08/03 20:43:38 get deployment from file success: mydep
+	//2022/08/03 20:43:38 get deployment from bytes success: mydep
+	//2022/08/03 20:43:38 get deployment from *appsv1.Deployment success: mydep
+	//2022/08/03 20:43:38 get deployment from appsv1.Deployment success: mydep
+	//2022/08/03 20:43:38 get deployment from runtime.Object success: mydep
+	//2022/08/03 20:43:38 get deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:43:38 get deployment from unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:43:38 get deployment from map[string]interface{} success: mydep-unstruct
 }
 ```
 
