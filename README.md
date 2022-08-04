@@ -47,6 +47,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Finalizers
 - [ ] Leader Election
 - [ ] Recoder
+- [ ] Replace interface{} -> any
 
 ## How to execute command within pod by handler.
 
