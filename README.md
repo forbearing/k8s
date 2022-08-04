@@ -48,6 +48,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Leader Election
 - [ ] Recoder
 - [ ] Replace interface{} -> any
+- [ ] fack client
 
 ## How to execute command within pod by handler.
 
