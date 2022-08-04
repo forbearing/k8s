@@ -112,6 +112,18 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 
 	return handler, nil
 }
+
+// WithDryRun deep copies a new handler and prints the create/update/apply/delete
+// operations, without sending it to apiserver.
+func (h *Handler) WithDryRun() *Handler {
+	handler := h.DeepCopy()
+	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
+	return handler
+}
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
@@ -139,15 +151,7 @@ func (in *Handler) DeepCopy() *Handler {
 
 	return out
 }
-func (h *Handler) WithDryRun() *Handler {
-	handler := h.DeepCopy()
-	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
-	return handler
-}
+
 func (h *Handler) SetTimeout(timeout int64) {
 	h.l.Lock()
 	defer h.l.Unlock()
@@ -194,13 +198,27 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
+// GVK returns the name of Group, Version, Kind of ingressclass resource.
+func GVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{
+		Group:   networkingv1.SchemeGroupVersion.Group,
+		Version: networkingv1.SchemeGroupVersion.Version,
+		Kind:    types.KindIngressClass,
+	}
+}
+
 // GVR returns the name of Group, Version, Resource of ingressclass resource.
 func GVR() schema.GroupVersionResource {
 	return schema.GroupVersionResource{
 		Group:    networkingv1.SchemeGroupVersion.Group,
 		Version:  networkingv1.SchemeGroupVersion.Version,
-		Resource: "ingressclasses",
+		Resource: types.ResourceIngressClass,
 	}
+}
+
+// Kind returns the Kind name of ingressclass resource.
+func Kind() string {
+	return GVK().Kind
 }
 
 // Group returns the Group name of ingressclass resource.

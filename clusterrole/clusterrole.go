@@ -112,6 +112,18 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 
 	return handler, nil
 }
+
+// WithDryRun deep copies a new handler and prints the create/update/apply/delete
+// operations, without sending it to apiserver.
+func (h *Handler) WithDryRun() *Handler {
+	handler := h.DeepCopy()
+	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
+	return handler
+}
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
@@ -139,15 +151,7 @@ func (in *Handler) DeepCopy() *Handler {
 
 	return out
 }
-func (h *Handler) WithDryRun() *Handler {
-	handler := h.DeepCopy()
-	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
-	return handler
-}
+
 func (h *Handler) SetTimeout(timeout int64) {
 	h.l.Lock()
 	defer h.l.Unlock()
@@ -194,13 +198,27 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
+// GVK returns the name of Group, Version, Kind of clusterrole resource.
+func GVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{
+		Group:   rbacv1.SchemeGroupVersion.Group,
+		Version: rbacv1.SchemeGroupVersion.Version,
+		Kind:    types.KindClusterRole,
+	}
+}
+
 // GVR returns the name of Group, Version, Resource of clusterrole resource.
 func GVR() schema.GroupVersionResource {
 	return schema.GroupVersionResource{
 		Group:    rbacv1.SchemeGroupVersion.Group,
 		Version:  rbacv1.SchemeGroupVersion.Version,
-		Resource: "clusterroles",
+		Resource: types.ResourceClusterRole,
 	}
+}
+
+// Kind returns the Kind name of clusterrole resource.
+func Kind() string {
+	return GVK().Kind
 }
 
 // Group returns the Group name of clusterrole resource.

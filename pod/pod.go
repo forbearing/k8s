@@ -130,6 +130,26 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 
 	return handler, nil
 }
+
+// WithNamespace deep copies a new handler, but set the handler.namespace to
+// the provided namespace.
+func (p *Handler) WithNamespace(namespace string) *Handler {
+	handler := p.DeepCopy()
+	handler.resetNamespace(namespace)
+	return handler
+}
+
+// WithDryRun deep copies a new handler and prints the create/update/apply/delete
+// operations, without sending it to apiserver.
+func (p *Handler) WithDryRun() *Handler {
+	handler := p.DeepCopy()
+	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
+	return handler
+}
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
@@ -159,26 +179,12 @@ func (in *Handler) DeepCopy() *Handler {
 
 	return out
 }
-
 func (p *Handler) resetNamespace(namespace string) {
 	p.l.Lock()
 	defer p.l.Unlock()
 	p.namespace = namespace
 }
-func (p *Handler) WithNamespace(namespace string) *Handler {
-	handler := p.DeepCopy()
-	handler.resetNamespace(namespace)
-	return handler
-}
-func (p *Handler) WithDryRun() *Handler {
-	handler := p.DeepCopy()
-	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
-	return handler
-}
+
 func (p *Handler) SetLimit(limit int64) {
 	p.l.Lock()
 	defer p.l.Unlock()
@@ -225,13 +231,27 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
+// GVK returns the name of Group, Version, Kind of pod resource.
+func GVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{
+		Group:   corev1.SchemeGroupVersion.Group,
+		Version: corev1.SchemeGroupVersion.Version,
+		Kind:    types.KindPod,
+	}
+}
+
 // GVR returns the name of Group, Version, Resource of pod resource.
 func GVR() schema.GroupVersionResource {
 	return schema.GroupVersionResource{
 		Group:    corev1.SchemeGroupVersion.Group,
 		Version:  corev1.SchemeGroupVersion.Version,
-		Resource: "pods",
+		Resource: types.ResourcePod,
 	}
+}
+
+// Kind returns the Kind name of pod resource.
+func Kind() string {
+	return GVK().Kind
 }
 
 // Group returns the Group name of pod resource.

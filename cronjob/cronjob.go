@@ -240,13 +240,27 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
+// GVK returns the name of Group, Version, Kind of cronjob resource.
+func GVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{
+		Group:   batchv1.SchemeGroupVersion.Group,
+		Version: batchv1.SchemeGroupVersion.Version,
+		Kind:    types.KindCronJob,
+	}
+}
+
 // GVR returns the name of Group, Version, Resource of cronjob resource.
 func GVR() schema.GroupVersionResource {
 	return schema.GroupVersionResource{
 		Group:    batchv1.SchemeGroupVersion.Group,
 		Version:  batchv1.SchemeGroupVersion.Version,
-		Resource: "cronjobs",
+		Resource: types.ResourceCronJob,
 	}
+}
+
+// Kind returns the Kind name of cronjob resource.
+func Kind() string {
+	return GVK().Kind
 }
 
 // Group returns the Group name of cronjob resource.
