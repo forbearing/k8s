@@ -9,6 +9,7 @@ import (
 
 	"github.com/forbearing/k8s"
 	"github.com/forbearing/k8s/pod"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 var (
@@ -59,8 +60,9 @@ var (
 func main() {
 	defer cancel()
 
-	Pod_Tools()
-	Pod_Logs()
+	Pod_Create()
+	//Pod_Tools()
+	//Pod_Logs()
 	//Pod_Informer()
 	//Pod_List()
 	//Pod_Others()
@@ -76,5 +78,18 @@ func checkErr(name string, val interface{}, err error) {
 		log.Printf("%s failed: %v\n", name, err)
 	} else {
 		log.Printf("%s success: %v.\n", name, val)
+	}
+}
+func wait(handler *pod.Handler, name string) {
+	for {
+		_, err := handler.Get(name)
+		if k8serrors.IsNotFound(err) {
+			break
+		}
+		if err != nil {
+			log.Println("handler get pod error: ", err)
+			return
+		}
+		time.Sleep(time.Second)
 	}
 }
