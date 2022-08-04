@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -25,6 +26,9 @@ func (h *Handler) Create(obj interface{}) (*storagev1.StorageClass, error) {
 	case storagev1.StorageClass:
 		return h.CreateFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.CreateFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.CreateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)

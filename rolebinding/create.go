@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -25,6 +26,9 @@ func (h *Handler) Create(obj interface{}) (*rbacv1.RoleBinding, error) {
 	case rbacv1.RoleBinding:
 		return h.CreateFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.CreateFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.CreateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
