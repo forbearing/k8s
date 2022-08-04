@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -28,6 +29,9 @@ func (h *Handler) Delete(obj interface{}) error {
 	case corev1.ConfigMap:
 		return h.DeleteFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.DeleteFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.DeleteFromObject(val)
 	case *unstructured.Unstructured:
 		return h.DeleteFromUnstructured(val)
