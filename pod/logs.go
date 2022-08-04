@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -29,6 +30,9 @@ func (h *Handler) Log(obj interface{}, logOptions *LogOptions) error {
 	case corev1.Pod:
 		return h.LogFromObject(&val, logOptions)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.LogFromUnstructured(val.(*unstructured.Unstructured), logOptions)
+		}
 		return h.LogFromObject(val, logOptions)
 	case *unstructured.Unstructured:
 		return h.LogFromUnstructured(val, logOptions)
