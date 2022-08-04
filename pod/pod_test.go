@@ -113,7 +113,7 @@ func testPodTools(t *testing.T) {
 		"-c",
 		"cat /etc/os-release",
 	}
-	err = handler.Execute(name, "", command)
+	err = handler.Execute(name, "", command, nil)
 	myerr(t, "Execute", err)
 
 	//handler.DeleteFromFile(filename)
