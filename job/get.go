@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -28,6 +29,9 @@ func (h *Handler) Get(obj interface{}) (*batchv1.Job, error) {
 	case batchv1.Job:
 		return h.GetFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.GetFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.GetFromObject(val)
 	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
