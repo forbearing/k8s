@@ -2,6 +2,7 @@ package rolebinding
 
 import (
 	"fmt"
+	"reflect"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -23,6 +24,9 @@ func (h *Handler) Apply(obj interface{}) (*rbacv1.RoleBinding, error) {
 	case rbacv1.RoleBinding:
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.ApplyFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)

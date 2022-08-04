@@ -2,6 +2,7 @@ package daemonset
 
 import (
 	"fmt"
+	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -23,6 +24,9 @@ func (h *Handler) Apply(obj interface{}) (*appsv1.DaemonSet, error) {
 	case appsv1.DaemonSet:
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.ApplyFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)

@@ -2,6 +2,7 @@ package ingress
 
 import (
 	"fmt"
+	"reflect"
 
 	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -23,6 +24,9 @@ func (h *Handler) Apply(obj interface{}) (*networkingv1.Ingress, error) {
 	case networkingv1.Ingress:
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.ApplyFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)

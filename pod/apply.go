@@ -2,6 +2,7 @@ package pod
 
 import (
 	"fmt"
+	"reflect"
 
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
@@ -24,6 +25,9 @@ func (h *Handler) Apply(obj interface{}) (*corev1.Pod, error) {
 	case corev1.Pod:
 		return h.ApplyFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.ApplyFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
