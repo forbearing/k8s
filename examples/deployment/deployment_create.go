@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -17,7 +18,7 @@ func Deployment_Create() {
 
 	// 1. create deployment from file.
 	deploy, err := handler.Create(filename)
-	checkErr("create deployment from file", "", err)
+	checkErr("create deployment from file", deploy.Name, err)
 	handler.Delete(name)
 
 	// 2. create deployment from bytes.
@@ -25,37 +26,48 @@ func Deployment_Create() {
 	if data, err = ioutil.ReadFile(filename); err != nil {
 		panic(err)
 	}
-	_, err = handler.Create(data)
-	checkErr("create deployment from bytes", "", err)
+	deploy2, err := handler.Create(data)
+	checkErr("create deployment from bytes", deploy2.Name, err)
 	handler.Delete(name)
 
 	// 3. create deployment from *appsv1.Deployment.
-	_, err = handler.Create(deploy)
-	checkErr("create deployment from *appsv1.Deployment", "", err)
+	deploy3, err := handler.Create(deploy2)
+	checkErr("create deployment from *appsv1.Deployment", deploy3.Name, err)
 	handler.Delete(name)
 
 	// 4. create deployment from appsv1.Deployment.
-	_, err = handler.Create(*deploy)
-	checkErr("create deployment from appsv1.Deployment", "", err)
+	deploy4, err := handler.Create(*deploy3)
+	checkErr("create deployment from appsv1.Deployment", deploy4.Name, err)
 	handler.Delete(name)
 
-	// 5. create deployment from object.Runtime.
-	object := runtime.Object(deploy)
-	_, err = handler.Create(object)
-	checkErr("create deployment from runtime.Object", "", err)
+	// 5. create deployment from runtime.Object.
+	deploy5, err := handler.Create(runtime.Object(deploy4))
+	checkErr("create deployment from runtime.Object", deploy5.Name, err)
 	handler.Delete(name)
 
-	// 6. create deployment from unstructured data, aka map[string]interface{}.
-	_, err = handler.Create(unstructData)
-	checkErr("create deployment from unstructured data", "", err)
-	handler.Delete(name)
+	// 6. create deployment from *unstructured.Unstructured
+	deploy6, err := handler.Create(&unstructured.Unstructured{Object: unstructData})
+	checkErr("create deployment from *unstructured.Unstructured", deploy6.Name, err)
+	handler.Delete(unstructName)
+
+	// 7. create deployment from unstructured.Unstructured
+	deploy7, err := handler.Create(unstructured.Unstructured{Object: unstructData})
+	checkErr("create deployment from *unstructured.Unstructured", deploy7.Name, err)
+	handler.Delete(unstructName)
+
+	// 8. create deployment from map[string]interface{}.
+	deploy8, err := handler.Create(unstructData)
+	checkErr("create deployment from map[string]interface{}", deploy8.Name, err)
+	handler.Delete(unstructData)
 
 	// Output:
 
-	//2022/07/22 20:53:36 create deployment from file success:
-	//2022/07/22 20:53:36 create deployment from bytes success:
-	//2022/07/22 20:53:36 create deployment from *appsv1.Deployment success:
-	//2022/07/22 20:53:36 create deployment from appsv1.Deployment success:
-	//2022/07/22 20:53:36 create deployment from runtime.Object success:
-	//2022/07/22 20:53:36 create deployment from unstructured data success:
+	//2022/08/03 19:56:41 create deployment from file success: mydep
+	//2022/08/03 19:56:41 create deployment from bytes success: mydep
+	//2022/08/03 19:56:41 create deployment from *appsv1.Deployment success: mydep
+	//2022/08/03 19:56:41 create deployment from appsv1.Deployment success: mydep
+	//2022/08/03 19:56:41 create deployment from runtime.Object success: mydep
+	//2022/08/03 19:56:41 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 19:56:42 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 19:56:42 create deployment from map[string]interface{} success: mydep-unstruct
 }

@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -49,21 +50,30 @@ func Deployment_Get() {
 	checkErr("get deployment from appsv1.Deployment", deploy5.Name, err)
 
 	// 6. get deployment from runtime.Object.
-	object := runtime.Object(deploy5)
-	deploy6, err := handler.Get(object)
+	deploy6, err := handler.Get(runtime.Object(deploy5))
 	checkErr("get deployment from runtime.Object", deploy6.Name, err)
 
-	// 7. get deployment from unstructured data, aka map[string]interface{}.
-	deploy7, err := handler.Get(unstructData)
-	checkErr("get deployment from unstructured data", deploy7.Name, err)
+	// 7. get deployment from *unstructured.Unstructured
+	deploy7, err := handler.Get(&unstructured.Unstructured{Object: unstructData})
+	checkErr("get deployment from *unstructured.Unstructured", deploy7.Name, err)
+
+	// 8. get deployment from unstructured.Unstructured
+	deploy8, err := handler.Get(unstructured.Unstructured{Object: unstructData})
+	checkErr("get deployment from unstructured.Unstructured", deploy8.Name, err)
+
+	// 9. get deployment from map[string]interface{}.
+	deploy9, err := handler.Get(unstructData)
+	checkErr("get deployment from map[string]interface{}", deploy9.Name, err)
 
 	// Output:
 
-	//2022/07/22 22:47:33 get deployment by name success: mydep
-	//2022/07/22 22:47:33 get deployment from file success: mydep
-	//2022/07/22 22:47:33 get deployment from bytes success: mydep
-	//2022/07/22 22:47:33 get deployment from *appsv1.Deployment success: mydep
-	//2022/07/22 22:47:33 get deployment from appsv1.Deployment success: mydep
-	//2022/07/22 22:47:33 get deployment from runtime.Object success: mydep
-	//2022/07/22 22:47:33 get deployment from unstructured data success: mydep-unstruct
+	//2022/08/03 20:43:38 get deployment by name success: mydep
+	//2022/08/03 20:43:38 get deployment from file success: mydep
+	//2022/08/03 20:43:38 get deployment from bytes success: mydep
+	//2022/08/03 20:43:38 get deployment from *appsv1.Deployment success: mydep
+	//2022/08/03 20:43:38 get deployment from appsv1.Deployment success: mydep
+	//2022/08/03 20:43:38 get deployment from runtime.Object success: mydep
+	//2022/08/03 20:43:38 get deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:43:38 get deployment from unstructured.Unstructured success: mydep-unstruct
+	//2022/08/03 20:43:38 get deployment from map[string]interface{} success: mydep-unstruct
 }

@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -43,20 +44,29 @@ func Deployment_Delete() {
 
 	// 6. delete deployment from runtime.Object.
 	deploy, _ = handler.Apply(filename)
-	object := runtime.Object(deploy)
-	checkErr("delete deployment from runtime.Object", "", handler.Delete(object))
+	checkErr("delete deployment from runtime.Object", "", handler.Delete(runtime.Object(deploy)))
 
-	// 7. delete deployment from unstructured data, aka map[string]interface{}.
+	// 7. delete deployment from *unstructured.Unstructured
 	handler.Apply(unstructData)
-	checkErr("delete deployment from unstructured data", "", handler.Delete(unstructData))
+	checkErr("delete deployment from *unstructured.Unstructured", "", handler.Delete(&unstructured.Unstructured{Object: unstructData}))
+
+	// 8. delete deployment from unstructured.Unstructured
+	handler.Apply(unstructData)
+	checkErr("delete deployment from unstructured.Unstructured", "", handler.Delete(unstructured.Unstructured{Object: unstructData}))
+
+	// 9. delete deployment from map[string]interface{}.
+	handler.Apply(unstructData)
+	checkErr("delete deployment from map[string]interface{}", "", handler.Delete(unstructData))
 
 	// Output:
 
-	//2022/07/22 22:20:18 delete deployment by name success:
-	//2022/07/22 22:20:18 delete deployment from file success:
-	//2022/07/22 22:20:18 delete deployment from bytes success:
-	//2022/07/22 22:20:18 delete deployment from *appsv1.Deployment success:
-	//2022/07/22 22:20:18 delete deployment from appsv1.Deployment success:
-	//2022/07/22 22:20:18 delete deployment from runtime.Object success:
-	//2022/07/22 22:20:19 delete deployment from unstructured data success:
+	//2022/08/03 20:55:20 delete deployment by name success:
+	//2022/08/03 20:55:20 delete deployment from file success:
+	//2022/08/03 20:55:20 delete deployment from bytes success:
+	//2022/08/03 20:55:20 delete deployment from *appsv1.Deployment success:
+	//2022/08/03 20:55:20 delete deployment from appsv1.Deployment success:
+	//2022/08/03 20:55:20 delete deployment from runtime.Object success:
+	//2022/08/03 20:55:20 delete deployment from *unstructured.Unstructured success:
+	//2022/08/03 20:55:21 delete deployment from unstructured.Unstructured success:
+	//2022/08/03 20:55:21 delete deployment from map[string]interface{} success:
 }

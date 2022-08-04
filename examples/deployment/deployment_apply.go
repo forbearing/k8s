@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -19,10 +20,10 @@ func Deployment_Apply() {
 
 	// 1. apply deployment from file, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
-	_, err = handler.Apply(filename)
-	checkErr("apply deployment from file (deployment not exists)", "", err)
-	_, err = handler.Apply(updateFile)
-	checkErr("apply deployment from file (deployment exists)", "", err)
+	deploy, err := handler.Apply(filename)
+	checkErr("apply deployment from file (deployment not exists)", deploy.Name, err)
+	deploy, err = handler.Apply(updateFile)
+	checkErr("apply deployment from file (deployment exists)", deploy.Name, err)
 
 	// 2. apply deployment from bytes, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
@@ -33,60 +34,76 @@ func Deployment_Apply() {
 	if data2, err = ioutil.ReadFile(updateFile); err != nil {
 		panic(err)
 	}
-	deploy, err := handler.Apply(data)
-	checkErr("apply deployment from bytes (deployment not exists)", "", err)
-	_, err = handler.Apply(data2)
-	checkErr("apply deployment from bytes (deployment exists)", "", err)
+	deploy2, err := handler.Apply(data)
+	checkErr("apply deployment from bytes (deployment not exists)", deploy2.Name, err)
+	deploy2, err = handler.Apply(data2)
+	checkErr("apply deployment from bytes (deployment exists)", deploy2.Name, err)
 
 	// 3. apply deployment from *appsv1.Deployment, it will updates the deployment, if already exist, or creates it.
-	replicas := *deploy.Spec.Replicas
+	replicas := *deploy2.Spec.Replicas
 	handler.Delete(name)
-	_, err = handler.Apply(deploy)
-	checkErr("apply deployment from *appsv1.Deployment (deployment not exists)", "", err)
+	deploy3, err := handler.Apply(deploy2)
+	checkErr("apply deployment from *appsv1.Deployment (deployment not exists)", deploy3.Name, err)
 	replicas += 1
 	deploy.Spec.Replicas = &replicas
-	_, err = handler.Apply(deploy)
-	checkErr("apply deployment from *appsv1.Deployment (deployment exists)", "", err)
+	deploy3, err = handler.Apply(deploy)
+	checkErr("apply deployment from *appsv1.Deployment (deployment exists)", deploy3.Name, err)
 
 	// 4. apply deployment from appsv1.Deployment, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
-	_, err = handler.Apply(*deploy)
-	checkErr("apply deployment from appsv1.Deployment (deployment not exists)", "", err)
+	deploy4, err := handler.Apply(*deploy)
+	checkErr("apply deployment from appsv1.Deployment (deployment not exists)", deploy4.Name, err)
 	replicas += 1
 	deploy.Spec.Replicas = &replicas
-	_, err = handler.Apply(*deploy)
-	checkErr("apply deployment from appsv1.Deployment (deployment exists)", "", err)
+	deploy4, err = handler.Apply(*deploy)
+	checkErr("apply deployment from appsv1.Deployment (deployment exists)", deploy4.Name, err)
 
 	// 5. apply deployment from runtime.Object, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(name)
-	object := runtime.Object(deploy)
-	replicas += 1
+	deploy5, err := handler.Apply(runtime.Object(deploy))
+	checkErr("apply deployment from runtime.Object (deployment not exists)", deploy5.Name, err)
+	replicas -= 1
 	deploy.Spec.Replicas = &replicas
-	object2 := runtime.Object(deploy)
-	_, err = handler.Apply(object)
-	checkErr("apply deployment from runtime.Object (deployment not exists)", "", err)
-	_, err = handler.Apply(object2)
-	checkErr("apply deployment from runtime.Object (deployment exists)", "", err)
+	deploy5, err = handler.Apply(runtime.Object(deploy))
+	checkErr("apply deployment from runtime.Object (deployment exists)", deploy5.Name, err)
 
-	// 6. apply deployment from unstructured data, aka map[string]interface{}, it will updates the deployment, if already exist, or creates it.
+	// 6. apply deployment from *unstructured.Unstructured, it will updates the deployment, if already exist, or creates it.
 	handler.Delete(unstructName)
-	_, err = handler.Apply(unstructData)
-	checkErr("apply deployment from unstructured data (deployment not exists)", "", err)
-	_, err = handler.Apply(unstructData)
-	checkErr("apply deployment from unstructured data (deployment exists)", "", err)
+	deploy6, err := handler.Apply(&unstructured.Unstructured{Object: unstructData})
+	checkErr("apply deployment from *unstructured.Unstructured (deployment not exists)", deploy6.Name, err)
+	deploy6, err = handler.Apply(&unstructured.Unstructured{Object: unstructData})
+	checkErr("apply deployment from *unstructured.Unstructured (deployment exists)", deploy6.Name, err)
+
+	// 7. apply deployment from unstructured.Unstructured, it will updates the deployment, if already exist, or creates it.
+	handler.Delete(unstructName)
+	deploy7, err := handler.Apply(unstructured.Unstructured{Object: unstructData})
+	checkErr("apply deployment from unstructured.Unstructured (deployment not exists)", deploy7.Name, err)
+	deploy7, err = handler.Apply(unstructured.Unstructured{Object: unstructData})
+	checkErr("apply deployment from unstructured.Unstructured (deployment exists)", deploy7.Name, err)
+
+	// 8. apply deployment map[string]interface{}, it will updates the deployment, if already exist, or creates it.
+	handler.Delete(unstructName)
+	deploy8, err := handler.Apply(unstructData)
+	checkErr("apply deployment from map[string]interface{} (deployment not exists)", deploy8.Name, err)
+	deploy8, err = handler.Apply(unstructData)
+	checkErr("apply deployment from map[string]interface{} (deployment exists)", deploy8.Name, err)
 
 	// Output:
 
-	//2022/07/22 22:52:49 apply deployment from file (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from file (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from bytes (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from bytes (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from *appsv1.Deployment (deployment not exists) success:
-	//2022/07/22 22:52:49 apply deployment from *appsv1.Deployment (deployment exists) success:
-	//2022/07/22 22:52:49 apply deployment from appsv1.Deployment (deployment not exists) success:
-	//2022/07/22 22:52:50 apply deployment from appsv1.Deployment (deployment exists) success:
-	//2022/07/22 22:52:50 apply deployment from runtime.Object (deployment not exists) success:
-	//2022/07/22 22:52:51 apply deployment from runtime.Object (deployment exists) success:
-	//2022/07/22 22:52:51 apply deployment from unstructured data (deployment not exists) success:
-	//2022/07/22 22:52:51 apply deployment from unstructured data (deployment exists) success:
+	//2022/08/03 20:24:08 apply deployment from file (deployment not exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from file (deployment exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from bytes (deployment not exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from bytes (deployment exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from *appsv1.Deployment (deployment not exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from *appsv1.Deployment (deployment exists) success: mydep
+	//2022/08/03 20:24:08 apply deployment from appsv1.Deployment (deployment not exists) success: mydep
+	//2022/08/03 20:24:09 apply deployment from appsv1.Deployment (deployment exists) success: mydep
+	//2022/08/03 20:24:09 apply deployment from runtime.Object (deployment not exists) success: mydep
+	//2022/08/03 20:24:09 apply deployment from runtime.Object (deployment exists) success: mydep
+	//2022/08/03 20:24:10 apply deployment from *unstructured.Unstructured (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:24:10 apply deployment from *unstructured.Unstructured (deployment exists) success: mydep-unstruct
+	//2022/08/03 20:24:11 apply deployment from unstructured.Unstructured (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:24:11 apply deployment from unstructured.Unstructured (deployment exists) success: mydep-unstruct
+	//2022/08/03 20:24:11 apply deployment from map[string]interface{} (deployment not exists) success: mydep-unstruct
+	//2022/08/03 20:24:12 apply deployment from map[string]interface{} (deployment exists) success: mydep-unstruct
 }
