@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -25,6 +26,9 @@ func (h *Handler) Update(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	case rbacv1.ClusterRoleBinding:
 		return h.UpdateFromObject(&val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.UpdateFromUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.UpdateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
