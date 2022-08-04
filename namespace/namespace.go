@@ -112,11 +112,6 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 
 	return handler, nil
 }
-func (h *Handler) SetTimeout(timeout int64) {
-	h.l.Lock()
-	defer h.l.Unlock()
-	h.Options.ListOptions.TimeoutSeconds = &timeout
-}
 
 // WithDryRun deep copies a new handler and prints the create/update/apply/delete
 // operations, without sending it to apiserver.
@@ -162,14 +157,17 @@ func (h *Handler) SetLimit(limit int64) {
 	defer h.l.Unlock()
 	h.Options.ListOptions.Limit = limit
 }
+func (h *Handler) SetTimeout(timeout int64) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.Options.ListOptions.TimeoutSeconds = &timeout
+}
 func (h *Handler) SetForceDelete(force bool) {
 	h.l.Lock()
 	defer h.l.Unlock()
 	if force {
 		gracePeriodSeconds := int64(0)
 		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
-	} else {
-		h.Options.DeleteOptions = metav1.DeleteOptions{}
 	}
 }
 

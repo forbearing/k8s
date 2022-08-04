@@ -230,8 +230,6 @@ func (h *Handler) SetForceDelete(force bool) {
 	if force {
 		gracePeriodSeconds := int64(0)
 		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
-	} else {
-		h.Options.DeleteOptions = metav1.DeleteOptions{}
 	}
 }
 

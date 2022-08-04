@@ -119,6 +119,27 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 
 	return handler, nil
 }
+
+// WithNamespace deep copies a new handler, but set the handler.namespace to
+// the provided namespace.
+func (h *Handler) WithNamespace(namespace string) *Handler {
+	handler := h.DeepCopy()
+	handler.resetNamespace(namespace)
+	return handler
+}
+
+// WithDryRun deep copies a new handler and prints the create/update/apply/delete
+// operations, without sending it to apiserver.
+func (h *Handler) WithDryRun() *Handler {
+	handler := h.DeepCopy()
+	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
+	handler.SetPropagationPolicy("background")
+	return handler
+}
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
@@ -153,21 +174,7 @@ func (h *Handler) resetNamespace(namespace string) {
 	defer h.l.Unlock()
 	h.namespace = namespace
 }
-func (h *Handler) WithNamespace(namespace string) *Handler {
-	handler := h.DeepCopy()
-	handler.resetNamespace(namespace)
-	return handler
-}
-func (h *Handler) WithDryRun() *Handler {
-	handler := h.DeepCopy()
-	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
-	handler.SetPropagationPolicy("background")
-	return handler
-}
+
 func (h *Handler) SetTimeout(timeout int64) {
 	h.l.Lock()
 	defer h.l.Unlock()
@@ -184,18 +191,11 @@ func (h *Handler) SetForceDelete(force bool) {
 	if force {
 		gracePeriodSeconds := int64(0)
 		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
-		propagationPolicy := metav1.DeletePropagationBackground
-		h.Options.DeleteOptions.PropagationPolicy = &propagationPolicy
-	} else {
-		h.Options.DeleteOptions = metav1.DeleteOptions{}
-		propagationPolicy := metav1.DeletePropagationBackground
-		h.Options.DeleteOptions.PropagationPolicy = &propagationPolicy
 	}
 }
 
-// Whether and how garbage collection will be performed.
-// support value are "Background", "Orphan", "Foreground",
-// default value is "Background"
+// SetPropagationPolicy determined whether and how garbage collection will be performed.
+// There are supported values are "Background", "Orphan", "Foreground", default is "Background".
 func (h *Handler) SetPropagationPolicy(policy string) {
 	h.l.Lock()
 	defer h.l.Unlock()

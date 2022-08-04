@@ -133,16 +133,16 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 
 // WithNamespace deep copies a new handler, but set the handler.namespace to
 // the provided namespace.
-func (p *Handler) WithNamespace(namespace string) *Handler {
-	handler := p.DeepCopy()
+func (h *Handler) WithNamespace(namespace string) *Handler {
+	handler := h.DeepCopy()
 	handler.resetNamespace(namespace)
 	return handler
 }
 
 // WithDryRun deep copies a new handler and prints the create/update/apply/delete
 // operations, without sending it to apiserver.
-func (p *Handler) WithDryRun() *Handler {
-	handler := p.DeepCopy()
+func (h *Handler) WithDryRun() *Handler {
+	handler := h.DeepCopy()
 	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
 	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
 	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
@@ -179,30 +179,28 @@ func (in *Handler) DeepCopy() *Handler {
 
 	return out
 }
-func (p *Handler) resetNamespace(namespace string) {
-	p.l.Lock()
-	defer p.l.Unlock()
-	p.namespace = namespace
+func (h *Handler) resetNamespace(namespace string) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.namespace = namespace
 }
 
-func (p *Handler) SetLimit(limit int64) {
-	p.l.Lock()
-	defer p.l.Unlock()
-	p.Options.ListOptions.Limit = limit
+func (h *Handler) SetLimit(limit int64) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.Options.ListOptions.Limit = limit
 }
-func (p *Handler) SetTimeout(timeout int64) {
-	p.l.Lock()
-	defer p.l.Unlock()
-	p.Options.ListOptions.TimeoutSeconds = &timeout
+func (h *Handler) SetTimeout(timeout int64) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.Options.ListOptions.TimeoutSeconds = &timeout
 }
-func (p *Handler) SetForceDelete(force bool) {
-	p.l.Lock()
-	defer p.l.Unlock()
+func (h *Handler) SetForceDelete(force bool) {
+	h.l.Lock()
+	defer h.l.Unlock()
 	if force {
 		gracePeriodSeconds := int64(0)
-		p.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
-	} else {
-		p.Options.DeleteOptions = metav1.DeleteOptions{}
+		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
 	}
 }
 

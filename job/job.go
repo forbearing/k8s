@@ -191,18 +191,11 @@ func (h *Handler) SetForceDelete(force bool) {
 	if force {
 		gracePeriodSeconds := int64(0)
 		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
-		propagationPolicy := metav1.DeletePropagationBackground
-		h.Options.DeleteOptions.PropagationPolicy = &propagationPolicy
-	} else {
-		h.Options.DeleteOptions = metav1.DeleteOptions{}
-		propagationPolicy := metav1.DeletePropagationBackground
-		h.Options.DeleteOptions.PropagationPolicy = &propagationPolicy
 	}
 }
 
-// Whether and how garbage collection will be performed.
-// support value are "Background", "Orphan", "Foreground",
-// default value is "Background"
+// SetPropagationPolicy determined whether and how garbage collection will be performed.
+// There are supported values are "Background", "Orphan", "Foreground", default is "Background".
 func (h *Handler) SetPropagationPolicy(policy string) {
 	h.l.Lock()
 	defer h.l.Unlock()

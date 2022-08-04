@@ -166,6 +166,14 @@ func (h *Handler) SetLimit(limit int64) {
 	defer h.l.Unlock()
 	h.Options.ListOptions.Limit = limit
 }
+func (h *Handler) SetForceDelete(force bool) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	if force {
+		gracePeriodSeconds := int64(0)
+		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
+	}
+}
 
 // RESTConfig returns underlying rest config.
 func (h *Handler) RESTConfig() *rest.Config {
