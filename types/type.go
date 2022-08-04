@@ -119,7 +119,3 @@ type HandlerOptions struct {
 	UpdateOptions metav1.UpdateOptions
 	PatchOptions  metav1.PatchOptions
 }
-
-const (
-	FieldManager = "client-go"
-)
