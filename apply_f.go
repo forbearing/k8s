@@ -40,9 +40,7 @@ import (
 	"k8s.io/klog"
 )
 
-// ApplyF like "kubectl apply -f filename.yaml".
-// the file could include multiple k8s resource.
-// not support create "Node" from yaml file
+// ApplyF work like "kubectl apply -f filename.yaml",
 func ApplyF(ctx context.Context, kubeconfig, filename string) error {
 	k8sResourceFile, err := ioutil.ReadFile(filename)
 	if err != nil {
