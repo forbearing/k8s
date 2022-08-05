@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/forbearing/k8s"
-	"github.com/forbearing/k8s/leaderelection"
+	"github.com/forbearing/k8s/tools/leaderelection"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/client-go/tools/clientcmd"
 )
