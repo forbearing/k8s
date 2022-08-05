@@ -38,7 +38,7 @@ import (
 	"k8s.io/klog"
 )
 
-// DeleteF like "kubectl delete -f filename"
+// DeleteF works like "kubectl delete -f filename.yaml"
 func DeleteF(ctx context.Context, kubeconfig, filename string) error {
 	k8sResourceFile, err := ioutil.ReadFile(filename)
 	if err != nil {
