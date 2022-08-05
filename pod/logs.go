@@ -41,7 +41,7 @@ func (h *Handler) Log(obj interface{}, logOptions *LogOptions) error {
 	case map[string]interface{}:
 		return h.LogFromMap(val, logOptions)
 	default:
-		return ERR_TYPE_CREATE
+		return ErrInvalidLogType
 	}
 }
 
