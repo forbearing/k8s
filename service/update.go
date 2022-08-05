@@ -36,7 +36,7 @@ func (h *Handler) Update(obj interface{}) (*corev1.Service, error) {
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
 	default:
-		return nil, ERR_TYPE_UPDATE
+		return nil, ErrInvalidUpdateType
 	}
 }
 

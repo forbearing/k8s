@@ -37,7 +37,7 @@ func (h *Handler) Update(obj interface{}) (*batchv1.CronJob, error) {
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
 	default:
-		return nil, ERR_TYPE_UPDATE
+		return nil, ErrInvalidUpdateType
 	}
 }
 
