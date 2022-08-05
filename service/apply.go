@@ -34,7 +34,7 @@ func (h *Handler) Apply(obj interface{}) (*corev1.Service, error) {
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
 	default:
-		return nil, ERR_TYPE_APPLY
+		return nil, ErrInvalidApplyType
 	}
 }
 

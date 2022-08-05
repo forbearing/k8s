@@ -35,7 +35,7 @@ func (h *Handler) Apply(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
 	default:
-		return nil, ERR_TYPE_APPLY
+		return nil, ErrInvalidApplyType
 	}
 }
 
