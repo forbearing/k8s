@@ -4,9 +4,9 @@ import "fmt"
 
 var (
 	ERR_TYPE_TOOLS  = fmt.Errorf("type must be string *appsv1.StatefulSet, or appsv1.StatefulSet")
-	ERR_TYPE_CREATE = fmt.Errorf("type must be string, []byte, *appsv1.StatefulSet, appsv1.StatefulSet, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
-	ErrInvalidUpdateType = ERR_TYPE_CREATE
-	ErrInvalidApplyType  = ERR_TYPE_CREATE
-	ErrInvalidDeleteType = ERR_TYPE_CREATE
-	ErrInvalidGetType    = ERR_TYPE_CREATE
+	ErrInvalidCreateType = fmt.Errorf("type must be string, []byte, *appsv1.StatefulSet, appsv1.StatefulSet, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidUpdateType = ErrInvalidCreateType
+	ErrInvalidApplyType  = ErrInvalidCreateType
+	ErrInvalidDeleteType = ErrInvalidCreateType
+	ErrInvalidGetType    = ErrInvalidCreateType
 )

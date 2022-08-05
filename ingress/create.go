@@ -37,7 +37,7 @@ func (h *Handler) Create(obj interface{}) (*networkingv1.Ingress, error) {
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
 	default:
-		return nil, ERR_TYPE_CREATE
+		return nil, ErrInvalidCreateType
 	}
 }
 
