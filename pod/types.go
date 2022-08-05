@@ -14,7 +14,7 @@ var (
 	ERR_TYPE_CREATE = fmt.Errorf("type must be string, []byte, *corev1.Pod, corev1.Pod, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 	ERR_TYPE_UPDATE = ERR_TYPE_CREATE
 	ERR_TYPE_APPLY  = ERR_TYPE_CREATE
-	ERR_TYPE_DELETE = ERR_TYPE_CREATE
+	ErrInvalidDeleteType = ERR_TYPE_CREATE
 	ErrInvalidGetType    = ERR_TYPE_CREATE
 )
 

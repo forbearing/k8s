@@ -39,7 +39,7 @@ func (h *Handler) Delete(obj interface{}) error {
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
 	default:
-		return ERR_TYPE_DELETE
+		return ErrInvalidDeleteType
 	}
 }
 
