@@ -40,7 +40,7 @@ func (h *Handler) Get(obj interface{}) (*corev1.ConfigMap, error) {
 	case map[string]interface{}:
 		return h.GetFromMap(val)
 	default:
-		return nil, ERR_TYPE_GET
+		return nil, ErrInvalidGetType
 	}
 }
 

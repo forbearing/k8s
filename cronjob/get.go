@@ -40,7 +40,7 @@ func (h *Handler) Get(obj interface{}) (*batchv1.CronJob, error) {
 	case map[string]interface{}:
 		return h.GetFromMap(val)
 	default:
-		return nil, ERR_TYPE_GET
+		return nil, ErrInvalidGetType
 	}
 }
 
