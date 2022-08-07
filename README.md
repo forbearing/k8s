@@ -49,7 +49,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Recoder
 - [ ] Replace interface{} -> any
 - [ ] fack client
-- [ ] Shold I cleanup .status before create/update/apply *appsv1.Deployment?
+- [ ] Should I cleanup .status before create/update/apply *appsv1.Deployment?
 
 ## How to execute command within pod by handler.
 
