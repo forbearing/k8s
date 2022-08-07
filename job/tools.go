@@ -24,7 +24,7 @@ type JobController struct {
 	metav1.OwnerReference `json:"ownerReference"`
 }
 
-// IsCompleted check job if is completion
+// IsCompleted will check if the job was successfully scheduled and run to completed
 // job 成功调度并且其 pod 成功执行
 func (h *Handler) IsCompleted(name string) bool {
 	// if job not exist, return false
@@ -41,8 +41,38 @@ func (h *Handler) IsCompleted(name string) bool {
 	return false
 }
 
-// IsFinished check job if is condition is
-// job finished means that the job condition is "complete" or "failed"
+// IsFailed will check if the job was successfully scheduled but run to failed.
+func (h *Handler) IsFailed(name string) bool {
+	job, err := h.Get(name)
+	if err != nil {
+		return false
+	}
+
+	for _, cond := range job.Status.Conditions {
+		if cond.Status == corev1.ConditionTrue && cond.Type == batchv1.JobFailed {
+			return true
+		}
+	}
+	return false
+}
+
+// IsSuspended will check if the job was successfully scheduled but the job was suspended.
+func (h *Handler) IsSuspended(name string) bool {
+	job, err := h.Get(name)
+	if err != nil {
+		return false
+	}
+
+	for _, cond := range job.Status.Conditions {
+		if cond.Status == corev1.ConditionTrue && cond.Type == batchv1.JobSuspended {
+			return true
+		}
+	}
+	return false
+}
+
+// IsFinished will check the job was successfully scheduled, it doesn't matter
+// if the job runs to completion or fails.
 // job 成功调度, pod 不再产生, 比如 job 设置了 backoffLimit: 3, 则限制 job 产生的
 // pod 最多失败3次, 超过3次, job 不再创建 pod 来做执行任务. 这样也是 Finished
 // 总结就是: job 不再创建 pod 来执行任务, 不管任务是否成功或失败
