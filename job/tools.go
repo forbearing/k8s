@@ -54,14 +54,16 @@ func (h *Handler) IsFinished(name string) bool {
 	if err != nil {
 		return true
 	}
-	// 1. if job complete return true
-	// 2. if job failed return true
-	// 3. all other job condition return false
+	// 1. if job complete and status is true, return true.
+	// 2. if job failed and status is true, return true.
 	for _, cond := range job.Status.Conditions {
-		if cond.Status == corev1.ConditionTrue && cond.Type == batchv1.JobComplete {
-			return true
-		}
-		if cond.Status == corev1.ConditionTrue && cond.Type == batchv1.JobFailed {
+		//if cond.Status == corev1.ConditionTrue && cond.Type == batchv1.JobComplete {
+		//    return true
+		//}
+		//if cond.Status == corev1.ConditionTrue && cond.Type == batchv1.JobFailed {
+		//    return true
+		//}
+		if (cond.Type == batchv1.JobComplete || cond.Type == batchv1.JobFailed) && cond.Status == corev1.ConditionTrue {
 			return true
 		}
 	}
