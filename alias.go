@@ -25,6 +25,7 @@ import (
 	"github.com/forbearing/k8s/serviceaccount"
 	"github.com/forbearing/k8s/statefulset"
 	"github.com/forbearing/k8s/storageclass"
+	"github.com/forbearing/k8s/tools/signals"
 )
 
 type ClusterRoleHandler = clusterrole.Handler
@@ -77,4 +78,9 @@ var (
 	NewServiceAccount        = serviceaccount.New
 	NewStatefulSet           = statefulset.New
 	NewStorageClass          = storageclass.New
+)
+
+var (
+	SetupSignalContext = signals.SetupSignalContext
+	SetupSignalChannel = signals.SetupSignalChannel
 )
