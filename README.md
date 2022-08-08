@@ -50,8 +50,10 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Leader Election
 - [ ] Recoder
 - [ ] Replace interface{} -> any
-- [ ] fack client
+- [ ] fack client or envtest.Environment
 - [ ] Should I cleanup .status before create/update/apply *appsv1.Deployment?
+- [ ] healthz
+- [ ] metrics
 
 ## How to execute command within pod by handler.
 
