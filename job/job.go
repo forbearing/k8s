@@ -189,8 +189,7 @@ func (h *Handler) SetForceDelete(force bool) {
 	h.l.Lock()
 	defer h.l.Unlock()
 	if force {
-		gracePeriodSeconds := int64(0)
-		h.Options.DeleteOptions.GracePeriodSeconds = &gracePeriodSeconds
+		h.Options.DeleteOptions.GracePeriodSeconds = new(int64)
 	}
 }
 
