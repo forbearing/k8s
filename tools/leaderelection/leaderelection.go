@@ -18,32 +18,7 @@ import (
 	"k8s.io/client-go/tools/record"
 )
 
-//// use a Go context so we can tell the leaderelection code when we
-//// want to step down
-//ctx, cancel := context.WithCancel(context.TODO())
-//defer cancel()
-
-//// listen for interrupts or the Linux SIGTERM signal and cancel
-//// our context, which the leader election code will observe and
-//// step down
-//sigCh := make(chan os.Signal, 1)
-//signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-//go func() {
-//    <-sigCh
-//    log.Info("Received termination, signaling shutdown")
-//    cancel()
-//}()
-
-//// start the leader election, and run ratel-webterminal
-//election.Run(ctx, func(ctx context.Context) {
-//    log.Info("Starting ratel-webterminal")
-//    addr := fmt.Sprintf("%s:%d", args.GetBindAddress(), args.GetPort())
-//    log.Infof("Listen on %v:%d", args.GetBindAddress(), args.GetPort())
-
-//    if err := http.ListenAndServe(addr, router); err != nil {
-//        log.Fatal(err)
-//    }
-//})
+const inClusterNamespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 
 // RunOrDie
 func RunOrDie(ctx context.Context, config *rest.Config, options Options) {

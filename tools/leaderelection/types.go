@@ -8,8 +8,6 @@ import (
 // (https://github.com/kubernetes-sigs/controller-runtime/tree/v0.12.3/pkg/leaderelection)
 // but has some changes to bring it in line with my package style
 
-const inClusterNamespacePath = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
-
 // Options provides the requested configuration to create a new resource lock.
 type Options struct {
 	// LeaderElectionID is the unique string identifying a lease holder across
