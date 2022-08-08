@@ -17,7 +17,7 @@ func Pod_Create() {
 
 	// 1. create pod from filename
 	pod, err := handler.Create(filename)
-	checkErr("create from filename", pod.Name, err)
+	checkErr("create pod from filename", pod.Name, err)
 	handler.Delete(name)
 
 	// 2. create pod from bytes
@@ -27,42 +27,52 @@ func Pod_Create() {
 	}
 	wait(handler, name)
 	pod2, err := handler.Create(data)
-	checkErr("create from bytes", pod2.Name, err)
+	checkErr("create pod from bytes", pod2.Name, err)
 	handler.Delete(name)
 
 	// 3. create pod from *corev1.Pod
 	wait(handler, name)
 	pod3, err := handler.Create(pod2)
-	checkErr("create from *corev1.pod", pod3.Name, err)
+	checkErr("create pod from *corev1.pod", pod3.Name, err)
 	handler.Delete(name)
 
 	// 4. create pod from corev1.Pod
 	wait(handler, name)
 	pod4, err := handler.Create(*pod3)
-	checkErr("create from corev1.Pod", pod4.Name, err)
+	checkErr("create pod from corev1.Pod", pod4.Name, err)
 	handler.Delete(name)
 
 	// 5. create pod from runtime.Object
 	wait(handler, name)
 	pod5, err := handler.Create(runtime.Object(pod4))
-	checkErr("create from runtime.Object", pod5.Name, err)
+	checkErr("create pod from runtime.Object", pod5.Name, err)
 	handler.Delete(name)
 
-	// 6. create from *unstructured.Unstructured
-	wait(handler, name)
+	// 6. create pod from *unstructured.Unstructured
 	pod6, err := handler.Create(&unstructured.Unstructured{Object: LogPodData})
-	checkErr("create from *unstructured.Unstructured", pod6.Name, err)
+	checkErr("create pod from *unstructured.Unstructured", pod6.Name, err)
 	handler.Delete(LogPodName)
 
-	// 7. create from unstructured.Unstructured
-	wait(handler, name)
+	// 7. create pod from unstructured.Unstructured
+	wait(handler, LogPodName)
 	pod7, err := handler.Create(unstructured.Unstructured{Object: LogPodData})
-	checkErr("create from unstructured.Unstructured", pod7.Name, err)
+	checkErr("create pod from unstructured.Unstructured", pod7.Name, err)
 	handler.Delete(LogPodName)
 
-	// 8. create from map[string]interface{}
-	wait(handler, name)
+	// 8. create pod from map[string]interface{}
+	wait(handler, LogPodName)
 	pod8, err := handler.Create(LogPodData)
-	checkErr("create from map[string]interface{}", pod8.Name, err)
+	checkErr("create pod from map[string]interface{}", pod8.Name, err)
 	handler.Delete(LogPodName)
+
+	// Output:
+
+	//2022/08/08 16:41:28 create pod from filename success: mypod.
+	//2022/08/08 16:41:28 create pod from bytes success: mypod.
+	//2022/08/08 16:41:38 create pod from *corev1.pod success: mypod.
+	//2022/08/08 16:41:38 create pod from corev1.Pod success: mypod.
+	//2022/08/08 16:41:38 create pod from runtime.Object success: mypod.
+	//2022/08/08 16:41:38 create pod from *unstructured.Unstructured success: nginx-logs.
+	//2022/08/08 16:41:45 create pod from unstructured.Unstructured success: nginx-logs.
+	//2022/08/08 16:41:45 create pod from map[string]interface{} success: nginx-logs.
 }
