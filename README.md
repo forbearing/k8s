@@ -54,7 +54,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Should I cleanup .status before create/update/apply *appsv1.Deployment?
 - [ ] healthz
 - [ ] metrics
-- [ ] port-forward
+- [ ] port-forward for pod, deployment and service
 
 ## How to execute command within pod by handler.
 
