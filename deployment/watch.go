@@ -88,14 +88,14 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch deployment by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch deployment by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
 		watcher    watch.Interface
 		timeout    = int64(0)
 		isExist    bool
-		deployList *appsv1.DeploymentList
+		deployList []*appsv1.Deployment
 	)
 	// if event channel is closed, it means the server has closed the connection,
 	// reconnect to kubernetes.
@@ -104,13 +104,13 @@ func (h *Handler) WatchByLabel(labelSelector string,
 		//    metav1.SingleObject(metav1.ObjectMeta{Name: "dep", Namespace: namespace}))
 		// 这个 timeout 一定要设置为 0, 否则 watcher 就会中断
 		if watcher, err = h.clientset.AppsV1().Deployments(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if deployList, err = h.List(labelSelector); err != nil {
+		if deployList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(deployList.Items) == 0 {
+		if len(deployList) == 0 {
 			isExist = false // deployment not exist
 		} else {
 			isExist = true // deployment exist
