@@ -1,7 +1,6 @@
 package dynamic
 
 import (
-	"fmt"
 	"strings"
 
 	. "github.com/forbearing/k8s/types"
@@ -69,48 +68,51 @@ var (
 // like:
 //     KindToResource(Pod) --> pods
 //     KindToResource(Ingress) -> ingresses
-func KindToResource(kind string) (string, error) {
+func KindToResource(kind string) string {
 	for _, k := range allKind {
 		if kind == k {
 			switch kind {
 			case KindIngress:
-				return ResourceIngress, nil
+				return ResourceIngress
 			case KindIngressClass:
-				return ResourceIngressClass, nil
+				return ResourceIngressClass
 			case KindNetworkPolicy:
-				return ResourceNetworkPolicy, nil
+				return ResourceNetworkPolicy
 			case KindStorageClass:
-				return ResourceStorageClass, nil
+				return ResourceStorageClass
 			default:
-				return strings.ToLower(kind) + "s", nil
+				return strings.ToLower(kind) + "s"
 			}
 		}
 	}
 
-	return "", fmt.Errorf("invalid kind: %s", kind)
+	return ""
 }
 
 // ResourceToKind convert k8s resource name to k8s kind name.
 // like:
 //     ResourceToKind(pods) -> Pod
 //     ResourceToKind(networkpolicies) -> NetworkPolicy
-func ResourceToKind(resource string) (string, error) {
+func ResourceToKind(resource string) string {
 	for _, r := range allResource {
 		if resource == r {
 			switch resource {
 			case ResourceIngress:
-				return KindIngress, nil
+				return KindIngress
 			case ResourceIngressClass:
-				return KindIngressClass, nil
+				return KindIngressClass
 			case ResourceNetworkPolicy:
-				return KindNetworkPolicy, nil
+				return KindNetworkPolicy
 			case ResourceStorageClass:
-				return KindStorageClass, nil
+				return KindStorageClass
 			default:
-				return strings.TrimSuffix(strings.ToTitle(resource), "s"), nil
+				return strings.TrimSuffix(strings.ToTitle(resource), "s")
 			}
 		}
 	}
 
-	return "", fmt.Errorf("invalid resource: %s", resource)
+	return ""
 }
+
+// func GVKToGVR()
+// func GVRToGVK()
