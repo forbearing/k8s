@@ -51,24 +51,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch pods by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch pods by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
 		watcher watch.Interface
-		podList *corev1.PodList
+		podList []*corev1.Pod
 		timeout = int64(0)
 		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.CoreV1().Pods(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if podList, err = h.List(labelSelector); err != nil {
+		if podList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(podList.Items) == 0 {
+		if len(podList) == 0 {
 			isExist = false // pod not exist
 		} else {
 			isExist = true // pod exist
