@@ -47,6 +47,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Finalizers
 - [ ] UpdateStatus: update Deployment/StatefulSet... status
 - [ ] UpdateScale: scale Deployment/StatefulSet...
+- [ ] DeleteCollection
 - [ ] Leader Election
 - [ ] Recoder
 - [ ] Replace interface{} -> any
@@ -55,6 +56,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] healthz
 - [ ] metrics
 - [ ] port-forward for pod, deployment and service
+- [ ] proxy
 
 ## How to execute command within pod by handler.
 
