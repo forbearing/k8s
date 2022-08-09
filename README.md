@@ -43,7 +43,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Support crate/update/delete/get... `PriorityClass` resources
 - [ ] Support crate/update/delete/get... `ResourceQuota` resources
 - [ ] Support crate/update/delete/get... `Lease` resources
-- [x] Add function: GVK(), Group(), Version(), Resource().
+- [x] Add function: GVK(), GVR(), Kind(), Group(), Version(), Resource(), KindToResource(), ResourceToKind()
 - [ ] Finalizers
 - [ ] UpdateStatus: update Deployment/StatefulSet... status
 - [ ] UpdateScale: scale Deployment/StatefulSet...
@@ -54,6 +54,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Should I cleanup .status before create/update/apply *appsv1.Deployment?
 - [ ] healthz
 - [ ] metrics
+- [ ] port-forward
 
 ## How to execute command within pod by handler.
 
