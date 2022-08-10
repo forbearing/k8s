@@ -3,6 +3,7 @@ package dynamic
 import (
 	"encoding/json"
 	"io/ioutil"
+	"reflect"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -19,6 +20,9 @@ func (h *Handler) Update(obj interface{}) (*unstructured.Unstructured, error) {
 	case []byte:
 		return h.UpdateFromBytes(val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.updateUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.UpdateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.updateUnstructured(val)
@@ -73,7 +77,7 @@ func (h *Handler) updateUnstructured(obj *unstructured.Unstructured) (*unstructu
 	obj.SetUID("")
 	obj.SetResourceVersion("")
 	if h.IsNamespacedResource() {
-		return h.dynamicClient.Resource(h.gvr()).Namespace(h.namespace).Update(h.ctx, obj, h.Options.UpdateOptions)
+		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Update(h.ctx, obj, h.Options.UpdateOptions)
 	}
-	return h.dynamicClient.Resource(h.gvr()).Update(h.ctx, obj, h.Options.UpdateOptions)
+	return h.dynamicClient.Resource(h.gvr).Update(h.ctx, obj, h.Options.UpdateOptions)
 }
