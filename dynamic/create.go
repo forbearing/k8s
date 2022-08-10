@@ -3,6 +3,7 @@ package dynamic
 import (
 	"encoding/json"
 	"io/ioutil"
+	"reflect"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -19,6 +20,9 @@ func (h *Handler) Create(obj interface{}) (*unstructured.Unstructured, error) {
 	case []byte:
 		return h.CreateFromBytes(val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.createUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.CreateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.createUnstructured(val)
@@ -72,11 +76,8 @@ func (h *Handler) CreateFromMap(obj map[string]interface{}) (*unstructured.Unstr
 func (h *Handler) createUnstructured(obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
 	obj.SetUID("")
 	obj.SetResourceVersion("")
-	//logrus.Info(h.gvr())
 	if h.IsNamespacedResource() {
-		//logrus.Info("namespacedResource")
-		return h.dynamicClient.Resource(h.gvr()).Namespace(h.namespace).Create(h.ctx, obj, h.Options.CreateOptions)
+		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Create(h.ctx, obj, h.Options.CreateOptions)
 	}
-	//logrus.Info("not namespacedResource")
-	return h.dynamicClient.Resource(h.gvr()).Create(h.ctx, obj, h.Options.CreateOptions)
+	return h.dynamicClient.Resource(h.gvr).Create(h.ctx, obj, h.Options.CreateOptions)
 }
