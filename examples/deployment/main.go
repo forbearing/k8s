@@ -70,12 +70,12 @@ var (
 )
 
 func main() {
-	Deployment_Create()
+	//Deployment_Create()
 	//Deployment_Update()
 	//Deployment_Apply()
 	//Deployment_Delete()
 	//Deployment_Get()
-	//Deployment_List()
+	Deployment_List()
 	//Deployment_Watch()
 	//Deployment_Informer()
 	//Deployment_Tools()
@@ -133,14 +133,10 @@ func main() {
 	//2022/08/03 20:56:15 get deployment from *unstructured.Unstructured success: mydep-unstruct
 	//2022/08/03 20:56:15 get deployment from unstructured.Unstructured success: mydep-unstruct
 	//2022/08/03 20:56:15 get deployment from map[string]interface{} success: mydep-unstruct
-	//2022/08/03 20:56:16 ListByLabel success:
-	//2022/08/03 20:56:16 [nginx-deploy]
-	//2022/08/03 20:56:16 List success:
-	//2022/08/03 20:56:16 [nginx-deploy]
-	//2022/08/03 20:56:16 ListByNamespace success:
-	//2022/08/03 20:56:16 [nginx-deploy]
-	//2022/08/03 20:56:16 ListAll success:
-	//2022/08/03 20:56:16 [horus-operator ingress-controller calico-kube-controllers coredns metrics-server dashboard-metrics-scraper kubernetes-dashboard local-path-provisioner nfs-provisioner-nfs-subdir-external-provisioner nginx-deploy]
+	//2022/08/10 14:36:52 ListByLabel success: [coredns]
+	//2022/08/10 14:36:52 List success: [coredns]
+	//2022/08/10 14:36:52 ListByNamespace success: [calico-kube-controllers coredns metrics-server]
+	//2022/08/10 14:36:53 ListAll success: [k8s-tools ......]
 }
 
 func checkErr(name string, val interface{}, err error) {
