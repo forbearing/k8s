@@ -7,15 +7,14 @@ import (
 )
 
 // List list all deployments in the k8s cluster, it simply call `ListAll`.
-func (h *Handler) List(label string) ([]*appsv1.Deployment, error) {
+func (h *Handler) List() ([]*appsv1.Deployment, error) {
 	return h.ListAll()
 }
 
 // ListByLabel list deployments by labels.
-// multiple labels separated by comma(",") eg: "name=myapp,role=devops"
-// There is an "And" relationship between multiple labels.
+// Multiple labels separated by comma(",") eg: "name=myapp,role=devops",
+// and there is an "And" relationship between multiple labels.
 func (h *Handler) ListByLabel(labels string) ([]*appsv1.Deployment, error) {
-	//h.Options.ListOptions.LabelSelector = labelSelector
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = labels
 	deployList, err := h.clientset.AppsV1().Deployments(h.namespace).List(h.ctx, *listOptions)
@@ -25,7 +24,7 @@ func (h *Handler) ListByLabel(labels string) ([]*appsv1.Deployment, error) {
 	return extractList(deployList), nil
 }
 
-// ListByField list deployments by field, work like `kubectl get xxx --field-selector=xxx`
+// ListByField list deployments by field, work like `kubectl get xxx --field-selector=xxx`.
 func (h *Handler) ListByField(field string) ([]*appsv1.Deployment, error) {
 	fieldSelector, err := fields.ParseSelector(field)
 	if err != nil {
