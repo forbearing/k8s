@@ -3,33 +3,47 @@ package main
 import (
 	"context"
 
+	"github.com/forbearing/k8s/clusterrole"
+	"github.com/forbearing/k8s/deployment"
 	"github.com/forbearing/k8s/dynamic"
+	"github.com/forbearing/k8s/namespace"
+	"github.com/forbearing/k8s/persistentvolume"
+	"github.com/forbearing/k8s/pod"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 func Dynamic_Apply() {
-	handler, err := dynamic.New(context.TODO(), clientcmd.RecommendedHomeFile, "", "apps", "v1", "deployments")
+	handler, err := dynamic.New(context.TODO(), clientcmd.RecommendedHomeFile, "", deployment.GVR())
 	if err != nil {
 		panic(err)
 	}
 	defer cleanup(handler)
 
-	_, err = handler.Namespace("test").Apply(deployUnstructData)
+	// apply deployment
+	_, err = handler.WithNamespace("test").Apply(deployUnstructData)
 	checkErr("apply deployment", "", err)
-	_, err = handler.Namespace("test").Group("").Resource("pods").Apply(podUnstructData)
+
+	// apply pod
+	_, err = handler.WithNamespace("test").WithGVR(pod.GVR()).Apply(podUnstructData)
 	checkErr("apply pod", "", err)
-	_, err = handler.Group("").Resource("namespaces").Apply(nsUnstructData)
+
+	// apply namespace
+	_, err = handler.WithGVR(namespace.GVR()).Apply(nsUnstructData)
 	checkErr("apply namespace", "", err)
-	_, err = handler.Group("").Resource("persistentvolumes").Apply(pvUnstructData)
+
+	// apply persistentvolume
+	_, err = handler.WithGVR(persistentvolume.GVR()).Apply(pvUnstructData)
 	checkErr("apply persistentvolume", "", err)
-	_, err = handler.Group("rbac.authorization.k8s.io").Resource("clusterroles").Apply(crUnstructData)
+
+	// apply clusterrole
+	_, err = handler.WithGVR(clusterrole.GVR()).Apply(crUnstructData)
 	checkErr("apply clusterrole", "", err)
 
 	// Output:
 
-	//2022/07/29 17:04:11 apply deployment success:
-	//2022/07/29 17:04:11 apply pod success:
-	//2022/07/29 17:04:11 apply namespace success:
-	//2022/07/29 17:04:11 apply persistentvolume success:
-	//2022/07/29 17:04:11 apply clusterrole success:
+	//2022/08/10 13:55:00 apply deployment success:
+	//2022/08/10 13:55:00 apply pod success:
+	//2022/08/10 13:55:00 apply namespace success:
+	//2022/08/10 13:55:00 apply persistentvolume success:
+	//2022/08/10 13:55:00 apply clusterrole success:
 }

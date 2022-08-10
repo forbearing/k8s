@@ -3,7 +3,11 @@ package main
 import (
 	"log"
 
+	"github.com/forbearing/k8s/clusterrole"
 	"github.com/forbearing/k8s/dynamic"
+	"github.com/forbearing/k8s/namespace"
+	"github.com/forbearing/k8s/persistentvolume"
+	"github.com/forbearing/k8s/pod"
 )
 
 func main() {
@@ -14,17 +18,11 @@ func main() {
 }
 
 func cleanup(handler *dynamic.Handler) {
-	//logrus.Info("===== cleanup =====")
-	//logrus.Println(handler.Namespace("test").Delete(deployUnstructName))
-	//logrus.Println(handler.Namespace("test").Group("").Resource("pods").Delete(podUnstructData))
-	//logrus.Println(handler.Group("").Resource("namespaces").Delete(nsUnstructData))
-	//logrus.Println(handler.Group("").Resource("persistentvolumes").Delete(pvUnstructData))
-	//logrus.Println(handler.Group("rbac.authorization.k8s.io").Resource("clusterroles").Delete(crUnstructName))
-	handler.Namespace("test").Delete(deployUnstructName)
-	handler.Namespace("test").Group("").Resource("pods").Delete(podUnstructData)
-	handler.Group("").Resource("namespaces").Delete(nsUnstructData)
-	handler.Group("").Resource("persistentvolumes").Delete(pvUnstructData)
-	handler.Group("rbac.authorization.k8s.io").Resource("clusterroles").Delete(crUnstructName)
+	handler.WithNamespace("test").Delete(deployUnstructName)
+	handler.WithNamespace("test").WithGVR(pod.GVR()).Delete(podUnstructData)
+	handler.WithGVR(namespace.GVR()).Delete(nsUnstructData)
+	handler.WithGVR(persistentvolume.GVR()).Delete(pvUnstructData)
+	handler.WithGVR(clusterrole.GVR()).Delete(crUnstructName)
 }
 
 func checkErr(name string, val interface{}, err error) {

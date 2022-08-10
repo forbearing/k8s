@@ -13,39 +13,37 @@ import (
 )
 
 func Dynamic_Create() {
-	handler, err := dynamic.New(context.TODO(), clientcmd.RecommendedHomeFile, "", "apps", "v1", "deployments")
+	handler, err := dynamic.New(context.TODO(), clientcmd.RecommendedHomeFile, "", deployment.GVR())
 	if err != nil {
 		panic(err)
 	}
 	defer cleanup(handler)
 
-	//_, err = handler.Namespace("test").Create(deployUnstructData)
-	//checkErr("create deployment", "", err)
-	//_, err = handler.Namespace("test").Group("").Resource("pods").Create(podUnstructData)
-	//checkErr("create pod", "", err)
-	//_, err = handler.Group("").Resource("namespaces").Create(nsUnstructData)
-	//checkErr("create namespace", "", err)
-	//_, err = handler.Group("").Resource("persistentvolumes").Create(pvUnstructData)
-	//checkErr("create persistentvolume", "", err)
-	//_, err = handler.Group("rbac.authorization.k8s.io").Resource("clusterroles").Create(crUnstructData)
-	//checkErr("create clusterrole", "", err)
-
-	_, err = handler.Namespace("test").GVR(deployment.GVR()).Create(deployUnstructData)
+	// create deployment
+	_, err = handler.WithNamespace("test").Create(deployUnstructData)
 	checkErr("create deployment", "", err)
-	_, err = handler.Namespace("test").GVR(pod.GVR()).Create(podUnstructData)
+
+	// create pod
+	_, err = handler.WithNamespace("test").WithGVR(pod.GVR()).Create(podUnstructData)
 	checkErr("create pod", "", err)
-	_, err = handler.GVR(namespace.GVR()).Create(nsUnstructData)
+
+	// create namespace
+	_, err = handler.WithGVR(namespace.GVR()).Create(nsUnstructData)
 	checkErr("create namespace", "", err)
-	_, err = handler.GVR(persistentvolume.GVR()).Create(pvUnstructData)
+
+	// create persistentvolume
+	_, err = handler.WithGVR(persistentvolume.GVR()).Create(pvUnstructData)
 	checkErr("create persistentvolume", "", err)
-	_, err = handler.GVR(clusterrole.GVR()).Create(crUnstructData)
+
+	// create clusterrole
+	_, err = handler.WithGVR(clusterrole.GVR()).Create(crUnstructData)
 	checkErr("create clusterrole", "", err)
 
 	// Output:
 
-	//2022/07/29 17:05:05 create deployment success:
-	//2022/07/29 17:05:05 create pod success:
-	//2022/07/29 17:05:05 create namespace success:
-	//2022/07/29 17:05:05 create persistentvolume success:
-	//2022/07/29 17:05:05 create clusterrole success:
+	//2022/08/10 13:58:21 create deployment success:
+	//2022/08/10 13:58:21 create pod success:
+	//2022/08/10 13:58:21 create namespace success:
+	//2022/08/10 13:58:21 create persistentvolume success:
+	//2022/08/10 13:58:21 create clusterrole success:
 }
