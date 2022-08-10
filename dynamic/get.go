@@ -3,6 +3,7 @@ package dynamic
 import (
 	"encoding/json"
 	"io/ioutil"
+	"reflect"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,6 +24,9 @@ func (h *Handler) Get(obj interface{}) (*unstructured.Unstructured, error) {
 	case []byte:
 		return h.GetFromBytes(val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.createUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.GetFromObject(val)
 	case *unstructured.Unstructured:
 		return h.getUnstructured(val)
@@ -38,9 +42,9 @@ func (h *Handler) Get(obj interface{}) (*unstructured.Unstructured, error) {
 // GetByName gets unstructured k8s resource with given name.
 func (h *Handler) GetByName(name string) (*unstructured.Unstructured, error) {
 	if h.IsNamespacedResource() {
-		return h.dynamicClient.Resource(h.gvr()).Namespace(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
+		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 	}
-	return h.dynamicClient.Resource(h.gvr()).Get(h.ctx, name, h.Options.GetOptions)
+	return h.dynamicClient.Resource(h.gvr).Get(h.ctx, name, h.Options.GetOptions)
 }
 
 // GetFromFile gets unstructured k8s resource from yaml file.
@@ -83,7 +87,7 @@ func (h *Handler) GetFromMap(obj map[string]interface{}) (*unstructured.Unstruct
 // getUnstructured
 func (h *Handler) getUnstructured(obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
 	if h.IsNamespacedResource() {
-		return h.dynamicClient.Resource(h.gvr()).Namespace(h.namespace).Get(h.ctx, obj.GetName(), h.Options.GetOptions)
+		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Get(h.ctx, obj.GetName(), h.Options.GetOptions)
 	}
-	return h.dynamicClient.Resource(h.gvr()).Get(h.ctx, obj.GetName(), h.Options.GetOptions)
+	return h.dynamicClient.Resource(h.gvr).Get(h.ctx, obj.GetName(), h.Options.GetOptions)
 }
