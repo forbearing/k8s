@@ -52,26 +52,26 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch services by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch services by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
-		watcher     watch.Interface
-		serviceList *corev1.ServiceList
-		timeout     = int64(0)
-		isExist     bool
+		watcher watch.Interface
+		svcList []*corev1.Service
+		timeout = int64(0)
+		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.CoreV1().Services(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			logrus.Error(err)
 			return
 		}
-		if serviceList, err = h.List(labelSelector); err != nil {
+		if svcList, err = h.ListByLabel(labels); err != nil {
 			logrus.Error(err)
 			return
 		}
-		if len(serviceList.Items) == 0 {
+		if len(svcList) == 0 {
 			isExist = false // service not exist
 		} else {
 			isExist = true // service exist

@@ -50,24 +50,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch ingressclass by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch ingressclass by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
-		watcher          watch.Interface
-		ingressclassList *networkingv1.IngressClassList
-		timeout          = int64(0)
-		isExist          bool
+		watcher  watch.Interface
+		ingcList []*networkingv1.IngressClass
+		timeout  = int64(0)
+		isExist  bool
 	)
 	for {
 		if watcher, err = h.clientset.NetworkingV1().IngressClasses().Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if ingressclassList, err = h.List(labelSelector); err != nil {
+		if ingcList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(ingressclassList.Items) == 0 {
+		if len(ingcList) == 0 {
 			isExist = false // ingressclass not exist
 		} else {
 			isExist = true // ingressclass exist

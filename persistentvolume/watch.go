@@ -50,24 +50,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch persistentvolume by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch persistentvolume by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
 		watcher watch.Interface
-		pvList  *corev1.PersistentVolumeList
+		pvList  []*corev1.PersistentVolume
 		timeout = int64(0)
 		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.CoreV1().PersistentVolumes().Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if pvList, err = h.List(labelSelector); err != nil {
+		if pvList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(pvList.Items) == 0 {
+		if len(pvList) == 0 {
 			isExist = false // pv not exist
 		} else {
 			isExist = true // pv exist

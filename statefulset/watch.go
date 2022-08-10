@@ -51,24 +51,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch statefulset by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch statefulset by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
-		watcher         watch.Interface
-		statefulsetList *appsv1.StatefulSetList
-		timeout         = int64(0)
-		isExist         bool
+		watcher watch.Interface
+		stsList []*appsv1.StatefulSet
+		timeout = int64(0)
+		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.AppsV1().StatefulSets(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if statefulsetList, err = h.List(labelSelector); err != nil {
+		if stsList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(statefulsetList.Items) == 0 {
+		if len(stsList) == 0 {
 			isExist = false // statefulset not exist
 		} else {
 			isExist = true // statefulset exist

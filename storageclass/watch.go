@@ -50,24 +50,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch storageclass by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch storageclass by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
 		watcher watch.Interface
-		scList  *storagev1.StorageClassList
+		scList  []*storagev1.StorageClass
 		timeout = int64(0)
 		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.StorageV1().StorageClasses().Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if scList, err = h.List(labelSelector); err != nil {
+		if scList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(scList.Items) == 0 {
+		if len(scList) == 0 {
 			isExist = false // sc not exist
 		} else {
 			isExist = true // sc exist

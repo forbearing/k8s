@@ -50,24 +50,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch clusterroles by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch clusterroles by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
-		watcher         watch.Interface
-		clusterroleList *rbacv1.ClusterRoleList
-		timeout         = int64(0)
-		isExist         bool
+		watcher watch.Interface
+		crList  []*rbacv1.ClusterRole
+		timeout = int64(0)
+		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.RbacV1().ClusterRoles().Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if clusterroleList, err = h.List(labelSelector); err != nil {
+		if crList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(clusterroleList.Items) == 0 {
+		if len(crList) == 0 {
 			isExist = false // clusterrole not exist
 		} else {
 			isExist = true // clusterrole exist

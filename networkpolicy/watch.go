@@ -50,24 +50,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch networkpolicies by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch networkpolicies by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
-		watcher           watch.Interface
-		networkpolicyList *networkingv1.NetworkPolicyList
-		timeout           = int64(0)
-		isExist           bool
+		watcher    watch.Interface
+		netpolList []*networkingv1.NetworkPolicy
+		timeout    = int64(0)
+		isExist    bool
 	)
 	for {
 		if watcher, err = h.clientset.NetworkingV1().NetworkPolicies(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if networkpolicyList, err = h.List(labelSelector); err != nil {
+		if netpolList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(networkpolicyList.Items) == 0 {
+		if len(netpolList) == 0 {
 			isExist = false // networkpolicy not exist
 		} else {
 			isExist = true // networkpolicy exist

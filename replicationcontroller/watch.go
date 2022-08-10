@@ -7,7 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 )
 
-// WatchByName watch replicationcontrollers by labelSelector
+// WatchByName watch replicationcontrollers by name.
 func (h *Handler) WatchByName(name string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
@@ -51,24 +51,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch replicationcontrollers by labelSelector
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch replicationcontrollers by labels
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
-		watcher                   watch.Interface
-		replicationcontrollerList *corev1.ReplicationControllerList
-		timeout                   = int64(0)
-		isExist                   bool
+		watcher watch.Interface
+		rcList  []*corev1.ReplicationController
+		timeout = int64(0)
+		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.CoreV1().ReplicationControllers(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if replicationcontrollerList, err = h.List(labelSelector); err != nil {
+		if rcList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(replicationcontrollerList.Items) == 0 {
+		if len(rcList) == 0 {
 			isExist = false // replicationcontroller not exist
 		} else {
 			isExist = true // replicationcontroller exist

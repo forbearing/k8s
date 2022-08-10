@@ -51,24 +51,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch daemonsets by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch daemonsets by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
-		watcher       watch.Interface
-		daemonsetList *appsv1.DaemonSetList
-		timeout       = int64(0)
-		isExist       bool
+		watcher watch.Interface
+		dsList  []*appsv1.DaemonSet
+		timeout = int64(0)
+		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.AppsV1().DaemonSets(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if daemonsetList, err = h.List(labelSelector); err != nil {
+		if dsList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(daemonsetList.Items) == 0 {
+		if len(dsList) == 0 {
 			isExist = false // daemonset not exist
 		} else {
 			isExist = true // daemonset exist

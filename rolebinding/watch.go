@@ -50,24 +50,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch rolebindings by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch rolebindings by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
-		watcher         watch.Interface
-		rolebindingList *rbacv1.RoleBindingList
-		timeout         = int64(0)
-		isExist         bool
+		watcher watch.Interface
+		rbList  []*rbacv1.RoleBinding
+		timeout = int64(0)
+		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.RbacV1().RoleBindings(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if rolebindingList, err = h.List(labelSelector); err != nil {
+		if rbList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(rolebindingList.Items) == 0 {
+		if len(rbList) == 0 {
 			isExist = false // rolebinding not exist
 		} else {
 			isExist = true // rolebinding exist

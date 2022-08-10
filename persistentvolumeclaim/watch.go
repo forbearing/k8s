@@ -50,24 +50,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch persistentvolumeclaim by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch persistentvolumeclaim by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
 		watcher watch.Interface
-		pvcList *corev1.PersistentVolumeClaimList
+		pvcList []*corev1.PersistentVolumeClaim
 		timeout = int64(0)
 		isExist bool
 	)
 	for {
 		if watcher, err = h.clientset.CoreV1().PersistentVolumeClaims(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if pvcList, err = h.List(labelSelector); err != nil {
+		if pvcList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(pvcList.Items) == 0 {
+		if len(pvcList) == 0 {
 			isExist = false // pvc not exist
 		} else {
 			isExist = true // pvc exist

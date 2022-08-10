@@ -50,24 +50,24 @@ func (h *Handler) WatchByName(name string,
 	}
 }
 
-// WatchByLabel watch roles by label.
-func (h *Handler) WatchByLabel(labelSelector string,
+// WatchByLabel watch roles by labels.
+func (h *Handler) WatchByLabel(labels string,
 	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
 	var (
 		watcher  watch.Interface
-		roleList *rbacv1.RoleList
+		roleList []*rbacv1.Role
 		timeout  = int64(0)
 		isExist  bool
 	)
 	for {
 		if watcher, err = h.clientset.RbacV1().Roles(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labelSelector, TimeoutSeconds: &timeout}); err != nil {
+			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
 			return
 		}
-		if roleList, err = h.List(labelSelector); err != nil {
+		if roleList, err = h.ListByLabel(labels); err != nil {
 			return
 		}
-		if len(roleList.Items) == 0 {
+		if len(roleList) == 0 {
 			isExist = false // role not exist
 		} else {
 			isExist = true // role exist
