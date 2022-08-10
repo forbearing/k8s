@@ -5,7 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type Handler interface {
+type HandlerInterface interface {
 	Creater
 	Updater
 	Applyer
