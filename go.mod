@@ -10,6 +10,7 @@ require (
 	k8s.io/client-go v0.24.2
 	k8s.io/klog v1.0.0
 	k8s.io/metrics v0.24.2
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 )
 
 require (
@@ -47,7 +48,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.70.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20220627174259-011e075b9cb8 // indirect
-	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20220525155127-227cbc7cc124 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
