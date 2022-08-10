@@ -18,9 +18,7 @@ import (
 type Handler struct {
 	kubeconfig         string
 	namespace          string
-	group              string
-	version            string
-	resource           string
+	gvr                schema.GroupVersionResource
 	namespacedResource bool
 
 	ctx           context.Context
@@ -34,15 +32,21 @@ type Handler struct {
 	l sync.RWMutex
 }
 
-func NewOrDie(ctx context.Context, kubeconfig, namespace, group, version, resource string) *Handler {
-	handler, err := New(ctx, kubeconfig, namespace, group, version, resource)
+// NewOrDie creates a dynamic client.
+// Panic if there is any error.
+func NewOrDie(ctx context.Context, kubeconfig, namespace string, gvr schema.GroupVersionResource) *Handler {
+	handler, err := New(ctx, kubeconfig, namespace, gvr)
 	if err != nil {
 		panic(err)
 	}
 	return handler
 }
 
-func New(ctx context.Context, kubeconfig, namespace, group, version, resource string) (*Handler, error) {
+// New creates a dynamic client.
+// If provided namespace is empty, it means the k8s resources created/updated/deleted
+// by dynamic client is cluster scope. or it's namespaced scope.
+// The dynamic client is reuseable, WithNamespace(), WithGVR()
+func New(ctx context.Context, kubeconfig, namespace string, gvr schema.GroupVersionResource) (*Handler, error) {
 	var (
 		config        *rest.Config
 		httpClient    *http.Client
@@ -66,7 +70,7 @@ func New(ctx context.Context, kubeconfig, namespace, group, version, resource st
 	}
 
 	config.APIPath = "api"
-	config.GroupVersion = &schema.GroupVersion{Group: group, Version: version}
+	config.GroupVersion = &schema.GroupVersion{Group: gvr.Group, Version: gvr.Version}
 	config.NegotiatedSerializer = scheme.Codecs
 
 	// create a http client for the given config.
@@ -85,19 +89,17 @@ func New(ctx context.Context, kubeconfig, namespace, group, version, resource st
 	//if len(namespace) == 0 {
 	//    namespace = metav1.NamespaceDefault
 	//}
-	if len(version) == 0 {
+	if len(gvr.Version) == 0 {
 		return nil, ErrVersionEmpty
 	}
-	if len(resource) == 0 {
+	if len(gvr.Resource) == 0 {
 		return nil, ErrResourceEmpty
 	}
 
 	handler.kubeconfig = kubeconfig
 	handler.namespacedResource = true
 	handler.namespace = namespace
-	handler.group = group
-	handler.version = version
-	handler.resource = resource
+	handler.gvr = gvr
 	handler.ctx = ctx
 	handler.config = config
 	handler.httpClient = httpClient
@@ -117,9 +119,7 @@ func (in *Handler) DeepCopy() *Handler {
 	out.kubeconfig = in.kubeconfig
 	out.namespacedResource = in.namespacedResource
 	out.namespace = in.namespace
-	out.group = in.group
-	out.version = in.version
-	out.resource = in.resource
+	out.gvr = in.gvr
 	out.ctx = in.ctx
 	out.config = in.config
 	out.httpClient = in.httpClient
@@ -135,8 +135,8 @@ func (in *Handler) DeepCopy() *Handler {
 	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()
 	out.Options.PatchOptions = *in.Options.PatchOptions.DeepCopy()
 
-	if in.resource == "jobs" || in.resource == "cronjobs" {
-		in.setPropagationPolicy("background")
+	if in.gvr.Resource == "jobs" || in.gvr.Resource == "cronjobs" {
+		out.setPropagationPolicy("background")
 	}
 
 	return out
@@ -182,67 +182,21 @@ func (h *Handler) IsNamespacedResource() bool {
 //    h.namespacedResource = namespaced
 //}
 
-// Namespace returns the same handler but with provided namespace.
-func (h *Handler) Namespace(namespace string) *Handler {
+// WithNamespace returns the same handler but with provided namespace.
+func (h *Handler) WithNamespace(namespace string) *Handler {
 	handler := h.DeepCopy()
 	handler.namespace = namespace
 	return handler
 }
-func (h *Handler) N(namespace string) *Handler {
-	return h.Namespace(namespace)
-}
 
-// Group returns the same handler but with provided group.
-func (h *Handler) Group(group string) *Handler {
+// WithGVR returns the same handler but with provided group, version and resource.
+func (h *Handler) WithGVR(gvr schema.GroupVersionResource) *Handler {
 	handler := h.DeepCopy()
-	handler.group = group
-	return handler
-}
-func (h *Handler) G(group string) *Handler {
-	return h.Group(group)
-}
-
-// Version returns the same handler but with provided version.
-func (h *Handler) Version(version string) *Handler {
-	handler := h.DeepCopy()
-	handler.version = version
-	return handler
-}
-func (h *Handler) V(version string) *Handler {
-	return h.Version(version)
-}
-
-// Resource returns the same handler but with provided resource.
-func (h *Handler) Resource(resource string) *Handler {
-	handler := h.DeepCopy()
-	handler.resource = resource
-	return handler
-}
-func (h *Handler) R(resource string) *Handler {
-	return h.Resource(resource)
-}
-
-// GVR returns the same handler but with provided group, version and resource.
-func (h *Handler) GVR(gvr schema.GroupVersionResource) *Handler {
-	handler := h.DeepCopy()
-	handler.group = gvr.Group
-	handler.version = gvr.Version
-	handler.resource = gvr.Resource
+	handler.gvr = gvr
 	return handler
 }
 
 // DynamicClient returns the underlying dynamic client.
 func (h *Handler) DynamicClient() dynamic.Interface {
 	return h.dynamicClient
-}
-
-// gvr
-func (h *Handler) gvr() schema.GroupVersionResource {
-	h.l.RLock()
-	defer h.l.RUnlock()
-	return schema.GroupVersionResource{
-		Group:    h.group,
-		Version:  h.version,
-		Resource: h.resource,
-	}
 }
