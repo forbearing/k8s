@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/forbearing/k8s"
 	"github.com/forbearing/k8s/deployment"
 	appsv1 "k8s.io/api/apps/v1"
@@ -19,24 +17,20 @@ func Deployment_List() {
 	k8s.ApplyF(ctx, kubeconfig, filename2)
 
 	// ListByLabel list deployment by label.
-	deployList1, err := handler.ListByLabel(label)
-	checkErr("ListByLabel", "", err)
-	outputDeploy(*deployList1)
+	deployList, err := handler.WithNamespace("kube-system").ListByLabel("k8s-app=kube-dns")
+	checkErr("ListByLabel", outputDeploy(deployList), err)
 
-	// List list deployment by label, it's alias to "ListByLabel".
-	deployList2, err := handler.List(label)
-	checkErr("List", "", err)
-	outputDeploy(*deployList2)
+	// List list deployment by label, it simply call `ListByLabel`.
+	deployList2, err := handler.WithNamespace("kube-system").List("k8s-app=kube-dns")
+	checkErr("List", outputDeploy(deployList2), err)
 
 	// ListByNamespace list all deployments in the namespace where the deployment is running.
-	deployList3, err := handler.ListByNamespace(namespace)
-	checkErr("ListByNamespace", "", err)
-	outputDeploy(*deployList3)
+	deployList3, err := handler.ListByNamespace("kube-system")
+	checkErr("ListByNamespace", outputDeploy(deployList3), err)
 
 	// ListAll list all deployments in the k8s cluster.
 	deployList4, err := handler.ListAll()
-	checkErr("ListAll", "", err)
-	outputDeploy(*deployList4)
+	checkErr("ListAll", outputDeploy(deployList4), err)
 
 	// Output:
 
@@ -48,13 +42,12 @@ func Deployment_List() {
 	//2022/07/04 21:43:09 [mydep-2 nginx-deploy]
 	//2022/07/04 21:43:09 ListAll success.
 	//2022/07/04 21:43:09 [calico-kube-controllers coredns metrics-server local-path-provisioner nfs-provisioner-nfs-subdir-external-provisioner mydep-2 nginx-deploy]
-
 }
 
-func outputDeploy(deployList appsv1.DeploymentList) {
+func outputDeploy(deployList []*appsv1.Deployment) []string {
 	var dl []string
-	for _, deploy := range deployList.Items {
+	for _, deploy := range deployList {
 		dl = append(dl, deploy.Name)
 	}
-	log.Println(dl)
+	return dl
 }
