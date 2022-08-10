@@ -427,13 +427,13 @@ func (h *Handler) GetMasterInfo() ([]NodeInfo, error) {
 	// TODO:
 	// 1.考虑标签格式部位  "node-role.kubernetes.io/master=" 的情况
 	// 2.测试下 List 获取的结果为空是, err 是否为 nil.
-	masterList, err := h.List(LabelNodeRolePrefix + "master")
+	masterList, err := h.ListByLabel(LabelNodeRolePrefix + "master")
 	if err != nil {
 		return nil, err
 	}
 
 	var nodeinfoList []NodeInfo
-	for _, master := range masterList.Items {
+	for _, master := range masterList {
 		nodeInfo, err := h.GetNodeInfo(master)
 		if err == nil {
 			nodeinfoList = append(nodeinfoList, *nodeInfo)
@@ -448,13 +448,13 @@ func (h *Handler) GetWorkerInfo() ([]NodeInfo, error) {
 	// TODO:
 	// 1.考虑标签格式部位  "node-role.kubernetes.io/master=" 的情况
 	// 2.测试下 List 获取的结果为空是, err 是否为 nil.
-	masterList, err := h.List("!" + LabelNodeRolePrefix + "master")
+	masterList, err := h.ListByLabel("!" + LabelNodeRolePrefix + "master")
 	if err != nil {
 		return nil, err
 	}
 
 	var nodeinfoList []NodeInfo
-	for _, master := range masterList.Items {
+	for _, master := range masterList {
 		nodeInfo, err := h.GetNodeInfo(master)
 		if err == nil {
 			nodeinfoList = append(nodeinfoList, *nodeInfo)
