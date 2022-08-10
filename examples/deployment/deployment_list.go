@@ -20,10 +20,6 @@ func Deployment_List() {
 	deployList, err := handler.WithNamespace("kube-system").ListByLabel("k8s-app=kube-dns")
 	checkErr("ListByLabel", outputDeploy(deployList), err)
 
-	// List list deployment by label, it simply call `ListByLabel`.
-	deployList2, err := handler.WithNamespace("kube-system").ListByLabel("k8s-app=kube-dns")
-	checkErr("List", outputDeploy(deployList2), err)
-
 	// ListByNamespace list all deployments in the namespace where the deployment is running.
 	deployList3, err := handler.ListByNamespace("kube-system")
 	checkErr("ListByNamespace", outputDeploy(deployList3), err)
@@ -35,7 +31,6 @@ func Deployment_List() {
 	// Output:
 
 	//2022/08/10 14:36:52 ListByLabel success: [coredns]
-	//2022/08/10 14:36:52 List success: [coredns]
 	//2022/08/10 14:36:52 ListByNamespace success: [calico-kube-controllers coredns metrics-server]
 	//2022/08/10 14:36:53 ListAll success: [k8s-tools ......]
 }
