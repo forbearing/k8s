@@ -795,15 +795,10 @@ func Deployment_List() {
 
 	// Output:
 
-	//2022/07/04 21:43:09 ListByLabel success.
-	//2022/07/04 21:43:09 [mydep-2 nginx-deploy]
-	//2022/07/04 21:43:09 List success.
-	//2022/07/04 21:43:09 [mydep-2 nginx-deploy]
-	//2022/07/04 21:43:09 ListByNamespace success.
-	//2022/07/04 21:43:09 [mydep-2 nginx-deploy]
-	//2022/07/04 21:43:09 ListAll success.
-	//2022/07/04 21:43:09 [calico-kube-controllers coredns metrics-server local-path-provisioner nfs-provisioner-nfs-subdir-external-provisioner mydep-2 nginx-deploy]
-
+	//2022/08/10 14:36:52 ListByLabel success: [coredns]
+	//2022/08/10 14:36:52 List success: [coredns]
+	//2022/08/10 14:36:52 ListByNamespace success: [calico-kube-controllers coredns metrics-server]
+	//2022/08/10 14:36:53 ListAll success: [k8s-tools ......]
 }
 
 func outputDeploy(deployList appsv1.DeploymentList) {
