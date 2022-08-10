@@ -3,6 +3,7 @@ package dynamic
 import (
 	"encoding/json"
 	"io/ioutil"
+	"reflect"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,6 +24,9 @@ func (h *Handler) Delete(obj interface{}) error {
 	case []byte:
 		return h.DeleteFromBytes(val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.deleteUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.DeleteFromObject(val)
 	case *unstructured.Unstructured:
 		return h.deleteUnstructured(val)
@@ -38,11 +42,9 @@ func (h *Handler) Delete(obj interface{}) error {
 // DeleteByName deletes unstructured k8s resource with given name.
 func (h *Handler) DeleteByName(name string) error {
 	if h.IsNamespacedResource() {
-		//logrus.Info("namespacedResource")
-		return h.dynamicClient.Resource(h.gvr()).Namespace(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
 	}
-	//logrus.Info("not namespacedResource")
-	return h.dynamicClient.Resource(h.gvr()).Delete(h.ctx, name, h.Options.DeleteOptions)
+	return h.dynamicClient.Resource(h.gvr).Delete(h.ctx, name, h.Options.DeleteOptions)
 }
 
 // DeleteFromFile deletes unstructured k8s resource from yaml file.
@@ -85,9 +87,7 @@ func (h *Handler) DeleteFromMap(obj map[string]interface{}) error {
 // deleteUnstructured
 func (h *Handler) deleteUnstructured(obj *unstructured.Unstructured) error {
 	if h.IsNamespacedResource() {
-		//logrus.Info("namespacedResource")
-		return h.dynamicClient.Resource(h.gvr()).Namespace(h.namespace).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)
+		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)
 	}
-	//logrus.Info("not namespacedResource")
-	return h.dynamicClient.Resource(h.gvr()).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)
+	return h.dynamicClient.Resource(h.gvr).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)
 }
