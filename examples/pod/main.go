@@ -60,9 +60,9 @@ var (
 func main() {
 	defer cancel()
 
-	//Pod_Create()
+	Pod_Create()
 	//Pod_List()
-	Pod_Watch()
+	//Pod_Watch()
 	//Pod_Tools()
 	//Pod_Logs()
 	//Pod_Informer()
