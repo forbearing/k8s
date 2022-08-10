@@ -15,13 +15,13 @@ ref:
 */
 
 // List list all pods in k8s cluster where the pod is running, it simply call `ListAll`.
-func (h *Handler) List(labels string) ([]*corev1.Pod, error) {
+func (h *Handler) List() ([]*corev1.Pod, error) {
 	return h.ListAll()
 }
 
 // ListByLabel list pods by labels.
-// multiple labels separated by comma(",") eg: "name=myapp,role=devops"
-// There is an "And" relationship between multiple labels.
+// Multiple labels separated by comma(",") eg: "name=myapp,role=devops",
+// and there is an "And" relationship between multiple labels.
 func (h *Handler) ListByLabel(labels string) ([]*corev1.Pod, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = labels
@@ -33,7 +33,7 @@ func (h *Handler) ListByLabel(labels string) ([]*corev1.Pod, error) {
 	return extractList(podList), nil
 }
 
-// ListByField list pods by field, work like `kubectl get xxx --field-selector=xxx`
+// ListByField list pods by field, work like `kubectl get xxx --field-selector=xxx`.
 func (h *Handler) ListByField(field string) ([]*corev1.Pod, error) {
 	// ParseSelector takes a string representing a selector and returns an
 	// object suitable for matching, or an error.
