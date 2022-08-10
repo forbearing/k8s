@@ -3,6 +3,7 @@ package dynamic
 import (
 	"encoding/json"
 	"io/ioutil"
+	"reflect"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -28,6 +29,9 @@ func (h *Handler) Apply(obj interface{}) (*unstructured.Unstructured, error) {
 	case []byte:
 		return h.ApplyFromBytes(val)
 	case runtime.Object:
+		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+			return h.applyUnstructured(val.(*unstructured.Unstructured))
+		}
 		return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.applyUnstructured(val)
