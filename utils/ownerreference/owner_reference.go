@@ -44,7 +44,7 @@ func SetControllerReference(owner, controlled metav1.Object, scheme *runtime.Sch
 	}
 
 	// Create a new controller ref.
-	gvk, err := GVKForObject(ro, scheme)
+	gvk, err := gvkForObject(ro, scheme)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func SetOwnerReference(owner, object metav1.Object, scheme *runtime.Scheme) erro
 	}
 
 	// Create a new owner ref.
-	gvk, err := GVKForObject(ro, scheme)
+	gvk, err := gvkForObject(ro, scheme)
 	if err != nil {
 		return err
 	}
@@ -146,8 +146,8 @@ func referSameObject(a, b metav1.OwnerReference) bool {
 	return aGV.Group == bGV.Group && a.Kind == b.Kind && a.Name == b.Name
 }
 
-// GVKForObject finds the GroupVersionKind associated with the given object, if there is only a single such GVK.
-func GVKForObject(obj runtime.Object, scheme *runtime.Scheme) (schema.GroupVersionKind, error) {
+// gvkForObject finds the GroupVersionKind associated with the given object, if there is only a single such GVK.
+func gvkForObject(obj runtime.Object, scheme *runtime.Scheme) (schema.GroupVersionKind, error) {
 	// TODO(directxman12): do we want to generalize this to arbitrary container types?
 	// I think we'd need a generalized form of scheme or something.  It's a
 	// shame there's not a reliable "GetGVK" interface that works by default
