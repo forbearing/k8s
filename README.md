@@ -51,7 +51,8 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Leader Election
 - [ ] Recoder
 - [ ] Replace interface{} -> any
-- [ ] fack client or envtest.Environment
+- [ ] fack client
+- [ ] EnvTest
 - [ ] Should I cleanup .status before create/update/apply *appsv1.Deployment?
 - [ ] healthz
 - [ ] metrics
