@@ -35,7 +35,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 ## Planning
 
 - [x] Simplify the use of client-go informer, lister
-- [ ] create/delete/update/delete/get ... all kinds of k8s resources by dyanmic client.
+- [x] create/delete/update/delete/get ... all kinds of k8s resources by dyanmic client.
 - [ ] Support crate/update/delete/get... `Event` resources
 - [ ] Support crate/update/delete/get... `Endpoint` resources
 - [ ] Support crate/update/delete/get... `EndpointSlice` resources
@@ -44,7 +44,9 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Support crate/update/delete/get... `ResourceQuota` resources
 - [ ] Support crate/update/delete/get... `Lease` resources
 - [x] Add function: GVK(), GVR(), Kind(), Group(), Version(), Resource(), KindToResource(), ResourceToKind()
-- [ ] Finalizers
+- [x] signal handler
+- [x] Finalizers
+- [x] controller and owner
 - [ ] UpdateStatus: update Deployment/StatefulSet... status
 - [ ] UpdateScale: scale Deployment/StatefulSet...
 - [ ] DeleteCollection
@@ -53,11 +55,11 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] Replace interface{} -> any
 - [ ] fack client
 - [ ] EnvTest
-- [ ] Should I cleanup .status before create/update/apply *appsv1.Deployment?
 - [ ] healthz
 - [ ] metrics
 - [ ] port-forward for pod, deployment and service
 - [ ] proxy
+- [ ] operators refer to https://sdk.operatorframework.io/docs/building-operators/golang/references/client/
 
 ## How to execute command within pod by handler.
 
