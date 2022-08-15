@@ -14,7 +14,7 @@ import (
 
 // Get gets service from type string, []byte, *corev1.Service,
 // corev1.Service, runtime.Object or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a service from file path.
 func (h *Handler) Get(obj interface{}) (*corev1.Service, error) {

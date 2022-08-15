@@ -15,7 +15,7 @@ import (
 // Get gets clusterrolebinding from type string, []byte, *rbacv1.ClusterRoleBinding,
 // rbacv1.ClusterRoleBinding, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a clusterrolebinding from file path.
 func (h *Handler) Get(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {

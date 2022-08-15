@@ -15,7 +15,7 @@ import (
 // Get gets serviceaccount from type string, []byte, *corev1.ServiceAccount,
 // corev1.ServiceAccount, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a serviceaccount from file path.
 func (h *Handler) Get(obj interface{}) (*corev1.ServiceAccount, error) {

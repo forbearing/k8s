@@ -15,7 +15,7 @@ import (
 // Get gets job from type string, []byte, *batchv1.Job,
 // batchv1.Job, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a job from file path.
 func (h *Handler) Get(obj interface{}) (*batchv1.Job, error) {

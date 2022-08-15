@@ -15,7 +15,7 @@ import (
 // Get gets statefulset from type string, []byte, *appsv1.StatefulSet,
 // appsv1.StatefulSet, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a statefulset from file path.
 func (h *Handler) Get(obj interface{}) (*appsv1.StatefulSet, error) {

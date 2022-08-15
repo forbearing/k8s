@@ -15,7 +15,7 @@ import (
 // Get gets ingressclass from type string, []byte, *networkingv1.IngressClass,
 // networkingv1.IngressClass, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a ingressclass from file path.
 func (h *Handler) Get(obj interface{}) (*networkingv1.IngressClass, error) {

@@ -15,7 +15,7 @@ import (
 // Get gets daemonset from type string, []byte, *appsv1.DaemonSet,
 // appsv1.DaemonSet, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
 // You should always explicitly call GetFromFile to get a daemonset from file path.
 func (h *Handler) Get(obj interface{}) (*appsv1.DaemonSet, error) {
