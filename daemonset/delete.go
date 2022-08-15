@@ -15,7 +15,7 @@ import (
 // Delete deletes daemonset from type string, []byte, *appsv1.DaemonSet,
 // appsv1.DaemonSet, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a daemonset from file path.
 func (h *Handler) Delete(obj interface{}) error {

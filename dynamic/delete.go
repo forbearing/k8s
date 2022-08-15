@@ -13,7 +13,7 @@ import (
 // Delete deletes unstructured k8s resource from type string, []byte,
 // runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
-
+//
 // If psssed parameter type is string, it will call DeleteByName insteard of DeleteFromFile.
 // You  should always explicitly call DeleteFromFile to delete a unstructured object
 // from filename.

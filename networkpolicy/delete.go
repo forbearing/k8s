@@ -15,7 +15,7 @@ import (
 // Delete deletes networkpolicy from type string, []byte, *networkingv1.NetworkPolicy,
 // networkingv1.NetworkPolicy, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a networkpolicy from file path.
 func (h *Handler) Delete(obj interface{}) error {

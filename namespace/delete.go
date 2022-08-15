@@ -15,7 +15,7 @@ import (
 // Delete deletes namespace from type string, []byte, *corev1.Namespace,
 // corev1.Namespace, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a namespace from file path.
 func (h *Handler) Delete(obj interface{}) error {

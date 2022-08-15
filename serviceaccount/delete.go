@@ -15,7 +15,7 @@ import (
 // Delete deletes serviceaccount from type string, []byte, *corev1.ServiceAccount,
 // corev1.ServiceAccount, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a serviceaccount from file path.
 func (h *Handler) Delete(obj interface{}) error {

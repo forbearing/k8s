@@ -15,7 +15,7 @@ import (
 // Delete deletes rolebinding from type string, []byte, *rbacv1.RoleBinding,
 // rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a rolebinding from file path.
 func (h *Handler) Delete(obj interface{}) error {

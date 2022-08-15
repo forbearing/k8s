@@ -14,7 +14,7 @@ import (
 
 // Delete deletes svcment from type string, []byte, *corev1.Service,
 // corev1.Service, runtime.Object or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a svcment from file path.
 func (h *Handler) Delete(obj interface{}) error {

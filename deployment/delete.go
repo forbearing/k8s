@@ -15,7 +15,7 @@ import (
 // Delete deletes deployment from type string, []byte, *appsv1.Deployment,
 // appsv1.Deployment, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a deployment from file path.
 func (h *Handler) Delete(obj interface{}) error {

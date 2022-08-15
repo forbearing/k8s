@@ -15,7 +15,7 @@ import (
 // Delete deletes secret from type string, []byte, *corev1.Secret,
 // corev1.Secret, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a secret from file path.
 func (h *Handler) Delete(obj interface{}) error {

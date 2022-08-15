@@ -15,7 +15,7 @@ import (
 // Delete deletes clusterrolebinding from type string, []byte,
 // *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, runtime.Object,
 // *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
 // You should always explicitly call DeleteFromFile to delete a clusterrolebinding from file path.
 func (h *Handler) Delete(obj interface{}) error {
