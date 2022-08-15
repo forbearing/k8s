@@ -3,6 +3,7 @@ package storageclass
 import (
 	"context"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/forbearing/k8s/types"
@@ -46,6 +47,11 @@ func NewOrDie(ctx context.Context, kubeconfig string) *Handler {
 }
 
 // New returns a networkpolicy handler from kubeconfig or in-cluster config.
+// The kubeconfig precedence is:
+// * kubeconfig variable passed.
+// * KUBECONFIG environment variable pointing at a file
+// * $HOME/.kube/config if exists.
+// * In-cluster config if running in cluster
 func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	var (
 		config          *rest.Config
@@ -58,10 +64,23 @@ func New(ctx context.Context, kubeconfig string) (handler *Handler, err error) {
 	)
 	handler = &Handler{}
 
-	// create rest config
+	// create rest config, and config precedence.
+	// * kubeconfig variable passed.
+	// * KUBECONFIG environment variable pointing at a file
+	// * $HOME/.kube/config if exists.
+	// * In-cluster config if running in cluster
+	//
+	// create the outside-cluster config
 	if len(kubeconfig) != 0 {
-		// use the current context in kubeconfig
 		if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
+			return nil, err
+		}
+	} else if len(os.Getenv(clientcmd.RecommendedConfigPathEnvVar)) != 0 {
+		if config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar)); err != nil {
+			return nil, err
+		}
+	} else if len(clientcmd.RecommendedHomeFile) != 0 {
+		if config, err = clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile); err != nil {
 			return nil, err
 		}
 	} else {
