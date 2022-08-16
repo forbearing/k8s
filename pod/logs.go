@@ -16,7 +16,7 @@ import (
 // Log get pod logs from type string, []byte, *corev1.pod, corev1.pod,
 // runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
-
+//
 // If passed parameter type is string, it will simply call LogByName instead of LogFromFile.
 // You should always explicitly call LogFromFile to get pod logs from file path.
 func (h *Handler) Log(obj interface{}, logOptions *LogOptions) error {

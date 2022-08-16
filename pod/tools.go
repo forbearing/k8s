@@ -3,6 +3,7 @@ package pod
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"reflect"
@@ -565,6 +566,55 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 		Stderr:            pty,
 		TerminalSizeQueue: pty,
 		Tty:               true,
+	})
+}
+
+// Execute will executing remote processes in a container of the pod.
+// If no container name is specified, Execute will executing a process
+// in the first container of the pod by default.
+// It will returns error, If the pod not ready. It's your responsibility to ensure
+// the pod Is running and ready.
+//
+// You should manually specify that the stdout and stdout of the remote shell process.
+func (h *Handler) ExecuteWriter(podName, containerName string, command []string, stdout, stderr io.Writer) error {
+	// if pod not found, returns error.
+	pod, err := h.Get(podName)
+	if err != nil {
+		return err
+	}
+
+	// if containerName is empty, execute command in first container of the pod.
+	if len(containerName) == 0 {
+		containerName = pod.Spec.Containers[0].Name
+	}
+
+	// Prepare the API URL used to execute another process within the Pod.
+	// In this case, we'll run a remote shell.
+	req := h.restClient.Post().
+		Namespace(h.namespace).
+		Resource("pods").
+		Name(podName).
+		SubResource("exec").
+		VersionedParams(&corev1.PodExecOptions{
+			Container: containerName,
+			Command:   command,
+			Stdin:     true,
+			Stdout:    true,
+			Stderr:    true,
+			TTY:       true,
+		}, scheme.ParameterCodec)
+
+	executor, err := remotecommand.NewSPDYExecutor(h.config, "POST", req.URL())
+	if err != nil {
+		return err
+	}
+
+	// Connect the process std(in,out,err) to the remote shell process.
+	return executor.Stream(remotecommand.StreamOptions{
+		Stdin:  os.Stdin,
+		Stdout: stdout,
+		Stderr: stderr,
+		Tty:    true,
 	})
 }
 

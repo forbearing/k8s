@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -53,7 +52,6 @@ func (h *Handler) ApplyFromFile(filename string) (pod *corev1.Pod, err error) {
 func (h *Handler) ApplyFromBytes(data []byte) (pod *corev1.Pod, err error) {
 	pod, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
-		log.Debug(err)
 		pod, err = h.UpdateFromBytes(data)
 	}
 	return
