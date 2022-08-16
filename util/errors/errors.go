@@ -10,3 +10,12 @@ func IgnoreNotFound(err error) error {
 	}
 	return err
 }
+
+// IgnoreAlreadyExist returns nil on NotFound errors.
+// All other values that are not NotFound errors or nil are returned unmodified.
+func IgnoreAlreadyExist(err error) error {
+	if apierrors.IsAlreadyExists(err) {
+		return nil
+	}
+	return err
+}
