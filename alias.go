@@ -25,7 +25,7 @@ import (
 	"github.com/forbearing/k8s/serviceaccount"
 	"github.com/forbearing/k8s/statefulset"
 	"github.com/forbearing/k8s/storageclass"
-	"github.com/forbearing/k8s/utils/signals"
+	"github.com/forbearing/k8s/util/signals"
 )
 
 type ClusterRoleHandler = clusterrole.Handler
