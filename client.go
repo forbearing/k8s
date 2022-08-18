@@ -1,6 +1,8 @@
 package k8s
 
 import (
+	"os"
+
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -9,16 +11,36 @@ import (
 )
 
 // RESTConfig creates a *rest.Config for the given kubeconfig.
+// create rest config, and config precedence.
+// * kubeconfig variable passed.
+// * KUBECONFIG environment variable pointing at a file
+// * $HOME/.kube/config if exists.
+// * In-cluster config if running in cluster
 func RESTConfig(kubeconfig string) (*rest.Config, error) {
 	var config *rest.Config
 	var err error
+
+	// create rest config, and config precedence.
+	// * kubeconfig variable passed.
+	// * KUBECONFIG environment variable pointing at a file
+	// * $HOME/.kube/config if exists.
+	// * In-cluster config if running in cluster
+	//
+	// create the outside-cluster config
 	if len(kubeconfig) != 0 {
-		// use the current context in kubeconfig
 		if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
 			return nil, err
 		}
+	} else if len(os.Getenv(clientcmd.RecommendedConfigPathEnvVar)) != 0 {
+		if config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar)); err != nil {
+			return nil, err
+		}
+	} else if len(clientcmd.RecommendedHomeFile) != 0 {
+		if config, err = clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile); err != nil {
+			return nil, err
+		}
 	} else {
-		// creates the in-cluster config
+		// create the in-cluster config
 		if config, err = rest.InClusterConfig(); err != nil {
 			return nil, err
 		}
