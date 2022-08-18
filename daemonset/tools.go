@@ -173,7 +173,7 @@ func (h *Handler) WaitReady(name string) error {
 //}
 
 // GetPods get all pods created by the daemonset.
-func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
+func (h *Handler) GetPods(object interface{}) ([]*corev1.Pod, error) {
 	switch val := object.(type) {
 	case string:
 		ds, err := h.Get(val)
@@ -189,7 +189,7 @@ func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
 		return nil, ERR_TYPE
 	}
 }
-func (h *Handler) getPods(ds *appsv1.DaemonSet) ([]corev1.Pod, error) {
+func (h *Handler) getPods(ds *appsv1.DaemonSet) ([]*corev1.Pod, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = ""
 	// get all pods in the namespace that the daemonset is running.
@@ -198,11 +198,11 @@ func (h *Handler) getPods(ds *appsv1.DaemonSet) ([]corev1.Pod, error) {
 		return nil, err
 	}
 
-	var pl []corev1.Pod
-	for _, p := range podList.Items {
-		for _, or := range p.OwnerReferences {
+	var pl []*corev1.Pod
+	for i := range podList.Items {
+		for _, or := range podList.Items[i].OwnerReferences {
 			if or.Name == ds.Name {
-				pl = append(pl, p)
+				pl = append(pl, &podList.Items[i])
 			}
 		}
 	}
