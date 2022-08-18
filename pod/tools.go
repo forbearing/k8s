@@ -518,7 +518,69 @@ func (h *Handler) getReadyContainers(pod *corev1.Pod) []Container {
 // in the first container of the pod by default.
 // It will returns error, If the pod not ready. It's your responsibility to ensure
 // the pod Is running and ready.
-func (h *Handler) Execute(podName, containerName string, command []string, pty PtyHandler) error {
+//
+// The remote processes default stdin, stdou, stderr are os.Stdin, os.Stdout, os.Stderr.
+func (h *Handler) Execute(podName, containerName string, command []string) error {
+	// if pod not found, returns error.
+	pod, err := h.Get(podName)
+	if err != nil {
+		return err
+	}
+
+	// if containerName is empty, execute command in first container of the pod.
+	if len(containerName) == 0 {
+		containerName = pod.Spec.Containers[0].Name
+	}
+
+	// Prepare the API URL used to execute another process within the Pod.  In
+	// this case, we'll run a remote shell.
+	req := h.restClient.Post().
+		Namespace(h.namespace).
+		Resource("pods").
+		Name(podName).
+		SubResource("exec").
+		VersionedParams(&corev1.PodExecOptions{
+			Container: containerName,
+			Command:   command,
+			Stdin:     true,
+			Stdout:    true,
+			Stderr:    true,
+			TTY:       true,
+		}, scheme.ParameterCodec)
+
+	exec, err := remotecommand.NewSPDYExecutor(h.config, "POST", req.URL())
+	if err != nil {
+		return err
+	}
+
+	//// Put the terminal into raw mode to prevent it echoing characters twice.
+	//// The integer file descriptor associated with the stream stdin, stdout
+	//// and stderr are 0, 1 and 2, respectively.
+	////oldState, err := terminal.MakeRaw(0)
+	////defer terminal.Restore(0, oldState)
+	//oldState, err := terminal.MakeRaw(int(os.Stdin.Fd()))
+	//if err != nil {
+	//    return fmt.Errorf("Failed to set raw mod on Stdin: %v\n", err)
+	//}
+	//defer terminal.Restore(int(os.Stdin.Fd()), oldState)
+
+	// if passed ptyhandler is nil
+	return exec.Stream(remotecommand.StreamOptions{
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Tty:    true,
+	})
+}
+
+// ExecuteWithPty will executing remote processes in a container of the pod.
+// If no container name is specified, Execute will executing a process
+// in the first container of the pod by default.
+// It will returns error, If the pod not ready. It's your responsibility to ensure
+// the pod Is running and ready.
+//
+// You should provide a PtyHandler interface.
+func (h *Handler) ExecuteWithPty(podName, containerName string, command []string, pty PtyHandler) error {
 	// if pod not found, returns error.
 	pod, err := h.Get(podName)
 	if err != nil {
@@ -569,14 +631,14 @@ func (h *Handler) Execute(podName, containerName string, command []string, pty P
 	})
 }
 
-// Execute will executing remote processes in a container of the pod.
+// ExecuteWithStream will executing remote processes in a container of the pod.
 // If no container name is specified, Execute will executing a process
 // in the first container of the pod by default.
 // It will returns error, If the pod not ready. It's your responsibility to ensure
 // the pod Is running and ready.
 //
-// You should manually specify that the stdout and stdout of the remote shell process.
-func (h *Handler) ExecuteWriter(podName, containerName string, command []string, stdout, stderr io.Writer) error {
+// You should manually specify that the stdin, stdout and stderr of the remote shell process.
+func (h *Handler) ExecuteWithStream(podName, containerName string, command []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	// if pod not found, returns error.
 	pod, err := h.Get(podName)
 	if err != nil {
@@ -611,72 +673,9 @@ func (h *Handler) ExecuteWriter(podName, containerName string, command []string,
 
 	// Connect the process std(in,out,err) to the remote shell process.
 	return executor.Stream(remotecommand.StreamOptions{
-		Stdin:  os.Stdin,
+		Stdin:  stdin,
 		Stdout: stdout,
 		Stderr: stderr,
 		Tty:    true,
 	})
 }
-
-//func (h *Handler) Execute(podName, containerName string, command []string, pty PtyHandler) error {
-//    // if pod not found, returns error.
-//    pod, err := h.Get(podName)
-//    if err != nil {
-//        return err
-//    }
-
-//    // if containerName is empty, execute command in first container of the pod.
-//    if len(containerName) == 0 {
-//        containerName = pod.Spec.Containers[0].Name
-//    }
-
-//    // Prepare the API URL used to execute another process within the Pod.  In
-//    // this case, we'll run a remote shell.
-//    req := h.restClient.Post().
-//        Namespace(h.namespace).
-//        Resource("pods").
-//        Name(podName).
-//        SubResource("exec").
-//        VersionedParams(&corev1.PodExecOptions{
-//            Container: containerName,
-//            Command:   command,
-//            Stdin:     true,
-//            Stdout:    true,
-//            Stderr:    true,
-//            TTY:       true,
-//        }, scheme.ParameterCodec)
-
-//    exec, err := remotecommand.NewSPDYExecutor(h.config, "POST", req.URL())
-//    if err != nil {
-//        return err
-//    }
-
-//    //// Put the terminal into raw mode to prevent it echoing characters twice.
-//    //// The integer file descriptor associated with the stream stdin, stdout
-//    //// and stderr are 0, 1 and 2, respectively.
-//    ////oldState, err := terminal.MakeRaw(0)
-//    ////defer terminal.Restore(0, oldState)
-//    //oldState, err := terminal.MakeRaw(int(os.Stdin.Fd()))
-//    //if err != nil {
-//    //    return fmt.Errorf("Failed to set raw mod on Stdin: %v\n", err)
-//    //}
-//    //defer terminal.Restore(int(os.Stdin.Fd()), oldState)
-
-//    // if passed ptyhandler is nil
-//    if pty == nil || reflect.ValueOf(pty).IsNil() {
-//        // Connect the process std(in,out,err) to the remote shell process.
-//        return exec.Stream(remotecommand.StreamOptions{
-//            Stdin:  os.Stdin,
-//            Stdout: os.Stdout,
-//            Stderr: os.Stderr,
-//            Tty:    true,
-//        })
-//    }
-//    return exec.Stream(remotecommand.StreamOptions{
-//        Stdin:             pty,
-//        Stdout:            pty,
-//        Stderr:            pty,
-//        TerminalSizeQueue: pty,
-//        Tty:               true,
-//    })
-//}
