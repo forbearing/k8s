@@ -87,7 +87,7 @@ func StatefulSet_Tools() {
 	//2022/07/11 10:51:49 ===== Get StatefulSet By Object Cost Time: 106.91293ms
 }
 
-func printPods(podList []corev1.Pod) []string {
+func printPods(podList []*corev1.Pod) []string {
 	var pl []string
 	for _, pod := range podList {
 		pl = append(pl, pod.Name)
