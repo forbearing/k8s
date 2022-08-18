@@ -14,7 +14,7 @@ func Pod_Execute() {
 	if err != nil {
 		panic(err)
 	}
-	defer cleanup(handler)
+	//defer cleanup(handler)
 	handler.Apply(filename)
 	handler.WaitReady(name)
 
@@ -89,13 +89,19 @@ func Pod_Execute() {
 	buffer := &bytes.Buffer{}
 	_ = file
 	_ = buffer
-	handler.ExecuteWriter(name, "", command1, os.Stdout, os.Stderr)
-	handler.ExecuteWriter(name, "", command1, file, file)
-	handler.ExecuteWriter(name, "", command1, buffer, buffer)
+	handler.ExecuteWithStream(name, "", command1, os.Stdin, os.Stdout, os.Stderr)
+	handler.ExecuteWithStream(name, "", command1, os.Stdin, file, file)
+	handler.ExecuteWithStream(name, "", command1, os.Stdin, buffer, buffer)
 	fmt.Println(buffer.String())
 
 	// Output
+	//mypod
+	//mypod
 
-	//mypod
-	//mypod
+	podName := "backup-to-nfs-f678db6b6-jqsl2"
+	resticPass := &bytes.Buffer{}
+	resticPass.WriteString("mypass")
+	if err := handler.WithNamespace("default").ExecuteWithStream(podName, "", []string{"restic", "--repo", "/tmp/restic-repo", "init"}, resticPass, os.Stdout, os.Stderr); err != nil {
+		log.Fatal(err)
+	}
 }
