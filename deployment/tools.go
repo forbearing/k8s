@@ -175,7 +175,7 @@ func (h *Handler) WaitReady(name string) error {
 //}
 
 // GetRS get all replicaset created by the deployment.
-func (h *Handler) GetRS(object interface{}) ([]appsv1.ReplicaSet, error) {
+func (h *Handler) GetRS(object interface{}) ([]*appsv1.ReplicaSet, error) {
 	switch val := object.(type) {
 	// if object type is string, the object is regarded as deployment name,
 	// and check whether deployment exists.
@@ -193,7 +193,7 @@ func (h *Handler) GetRS(object interface{}) ([]appsv1.ReplicaSet, error) {
 		return nil, ERR_TYPE_TOOLS
 	}
 }
-func (h *Handler) getRS(deploy *appsv1.Deployment) ([]appsv1.ReplicaSet, error) {
+func (h *Handler) getRS(deploy *appsv1.Deployment) ([]*appsv1.ReplicaSet, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = ""
 	rsList, err := h.clientset.AppsV1().ReplicaSets(h.namespace).List(h.ctx, *listOptions)
@@ -201,11 +201,11 @@ func (h *Handler) getRS(deploy *appsv1.Deployment) ([]appsv1.ReplicaSet, error) 
 		return nil, err
 	}
 
-	var rl []appsv1.ReplicaSet
-	for _, r := range rsList.Items {
-		for _, or := range r.OwnerReferences {
+	var rl []*appsv1.ReplicaSet
+	for i := range rsList.Items {
+		for _, or := range rsList.Items[i].OwnerReferences {
 			if or.Name == deploy.Name {
-				rl = append(rl, r)
+				rl = append(rl, &rsList.Items[i])
 			}
 		}
 	}
@@ -213,7 +213,7 @@ func (h *Handler) getRS(deploy *appsv1.Deployment) ([]appsv1.ReplicaSet, error) 
 }
 
 // GetPods get all pods created by the deployment.
-func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
+func (h *Handler) GetPods(object interface{}) ([]*corev1.Pod, error) {
 	// GetPods does not need to check deployment is exists.
 	// GetRS will check it.
 	rsList, err := h.GetRS(object)
@@ -227,12 +227,12 @@ func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
 		return nil, err
 	}
 
-	var pl []corev1.Pod
-	for _, rs := range rsList {
-		for _, pod := range podList.Items {
-			for _, or := range pod.OwnerReferences {
-				if or.Name == rs.Name {
-					pl = append(pl, pod)
+	var pl []*corev1.Pod
+	for i := range rsList {
+		for j := range podList.Items {
+			for _, or := range podList.Items[j].OwnerReferences {
+				if or.Name == rsList[i].Name {
+					pl = append(pl, &podList.Items[j])
 				}
 			}
 		}
