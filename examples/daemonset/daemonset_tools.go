@@ -134,7 +134,7 @@ func DaemonSet_Tools() {
 
 }
 
-func printPods(podList []corev1.Pod) []string {
+func printPods(podList []*corev1.Pod) []string {
 	var pl []string
 	for _, pod := range podList {
 		pl = append(pl, pod.Name)
