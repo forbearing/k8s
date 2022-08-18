@@ -166,7 +166,7 @@ func (h *Handler) WaitReady(name string) error {
 //}
 
 // GetPods get all pods created by the statefulset.
-func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
+func (h *Handler) GetPods(object interface{}) ([]*corev1.Pod, error) {
 	// if statefulset not exist, return err.
 	switch val := object.(type) {
 	case string:
@@ -183,7 +183,7 @@ func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
 		return nil, ERR_TYPE
 	}
 }
-func (h *Handler) getPods(sts *appsv1.StatefulSet) ([]corev1.Pod, error) {
+func (h *Handler) getPods(sts *appsv1.StatefulSet) ([]*corev1.Pod, error) {
 	// get all pods in the namespace that statefulset is running.
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = ""
@@ -192,11 +192,11 @@ func (h *Handler) getPods(sts *appsv1.StatefulSet) ([]corev1.Pod, error) {
 		return nil, err
 	}
 
-	var pl []corev1.Pod
-	for _, pod := range podList.Items {
-		for _, or := range pod.OwnerReferences {
+	var pl []*corev1.Pod
+	for i := range podList.Items {
+		for _, or := range podList.Items[i].OwnerReferences {
 			if or.Name == sts.Name {
-				pl = append(pl, pod)
+				pl = append(pl, &podList.Items[i])
 			}
 		}
 	}
