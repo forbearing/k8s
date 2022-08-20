@@ -49,13 +49,13 @@ func Pod_Execute() {
 		"-c",
 		"apt update; apt upgrade -y",
 	}
-	handler.Execute(name, "", command1, nil) // execute success.
-	handler.Execute(name, "", command2, nil) // execute success.
-	handler.Execute(name, "", command3, nil) // execute success.
-	handler.Execute(name, "", command4, nil) // execute success.
-	handler.Execute(name, "", command5, nil) // execute failed.
-	handler.Execute(name, "", command6, nil) // execute success.
-	handler.Execute(name, "", command7, nil) // execute success, but may be cancelled by context timeout.
+	handler.Execute(name, "", command1)                                           // execute success.
+	handler.ExecuteWithPty(name, "", command2, nil)                               // execute success.
+	handler.ExecuteWithPty(name, "", command3, nil)                               // execute success.
+	handler.ExecuteWithStream(name, "", command4, os.Stdin, os.Stdout, os.Stderr) // execute success.
+	handler.Execute(name, "", command5)                                           // execute failed.
+	handler.Execute(name, "", command6)                                           // execute success.
+	handler.Execute(name, "", command7)                                           // execute success, but may be cancelled by context timeout.
 
 	// Output:
 
