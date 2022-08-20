@@ -28,7 +28,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ## Installation
 
-`go get github.com/forbearing/k8s@v0.9.1
+`go get github.com/forbearing/k8s@v0.9.1`
 
 
 
@@ -64,35 +64,12 @@ For more examples on how to use this library, you can refer to the [examples](./
 ## How to execute command within pod by handler.
 
 ```golang
-import (
-	"github.com/forbearing/k8s/pod"
-)
-
-var (
-	ctx, cancel = context.WithTimeout(context.Background(), time.Minute*10)
-	namespace   = "test"
-	kubeconfig  = filepath.Join(os.Getenv("HOME"), ".kube/config")
-	filename    = "../../testData/examples/pod.yaml"
-	name        = "mypod"
-	label       = "type=pod"
-)
-
-func main() {
-	defer cancel()
-
-	Pod_Tools()
-}
-
-func cleanup(handler *pod.Handler) {
-	handler.Delete(name)
-}
-
-func Pod_Tools() {
+func Pod_Execute() {
 	handler, err := pod.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
-	defer cleanup(handler)
+	//defer cleanup(handler)
 	handler.Apply(filename)
 	handler.WaitReady(name)
 
@@ -127,13 +104,13 @@ func Pod_Tools() {
 		"-c",
 		"apt update; apt upgrade -y",
 	}
-	handler.Execute(name, "", command1, nil) // execute success.
-	handler.Execute(name, "", command2, nil) // execute success.
-	handler.Execute(name, "", command3, nil) // execute success.
-	handler.Execute(name, "", command4, nil) // execute success.
-	handler.Execute(name, "", command5, nil) // execute failed.
-	handler.Execute(name, "", command6, nil) // execute success.
-	handler.Execute(name, "", command7, nil) // execute success, but may be cancelled by context timeout.
+	handler.Execute(name, "", command1)                                           // execute success.
+	handler.ExecuteWithPty(name, "", command2, nil)                               // execute success.
+	handler.ExecuteWithPty(name, "", command3, nil)                               // execute success.
+	handler.ExecuteWithStream(name, "", command4, os.Stdin, os.Stdout, os.Stderr) // execute success.
+	handler.Execute(name, "", command5)                                           // execute failed.
+	handler.Execute(name, "", command6)                                           // execute success.
+	handler.Execute(name, "", command7)                                           // execute success, but may be cancelled by context timeout.
 
 	// Output:
 
@@ -157,6 +134,31 @@ func Pod_Tools() {
 	//Get:4 http://deb.debian.org/debian bullseye-updates InRelease [39.4 kB]
 	//Get:5 http://deb.debian.org/debian bullseye/main amd64 Packages [8182 kB]
 	//26% [5 Packages 750 kB/8182 kB 9%]                           36.7 kB/s 3min 22s
+
+	file, err := os.Create("/tmp/pod-exec")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	buffer := &bytes.Buffer{}
+	_ = file
+	_ = buffer
+	handler.ExecuteWithStream(name, "", command1, os.Stdin, os.Stdout, os.Stderr)
+	handler.ExecuteWithStream(name, "", command1, os.Stdin, file, file)
+	handler.ExecuteWithStream(name, "", command1, os.Stdin, buffer, buffer)
+	fmt.Println(buffer.String())
+
+	// Output
+	//mypod
+	//mypod
+
+	podName := "backup-to-nfs-f678db6b6-jqsl2"
+	resticPass := &bytes.Buffer{}
+	resticPass.WriteString("mypass")
+	if err := handler.WithNamespace("default").ExecuteWithStream(podName, "", []string{"restic", "--repo", "/tmp/restic-repo", "init"}, resticPass, os.Stdout, os.Stderr); err != nil {
+		log.Fatal(err)
+	}
 }
 ```
 
