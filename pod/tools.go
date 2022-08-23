@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/signal"
 	"reflect"
@@ -17,9 +18,8 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
+	"k8s.io/client-go/transport/spdy"
 )
-
-var ERR_TYPE = fmt.Errorf("type must be *corev1.Pod, corev1.Pod or string")
 
 type Container struct {
 	Name  string
@@ -190,7 +190,7 @@ func (h *Handler) GetUID(object interface{}) (string, error) {
 	case corev1.Pod:
 		return string(val.ObjectMeta.UID), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -208,7 +208,7 @@ func (h *Handler) GetIP(object interface{}) (string, error) {
 	case corev1.Pod:
 		return val.Status.PodIP, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -226,7 +226,7 @@ func (h *Handler) GetNodeIP(object interface{}) (string, error) {
 	case corev1.Pod:
 		return val.Status.HostIP, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -244,7 +244,7 @@ func (h *Handler) GetNodeName(object interface{}) (string, error) {
 	case corev1.Pod:
 		return val.Spec.NodeName, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -265,7 +265,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 		ctime := val.ObjectMeta.CreationTimestamp.Time
 		return time.Now().Sub(ctime), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 
 }
@@ -294,7 +294,7 @@ func (h *Handler) GetStatus(object interface{}) (string, error) {
 	case corev1.Pod:
 		return string(val.Status.Phase), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -315,7 +315,7 @@ func (h *Handler) GetQosClass(object interface{}) (string, error) {
 	case corev1.Pod:
 		return string(val.Status.QOSClass), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -333,7 +333,7 @@ func (h *Handler) GetPVC(object interface{}) ([]string, error) {
 	case corev1.Pod:
 		return h.getPVC(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getPVC(pod *corev1.Pod) []string {
@@ -384,7 +384,7 @@ func (h *Handler) GetController(object interface{}) (*PodController, error) {
 	case corev1.Pod:
 		return h.getController(&val)
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 
 }
@@ -412,7 +412,7 @@ func (h *Handler) GetContainers(object interface{}) ([]Container, error) {
 	case corev1.Pod:
 		return h.getContainers(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getContainers(pod *corev1.Pod) []Container {
@@ -449,7 +449,7 @@ func (h *Handler) GetInitContainers(object interface{}) ([]Container, error) {
 	case corev1.Pod:
 		return h.getInitContainers(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getInitContainers(pod *corev1.Pod) []Container {
@@ -478,7 +478,7 @@ func (h *Handler) GetReadyContainers(object interface{}) ([]Container, error) {
 	case corev1.Pod:
 		return h.getReadyContainers(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getReadyContainers(pod *corev1.Pod) []Container {
@@ -580,6 +580,7 @@ func (h *Handler) Execute(podName, containerName string, command []string) error
 // the pod Is running and ready.
 //
 // You should provide a PtyHandler interface.
+// What is pty, please refer to https://man7.org/linux/man-pages/man7/pty.7.html
 func (h *Handler) ExecuteWithPty(podName, containerName string, command []string, pty PtyHandler) error {
 	// if pod not found, returns error.
 	pod, err := h.Get(podName)
@@ -678,4 +679,20 @@ func (h *Handler) ExecuteWithStream(podName, containerName string, command []str
 		Stderr: stderr,
 		Tty:    true,
 	})
+}
+
+// PortForward forward a local port to the pod.
+//
+// ref:
+//   https://github.com/kubernetes/client-go/issues/51
+//   https://github.com/anthhub/forwarder
+//   https://www.modb.pro/db/137716
+func (h *Handler) PortForward(podName string, addr net.IP, localPort, remotePort int32) error {
+	roundTripper, upgrader, err := spdy.RoundTripperFor(h.config)
+	if err != nil {
+		return err
+	}
+
+	_, _ = roundTripper, upgrader
+	return nil
 }
