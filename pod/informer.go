@@ -85,6 +85,8 @@ func (h *Handler) TestInformer(stopCh chan struct{}) {
 	h.informerFactory.WaitForCacheSync(stopCh)
 	//cache.WaitForCacheSync(stopCh, h.informer.HasSynced)
 	h.Informer().Run(stopCh)
+	//h.informerFactory.WaitForCacheSync(wait.NeverStop)
+	//h.informerFactory.Start(wait.NeverStop)
 }
 
 // RunInformer
