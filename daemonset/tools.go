@@ -16,8 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 )
 
-var ERR_TYPE = fmt.Errorf("type must be *appsv1.DaemonSet, appsv1.DaemonSet or string")
-
 // IsReady check if the daemonset is ready.
 // ref: https://github.com/kubernetes/kubernetes/blob/a1128e380c2cf1c2d7443694673d9f1dd63eb518/staging/src/k8s.io/kubectl/pkg/polymorphichelpers/rollout_status.go#L95
 func (h *Handler) IsReady(name string) bool {
@@ -196,7 +194,7 @@ func (h *Handler) GetPods(object interface{}) ([]*corev1.Pod, error) {
 	case appsv1.DaemonSet:
 		return h.getPods(&val)
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getPods(ds *appsv1.DaemonSet) ([]*corev1.Pod, error) {
@@ -233,7 +231,7 @@ func (h *Handler) GetPVC(object interface{}) ([]string, error) {
 	case appsv1.DaemonSet:
 		return h.getPVC(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 
 }
@@ -281,7 +279,7 @@ func (h *Handler) NumDesired(object interface{}) (int32, error) {
 	case appsv1.DaemonSet:
 		return val.Status.DesiredNumberScheduled, nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 
@@ -299,7 +297,7 @@ func (h *Handler) NumCurrent(object interface{}) (int32, error) {
 	case appsv1.DaemonSet:
 		return val.Status.CurrentNumberScheduled, nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 
@@ -317,7 +315,7 @@ func (h *Handler) NumReady(object interface{}) (int32, error) {
 	case appsv1.DaemonSet:
 		return val.Status.NumberReady, nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 
@@ -335,7 +333,7 @@ func (h *Handler) NumAvailable(object interface{}) (int32, error) {
 	case appsv1.DaemonSet:
 		return val.Status.NumberAvailable, nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 
@@ -353,7 +351,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case appsv1.DaemonSet:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -371,7 +369,7 @@ func (h *Handler) GetContainers(object interface{}) ([]string, error) {
 	case appsv1.DaemonSet:
 		return h.getContainers(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getContainers(sts *appsv1.DaemonSet) []string {
@@ -396,7 +394,7 @@ func (h *Handler) GetImages(object interface{}) ([]string, error) {
 	case appsv1.DaemonSet:
 		return h.getImages(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getImages(sts *appsv1.DaemonSet) []string {
