@@ -1,7 +1,6 @@
 package rolebinding
 
 import (
-	"fmt"
 	"time"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -18,8 +17,6 @@ type Subject struct {
 	Namespace string
 }
 
-var ERR_TYPE = fmt.Errorf("type must be *rbacv1.RoleBinding, rbacv1.RoleBinding or string")
-
 // GetRole get the role/clusterrole binding by this rolebinding.
 func (h *Handler) GetRole(object interface{}) (*Role, error) {
 	switch val := object.(type) {
@@ -34,7 +31,7 @@ func (h *Handler) GetRole(object interface{}) (*Role, error) {
 	case rbacv1.RoleBinding:
 		return &Role{Kind: val.RoleRef.Kind, Name: val.RoleRef.Name}, nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 
 }
@@ -53,7 +50,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case rbacv1.RoleBinding:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -72,7 +69,7 @@ func (h *Handler) GetSubjects(object interface{}) ([]Subject, error) {
 	case rbacv1.RoleBinding:
 		return h.getSubjects(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getSubjects(rb *rbacv1.RoleBinding) []Subject {

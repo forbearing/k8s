@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -15,8 +14,6 @@ type ServicePort struct {
 	TargetPort intstr.IntOrString
 	NodePort   int32
 }
-
-var ERR_TYPE = fmt.Errorf("type must be *corev1.Service, corev1.Service or string")
 
 // GetType get the type of the service.
 func (h *Handler) GetType(object interface{}) (string, error) {
@@ -32,7 +29,7 @@ func (h *Handler) GetType(object interface{}) (string, error) {
 	case corev1.Service:
 		return string(val.Spec.Type), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -50,7 +47,7 @@ func (h *Handler) GetClusterIP(object interface{}) (string, error) {
 	case corev1.Service:
 		return val.Spec.ClusterIP, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -68,7 +65,7 @@ func (h *Handler) GetExternalIPs(object interface{}) ([]string, error) {
 	case corev1.Service:
 		return val.Spec.ExternalIPs, nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 
@@ -86,7 +83,7 @@ func (h *Handler) GetPorts(object interface{}) ([]ServicePort, error) {
 	case corev1.Service:
 		return h.getPorts(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getPorts(svc *corev1.Service) []ServicePort {
@@ -119,6 +116,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case corev1.Service:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }

@@ -1,15 +1,12 @@
 package persistentvolume
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
 )
-
-var ERR_TYPE = fmt.Errorf("type must be *corev1.PersistentVolume, corev1.PersistentVolume or string")
 
 // GetCapacity get the the storage capacity of the persistentvolume.
 func (h *Handler) GetCapacity(object interface{}) (int64, error) {
@@ -25,7 +22,7 @@ func (h *Handler) GetCapacity(object interface{}) (int64, error) {
 	case corev1.PersistentVolume:
 		return h.getCapacity(&val), nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getCapacity(pv *corev1.PersistentVolume) int64 {
@@ -55,7 +52,7 @@ func (h *Handler) GetAccessModes(object interface{}) (accessModes []string, err 
 	case corev1.PersistentVolume:
 		return h.getAccessModes(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getAccessModes(pv *corev1.PersistentVolume) []string {
@@ -80,7 +77,7 @@ func (h *Handler) GetReclaimPolicy(object interface{}) (string, error) {
 	case corev1.PersistentVolume:
 		return string(val.Spec.PersistentVolumeReclaimPolicy), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -105,7 +102,7 @@ func (h *Handler) GetStatus(object interface{}) (string, error) {
 	case corev1.PersistentVolume:
 		return string(val.Status.Phase), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -128,7 +125,7 @@ func (h *Handler) GetPVC(object interface{}) (string, error) {
 	case corev1.PersistentVolume:
 		return h.getPVC(&val), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 func (h *Handler) getPVC(pv *corev1.PersistentVolume) string {
@@ -155,7 +152,7 @@ func (h *Handler) GetStorageClass(object interface{}) (string, error) {
 	case corev1.PersistentVolume:
 		return val.Spec.StorageClassName, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -172,7 +169,7 @@ func (h *Handler) GetVolumeSource(object interface{}) (string, error) {
 	case corev1.PersistentVolume:
 		return h.getVolumeSource(&val), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 
 }
@@ -209,7 +206,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case corev1.PersistentVolume:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -229,6 +226,6 @@ func (h *Handler) GetVolumeMode(object interface{}) (string, error) {
 	case corev1.PersistentVolume:
 		return string(*val.Spec.VolumeMode), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }

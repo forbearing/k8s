@@ -1,13 +1,10 @@
 package secret
 
 import (
-	"fmt"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
 )
-
-var ERR_TYPE = fmt.Errorf("type must be *corev1.Secret, corev1.Secret or string")
 
 // GetType returns the secret type.
 func (h *Handler) GetType(object interface{}) (string, error) {
@@ -23,7 +20,7 @@ func (h *Handler) GetType(object interface{}) (string, error) {
 	case corev1.Secret:
 		return string(val.Type), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -41,7 +38,7 @@ func (h *Handler) GetNumData(object interface{}) (int, error) {
 	case corev1.Secret:
 		return len(val.Data), nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 
@@ -59,6 +56,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case corev1.Secret:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }

@@ -1,13 +1,10 @@
 package configmap
 
 import (
-	"fmt"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
 )
-
-var ERR_TYPE = fmt.Errorf("type must be *corev1.ConfigMap, corev1.ConfigMap or string")
 
 // GetData get configmap data.
 func (h *Handler) GetData(object interface{}) (map[string]string, error) {
@@ -23,7 +20,7 @@ func (h *Handler) GetData(object interface{}) (map[string]string, error) {
 	case corev1.ConfigMap:
 		return val.Data, nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 
@@ -41,7 +38,7 @@ func (h *Handler) NumData(object interface{}) (int, error) {
 	case corev1.ConfigMap:
 		return len(val.Data), nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 
@@ -59,6 +56,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case corev1.ConfigMap:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }

@@ -11,8 +11,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-var ERR_TYPE = fmt.Errorf("type must be *corev1.Node, corev1.Node or string")
-
 const (
 	// LabelNodeRolePrefix is a label prefix for node roles
 	// It's copied over to here until it's merged in core: https://github.com/kubernetes/kubernetes/pull/39112
@@ -85,7 +83,7 @@ func (h *Handler) GetPhase(object interface{}) (string, error) {
 	case corev1.Node:
 		return string(val.Status.Phase), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -103,7 +101,7 @@ func (h *Handler) GetPhase(object interface{}) (string, error) {
 //    case corev1.Node:
 //        return string(val.Status.Phase), nil
 //    default:
-//        return "", ERR_TYPE
+//        return "", ErrInvalidToolsType
 //    }
 //}
 
@@ -122,7 +120,7 @@ func (h *Handler) GetHostname(object interface{}) ([]string, error) {
 	case corev1.Node:
 		return h.getHostname(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getHostname(node *corev1.Node) []string {
@@ -150,7 +148,7 @@ func (h *Handler) GetInternalIP(object interface{}) ([]string, error) {
 	case corev1.Node:
 		return h.getInternalIP(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getInternalIP(node *corev1.Node) []string {
@@ -178,7 +176,7 @@ func (h *Handler) GetExternalIP(object interface{}) ([]string, error) {
 	case corev1.Node:
 		return h.getExternalIP(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getExternalIP(node *corev1.Node) []string {
@@ -206,7 +204,7 @@ func (h *Handler) GetInternalDNS(object interface{}) ([]string, error) {
 	case corev1.Node:
 		return h.getInternalDNS(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getInternalDNS(node *corev1.Node) []string {
@@ -234,7 +232,7 @@ func (h *Handler) GetExternaDNS(object interface{}) ([]string, error) {
 	case corev1.Node:
 		return h.getExternalDNS(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getExternalDNS(node *corev1.Node) []string {
@@ -286,7 +284,7 @@ func (h *Handler) GetRoles(object interface{}) ([]string, error) {
 	case corev1.Node:
 		return h.getRoles(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getRoles(node *corev1.Node) []string {
@@ -318,7 +316,7 @@ func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
 	case corev1.Node:
 		return h.getPods(&val)
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getPods(node *corev1.Node) ([]corev1.Pod, error) {
@@ -357,7 +355,7 @@ func (h *Handler) GetCIDR(object interface{}) (string, error) {
 	case corev1.Node:
 		return val.Spec.PodCIDR, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -375,7 +373,7 @@ func (h *Handler) GetCIDRs(object interface{}) ([]string, error) {
 	case corev1.Node:
 		return val.Spec.PodCIDRs, nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 
@@ -393,7 +391,7 @@ func (h *Handler) GetNodeInfo(object interface{}) (*NodeInfo, error) {
 	case corev1.Node:
 		return h.getNodeInfo(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 
@@ -478,6 +476,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case corev1.Node:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }

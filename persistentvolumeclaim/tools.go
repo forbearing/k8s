@@ -7,8 +7,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-var ERR_TYPE = fmt.Errorf("type must be *corev1.PersistentVolumeClaim, corev1.PersistentVolumeClaim or string")
-
 // GetStatus get the status phase of the persistentvolumeclaim.
 // All supported status are: Pending, Bound, Lost
 // pending used for PersistentVolumeClaims that are not yet bound.
@@ -27,7 +25,7 @@ func (h *Handler) GetStatus(object interface{}) (phase string, err error) {
 	case corev1.PersistentVolumeClaim:
 		return string(val.Status.Phase), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -50,7 +48,7 @@ func (h *Handler) GetPV(object interface{}) (string, error) {
 	case corev1.PersistentVolumeClaim:
 		return val.Spec.VolumeName, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -68,7 +66,7 @@ func (h *Handler) GetCapacity(object interface{}) (int64, error) {
 	case corev1.PersistentVolumeClaim:
 		return h.getCapacity(&val), nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getCapacity(pvc *corev1.PersistentVolumeClaim) int64 {
@@ -98,7 +96,7 @@ func (h *Handler) GetAccessModes(object interface{}) ([]string, error) {
 	case corev1.PersistentVolumeClaim:
 		return h.getAccessModes(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getAccessModes(pvc *corev1.PersistentVolumeClaim) []string {
@@ -132,7 +130,7 @@ func (h *Handler) GetStorageClass(object interface{}) (string, error) {
 		}
 		return *(val.Spec.StorageClassName), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -150,7 +148,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case corev1.PersistentVolumeClaim:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -170,6 +168,6 @@ func (h *Handler) GetVolumeMode(object interface{}) (string, error) {
 	case corev1.PersistentVolumeClaim:
 		return string(*val.Spec.VolumeMode), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }

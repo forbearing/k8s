@@ -7,8 +7,6 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 )
 
-var ERR_TYPE = fmt.Errorf("type must be *networkingv1.Ingress, networkingv1.Ingress or string")
-
 // getHosts
 func (h *Handler) getHosts(ing *networkingv1.Ingress) []string {
 	var hl []string
@@ -41,7 +39,7 @@ func (h *Handler) GetClass(object interface{}) (string, error) {
 		}
 		return *(val.Spec.IngressClassName), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -59,7 +57,7 @@ func (h *Handler) GetHosts(object interface{}) ([]string, error) {
 	case networkingv1.Ingress:
 		return h.getHosts(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 
@@ -88,7 +86,7 @@ func (h *Handler) GetAddress(object interface{}) ([]string, error) {
 	case networkingv1.Ingress:
 		return h.getAddress(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 
@@ -106,6 +104,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case networkingv1.Ingress:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }

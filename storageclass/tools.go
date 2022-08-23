@@ -1,13 +1,10 @@
 package storageclass
 
 import (
-	"fmt"
 	"time"
 
 	storagev1 "k8s.io/api/storage/v1"
 )
-
-var ERR_TYPE = fmt.Errorf("type must be *storagev1.StorageClass, storagev1.StorageClass or string")
 
 // GetProvisioner get the provisioner of the storageclass.
 func (h *Handler) GetProvisioner(object interface{}) (string, error) {
@@ -23,7 +20,7 @@ func (h *Handler) GetProvisioner(object interface{}) (string, error) {
 	case storagev1.StorageClass:
 		return val.Provisioner, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -41,7 +38,7 @@ func (h *Handler) GetReclaimPolicy(object interface{}) (string, error) {
 	case storagev1.StorageClass:
 		return string(*val.ReclaimPolicy), nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -70,7 +67,7 @@ func (h *Handler) IsAllowVolumeExpansion(object interface{}) (bool, error) {
 		}
 		return *val.AllowVolumeExpansion, nil
 	default:
-		return false, ERR_TYPE
+		return false, ErrInvalidToolsType
 	}
 }
 
@@ -91,6 +88,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 		ctime := val.CreationTimestamp.Time
 		return time.Now().Sub(ctime), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }

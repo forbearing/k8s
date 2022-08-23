@@ -7,8 +7,6 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 )
 
-var ERR_TYPE = fmt.Errorf("type must be *batchv1.CronJob, batchv1.CronJob or string")
-
 // GetJobs get all jobs created by the cronjob.
 func (h *Handler) GetJobs(object interface{}) ([]batchv1.Job, error) {
 	switch val := object.(type) {
@@ -23,7 +21,7 @@ func (h *Handler) GetJobs(object interface{}) ([]batchv1.Job, error) {
 	case batchv1.CronJob:
 		return h.getJobs(&val)
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getJobs(cj *batchv1.CronJob) ([]batchv1.Job, error) {
@@ -60,7 +58,7 @@ func (h *Handler) NumActive(object interface{}) (int, error) {
 	case batchv1.CronJob:
 		return len(val.Status.Active), nil
 	default:
-		return 0, ERR_TYPE
+		return 0, ErrInvalidToolsType
 	}
 }
 
@@ -87,7 +85,7 @@ func (h *Handler) DurationOfLastScheduled(object interface{}) (time.Duration, er
 		}
 		return time.Now().Sub(val.Status.LastScheduleTime.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -114,7 +112,7 @@ func (h *Handler) DurationOfCompleted(object interface{}) (time.Duration, error)
 		}
 		return time.Now().Sub(val.Status.LastSuccessfulTime.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -132,7 +130,7 @@ func (h *Handler) GetSchedule(object interface{}) (string, error) {
 	case batchv1.CronJob:
 		return val.Spec.Schedule, nil
 	default:
-		return "", ERR_TYPE
+		return "", ErrInvalidToolsType
 	}
 }
 
@@ -161,7 +159,7 @@ func (h *Handler) IsSuspend(object interface{}) (bool, error) {
 		}
 		return *val.Spec.Suspend, nil
 	default:
-		return false, ERR_TYPE
+		return false, ErrInvalidToolsType
 	}
 }
 
@@ -179,7 +177,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case batchv1.CronJob:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -197,7 +195,7 @@ func (h *Handler) GetContainers(object interface{}) ([]string, error) {
 	case batchv1.CronJob:
 		return h.getContainers(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getContainers(sts *batchv1.CronJob) []string {
@@ -222,7 +220,7 @@ func (h *Handler) GetImages(object interface{}) ([]string, error) {
 	case batchv1.CronJob:
 		return h.getImages(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getImages(sts *batchv1.CronJob) []string {

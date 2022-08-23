@@ -10,8 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 )
 
-var ERR_TYPE = fmt.Errorf("type must be *batchv1.Job, batchv1.Job or string")
-
 //type JobController struct {
 //    Labels             map[string]string `json:"labels"`
 //    CreationTimestamp  metav1.Time       `json:"creationTimestamp"`
@@ -188,7 +186,7 @@ func (h *Handler) GetController(object interface{}) (*JobController, error) {
 	case batchv1.Job:
 		return h.getController(&val)
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 
@@ -215,7 +213,7 @@ func (h *Handler) DurationOfStarted(object interface{}) (time.Duration, error) {
 		}
 		return time.Now().Sub(val.Status.StartTime.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -242,7 +240,7 @@ func (h *Handler) DurationOfCompleted(object interface{}) (time.Duration, error)
 		}
 		return time.Now().Sub(val.Status.CompletionTime.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -314,6 +312,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case batchv1.Job:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
