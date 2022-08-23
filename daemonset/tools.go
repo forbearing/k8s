@@ -19,25 +19,35 @@ import (
 var ERR_TYPE = fmt.Errorf("type must be *appsv1.DaemonSet, appsv1.DaemonSet or string")
 
 // IsReady check if the daemonset is ready.
+// ref: https://github.com/kubernetes/kubernetes/blob/a1128e380c2cf1c2d7443694673d9f1dd63eb518/staging/src/k8s.io/kubectl/pkg/polymorphichelpers/rollout_status.go#L95
 func (h *Handler) IsReady(name string) bool {
-	daemonset, err := h.Get(name)
+	checkGeneration := func(ds *appsv1.DaemonSet) bool {
+		if ds.Generation != ds.Status.ObservedGeneration {
+			return false
+		}
+		return true
+	}
+	checkReplicas := func(ds *appsv1.DaemonSet) bool {
+		if ds.Status.DesiredNumberScheduled != ds.Status.UpdatedNumberScheduled {
+			return false
+		}
+		if ds.Status.DesiredNumberScheduled != ds.Status.CurrentNumberScheduled {
+			return false
+		}
+		if ds.Status.DesiredNumberScheduled != ds.Status.NumberAvailable {
+			return false
+		}
+		if ds.Status.DesiredNumberScheduled != ds.Status.NumberReady {
+			return false
+		}
+		return true
+	}
+
+	ds, err := h.Get(name)
 	if err != nil {
 		return false
 	}
-	//log.SetLevel(log.TraceLevel)
-	//log.Debug(daemonset.Status)
-	//log.Debug(daemonset.Status.DesiredNumberScheduled)
-	//log.Debug(daemonset.Status.CurrentNumberScheduled)
-	//log.Debug(daemonset.Status.NumberAvailable)
-	//log.Debug(daemonset.Status.NumberReady)
-	desiredNumberScheduled := daemonset.Status.DesiredNumberScheduled
-	// if desiredNumberScheduled = 0, that means daemonset not ready.
-	if desiredNumberScheduled == 0 {
-		return false
-	}
-	if daemonset.Status.CurrentNumberScheduled == desiredNumberScheduled &&
-		daemonset.Status.NumberAvailable == desiredNumberScheduled &&
-		daemonset.Status.NumberReady == desiredNumberScheduled {
+	if checkGeneration(ds) && checkReplicas(ds) {
 		return true
 	}
 	return false
