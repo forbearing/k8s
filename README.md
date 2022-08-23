@@ -60,6 +60,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] port-forward for pod, deployment and service
 - [ ] proxy
 - [ ] operators refer to https://sdk.operatorframework.io/docs/building-operators/golang/references/client/
+- [ ] Add/Set/Remove/Has Labels and Annotations
 
 ## How to execute command within pod by handler.
 
