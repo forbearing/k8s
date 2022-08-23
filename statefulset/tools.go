@@ -16,8 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 )
 
-var ERR_TYPE = fmt.Errorf("type must be *appsv1.StatefulSet, appsv1.StatefulSet or string")
-
 // IsReady check if the statefulset is ready.
 // ref: https://github.com/kubernetes/kubernetes/blob/a1128e380c2cf1c2d7443694673d9f1dd63eb518/staging/src/k8s.io/kubectl/pkg/polymorphichelpers/rollout_status.go#L120
 func (h *Handler) IsReady(name string) bool {
@@ -199,7 +197,7 @@ func (h *Handler) GetPods(object interface{}) ([]*corev1.Pod, error) {
 	case appsv1.StatefulSet:
 		return h.getPods(&val)
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getPods(sts *appsv1.StatefulSet) ([]*corev1.Pod, error) {
@@ -236,7 +234,7 @@ func (h *Handler) GetPVC(object interface{}) ([]string, error) {
 	case appsv1.StatefulSet:
 		return h.getPVC(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getPVC(sts *appsv1.StatefulSet) []string {
@@ -285,7 +283,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 		ctime := val.CreationTimestamp.Time
 		return time.Now().Sub(ctime), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -303,7 +301,7 @@ func (h *Handler) GetContainers(object interface{}) ([]string, error) {
 	case appsv1.StatefulSet:
 		return h.getContainers(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getContainers(sts *appsv1.StatefulSet) []string {
@@ -328,7 +326,7 @@ func (h *Handler) GetImages(object interface{}) ([]string, error) {
 	case appsv1.StatefulSet:
 		return h.getImages(&val), nil
 	default:
-		return nil, ERR_TYPE
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getImages(sts *appsv1.StatefulSet) []string {
