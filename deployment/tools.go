@@ -17,16 +17,41 @@ import (
 )
 
 // IsReady check if the deployment is ready.
+// ref: https://github.com/kubernetes/kubernetes/blob/a1128e380c2cf1c2d7443694673d9f1dd63eb518/staging/src/k8s.io/kubectl/pkg/polymorphichelpers/rollout_status.go#L59
 func (h *Handler) IsReady(name string) bool {
+	checkGeneration := func(deploy *appsv1.Deployment) bool {
+		if deploy.Generation != deploy.Status.ObservedGeneration {
+			return false
+		}
+		return true
+	}
+	checkReplicas := func(deploy *appsv1.Deployment) bool {
+		if deploy.Spec.Replicas != nil && *deploy.Spec.Replicas != deploy.Status.UpdatedReplicas {
+			return false
+		}
+		if deploy.Status.Replicas != deploy.Status.UpdatedReplicas {
+			return false
+		}
+		if deploy.Status.AvailableReplicas != deploy.Status.UpdatedReplicas {
+			return false
+		}
+		return true
+	}
+	checkCondition := func(deploy *appsv1.Deployment) bool {
+		for _, cond := range deploy.Status.Conditions {
+			if cond.Type == appsv1.DeploymentAvailable && cond.Status == corev1.ConditionTrue {
+				return true
+			}
+		}
+		return false
+	}
+
 	deploy, err := h.Get(name)
 	if err != nil {
 		return false
 	}
-	// 必须 Type=Available 和 Status=True 才能算 Deployment 就绪了
-	for _, cond := range deploy.Status.Conditions {
-		if cond.Type == appsv1.DeploymentAvailable && cond.Status == corev1.ConditionTrue {
-			return true
-		}
+	if checkGeneration(deploy) && checkReplicas(deploy) && checkCondition(deploy) {
+		return true
 	}
 	return false
 }
