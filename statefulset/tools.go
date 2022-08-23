@@ -19,18 +19,37 @@ import (
 var ERR_TYPE = fmt.Errorf("type must be *appsv1.StatefulSet, appsv1.StatefulSet or string")
 
 // IsReady check if the statefulset is ready.
+// ref: https://github.com/kubernetes/kubernetes/blob/a1128e380c2cf1c2d7443694673d9f1dd63eb518/staging/src/k8s.io/kubectl/pkg/polymorphichelpers/rollout_status.go#L120
 func (h *Handler) IsReady(name string) bool {
-	statefulset, err := h.Get(name)
-	if err != nil {
-		return false
+	checkGeneration := func(sts *appsv1.StatefulSet) bool {
+		if sts.Generation != sts.Status.ObservedGeneration {
+			return false
+		}
+		return true
 	}
-
-	// 如果 statefulset 的 replicaas 等于 status.AvailableReplicas 的个数
-	// 就表明 statefulset 的所有 pod 都就绪了.
-	if *statefulset.Spec.Replicas == statefulset.Status.AvailableReplicas {
+	checkReplicas := func(sts *appsv1.StatefulSet) bool {
+		if sts.Spec.Replicas != nil && *sts.Spec.Replicas != sts.Status.ReadyReplicas {
+			return false
+		}
+		if sts.Spec.Replicas != nil && *sts.Spec.Replicas != sts.Status.AvailableReplicas {
+			return false
+		}
+		return true
+	}
+	checkRevision := func(sts *appsv1.StatefulSet) bool {
+		if sts.Status.UpdateRevision != sts.Status.CurrentRevision {
+			return false
+		}
 		return true
 	}
 
+	sts, err := h.Get(name)
+	if err != nil {
+		return false
+	}
+	if checkGeneration(sts) && checkReplicas(sts) && checkRevision(sts) {
+		return true
+	}
 	return false
 }
 
