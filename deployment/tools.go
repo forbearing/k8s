@@ -215,7 +215,7 @@ func (h *Handler) GetRS(object interface{}) ([]*appsv1.ReplicaSet, error) {
 	case appsv1.Deployment:
 		return h.getRS(&val)
 	default:
-		return nil, ERR_TYPE_TOOLS
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getRS(deploy *appsv1.Deployment) ([]*appsv1.ReplicaSet, error) {
@@ -281,7 +281,7 @@ func (h *Handler) GetPVC(object interface{}) ([]string, error) {
 	case appsv1.Deployment:
 		return h.getPVC(&val), nil
 	default:
-		return nil, ERR_TYPE_TOOLS
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getPVC(deploy *appsv1.Deployment) []string {
@@ -331,7 +331,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case appsv1.Deployment:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ERR_TYPE_TOOLS
+		return time.Duration(int64(0)), ErrInvalidToolsType
 	}
 }
 
@@ -349,7 +349,7 @@ func (h *Handler) GetContainers(object interface{}) ([]string, error) {
 	case appsv1.Deployment:
 		return h.getContainers(&val), nil
 	default:
-		return nil, ERR_TYPE_TOOLS
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getContainers(sts *appsv1.Deployment) []string {
@@ -374,7 +374,7 @@ func (h *Handler) GetImages(object interface{}) ([]string, error) {
 	case appsv1.Deployment:
 		return h.getImages(&val), nil
 	default:
-		return nil, ERR_TYPE_TOOLS
+		return nil, ErrInvalidToolsType
 	}
 }
 func (h *Handler) getImages(sts *appsv1.Deployment) []string {
