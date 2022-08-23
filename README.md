@@ -34,6 +34,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ## Planning
 
+- [ ] https://github.com/kubernetes/kubectl
 - [x] Simplify the use of client-go informer, lister
 - [x] create/delete/update/delete/get ... all kinds of k8s resources by dyanmic client.
 - [ ] Support crate/update/delete/get... `Event` resources
