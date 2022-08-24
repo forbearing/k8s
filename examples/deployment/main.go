@@ -70,12 +70,14 @@ var (
 )
 
 func main() {
-	Deployment_Create()
+	//Deployment_Create()
 	//Deployment_Update()
+	Deployment_Update_Status()
 	//Deployment_Apply()
 	//Deployment_Delete()
 	//Deployment_Get()
 	//Deployment_List()
+	//Deployment_Scale()
 	//Deployment_Watch()
 	//Deployment_Informer()
 	//Deployment_Tools()
