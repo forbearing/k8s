@@ -51,7 +51,9 @@ func (h *Handler) ScaleByName(name string, replicas int32) (*appsv1.StatefulSet,
 		return nil, err
 	}
 	copiedSts := sts.DeepCopy()
-	copiedSts.Spec.Replicas = &replicas
+	if copiedSts.Spec.Replicas != nil {
+		copiedSts.Spec.Replicas = &replicas
+	}
 	return h.Update(copiedSts)
 }
 
