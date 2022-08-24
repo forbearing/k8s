@@ -11,7 +11,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case string:
 		ns, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), nil
+			return time.Duration(0), nil
 		}
 		return time.Now().Sub(ns.CreationTimestamp.Time), nil
 	case *corev1.Namespace:
@@ -19,6 +19,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case corev1.Namespace:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }

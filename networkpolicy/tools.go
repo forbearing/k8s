@@ -20,6 +20,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case networkingv1.NetworkPolicy:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }

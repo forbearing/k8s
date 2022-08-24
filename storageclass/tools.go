@@ -77,7 +77,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case string:
 		sts, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), err
+			return time.Duration(0), err
 		}
 		ctime := sts.CreationTimestamp.Time
 		return time.Now().Sub(ctime), nil
@@ -88,6 +88,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 		ctime := val.CreationTimestamp.Time
 		return time.Now().Sub(ctime), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }

@@ -196,24 +196,24 @@ func (h *Handler) DurationOfStarted(object interface{}) (time.Duration, error) {
 	case string:
 		j, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), err
+			return time.Duration(0), err
 		}
 		if j.Status.StartTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("job started time not found")
+			return time.Duration(0), fmt.Errorf("job started time not found")
 		}
 		return time.Now().Sub(j.Status.StartTime.Time), nil
 	case *batchv1.Job:
 		if val.Status.StartTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("job started time not found")
+			return time.Duration(0), fmt.Errorf("job started time not found")
 		}
 		return time.Now().Sub(val.Status.StartTime.Time), nil
 	case batchv1.Job:
 		if val.Status.StartTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("job started time not found")
+			return time.Duration(0), fmt.Errorf("job started time not found")
 		}
 		return time.Now().Sub(val.Status.StartTime.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }
 
@@ -223,24 +223,24 @@ func (h *Handler) DurationOfCompleted(object interface{}) (time.Duration, error)
 	case string:
 		j, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), err
+			return time.Duration(0), err
 		}
 		if j.Status.CompletionTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("job completed time not found")
+			return time.Duration(0), fmt.Errorf("job completed time not found")
 		}
 		return time.Now().Sub(j.Status.CompletionTime.Time), nil
 	case *batchv1.Job:
 		if val.Status.CompletionTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("job completed time not found")
+			return time.Duration(0), fmt.Errorf("job completed time not found")
 		}
 		return time.Now().Sub(val.Status.CompletionTime.Time), nil
 	case batchv1.Job:
 		if val.Status.CompletionTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("job completed time not found")
+			return time.Duration(0), fmt.Errorf("job completed time not found")
 		}
 		return time.Now().Sub(val.Status.CompletionTime.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }
 
@@ -304,7 +304,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case string:
 		j, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), err
+			return time.Duration(0), err
 		}
 		return time.Now().Sub(j.CreationTimestamp.Time), nil
 	case *batchv1.Job:
@@ -312,6 +312,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case batchv1.Job:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }

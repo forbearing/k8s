@@ -343,7 +343,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case string:
 		ds, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), nil
+			return time.Duration(0), nil
 		}
 		return time.Now().Sub(ds.CreationTimestamp.Time), nil
 	case *appsv1.DaemonSet:
@@ -351,7 +351,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case appsv1.DaemonSet:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }
 

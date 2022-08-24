@@ -30,7 +30,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case string:
 		sa, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), err
+			return time.Duration(0), err
 		}
 		return time.Now().Sub(sa.CreationTimestamp.Time), nil
 	case *corev1.ServiceAccount:
@@ -38,6 +38,6 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case corev1.ServiceAccount:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }

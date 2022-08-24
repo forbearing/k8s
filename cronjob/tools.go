@@ -68,24 +68,24 @@ func (h *Handler) DurationOfLastScheduled(object interface{}) (time.Duration, er
 	case string:
 		cj, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), err
+			return time.Duration(0), err
 		}
 		if cj.Status.LastScheduleTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("the last time the job was successfully scheduled not found")
+			return time.Duration(0), fmt.Errorf("the last time the job was successfully scheduled not found")
 		}
 		return time.Now().Sub(cj.Status.LastScheduleTime.Time), nil
 	case *batchv1.CronJob:
 		if val.Status.LastScheduleTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("the last time the job was successfully scheduled not found")
+			return time.Duration(0), fmt.Errorf("the last time the job was successfully scheduled not found")
 		}
 		return time.Now().Sub(val.Status.LastScheduleTime.Time), nil
 	case batchv1.CronJob:
 		if val.Status.LastScheduleTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("the last time the job was successfully scheduled not found")
+			return time.Duration(0), fmt.Errorf("the last time the job was successfully scheduled not found")
 		}
 		return time.Now().Sub(val.Status.LastScheduleTime.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }
 
@@ -95,24 +95,24 @@ func (h *Handler) DurationOfCompleted(object interface{}) (time.Duration, error)
 	case string:
 		cj, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), err
+			return time.Duration(0), err
 		}
 		if cj.Status.LastSuccessfulTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("the last time the job successfully completed not found")
+			return time.Duration(0), fmt.Errorf("the last time the job successfully completed not found")
 		}
 		return time.Now().Sub(cj.Status.LastSuccessfulTime.Time), nil
 	case *batchv1.CronJob:
 		if val.Status.LastSuccessfulTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("the last time the job successfully completed not found")
+			return time.Duration(0), fmt.Errorf("the last time the job successfully completed not found")
 		}
 		return time.Now().Sub(val.Status.LastSuccessfulTime.Time), nil
 	case batchv1.CronJob:
 		if val.Status.LastSuccessfulTime == nil {
-			return time.Duration(int64(0)), fmt.Errorf("the last time the job successfully completed not found")
+			return time.Duration(0), fmt.Errorf("the last time the job successfully completed not found")
 		}
 		return time.Now().Sub(val.Status.LastSuccessfulTime.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }
 
@@ -169,7 +169,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case string:
 		cj, err := h.Get(val)
 		if err != nil {
-			return time.Duration(int64(0)), err
+			return time.Duration(0), err
 		}
 		return time.Now().Sub(cj.CreationTimestamp.Time), nil
 	case *batchv1.CronJob:
@@ -177,7 +177,7 @@ func (h *Handler) GetAge(object interface{}) (time.Duration, error) {
 	case batchv1.CronJob:
 		return time.Now().Sub(val.CreationTimestamp.Time), nil
 	default:
-		return time.Duration(int64(0)), ErrInvalidToolsType
+		return time.Duration(0), ErrInvalidToolsType
 	}
 }
 
