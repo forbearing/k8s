@@ -35,10 +35,10 @@ func Deployment_Tools() {
 
 		// GetRS get all replicaset that created by the deployment.
 		rsList, err := handler.GetRS(name2)
-		checkErr("GetRS", printRS(rsList), err)
+		checkErr("GetRS", outputRS(rsList), err)
 		// GetPods get all pods that created by the deployment.
 		podList, err := handler.GetPods(name2)
-		checkErr("GetPods", printPods(podList), err)
+		checkErr("GetPods", outputPods(podList), err)
 		// GetPV get all persistentvolume that attached by the deployment.
 		pvList, err := handler.GetPV(name2)
 		checkErr("GetPV", pvList, err)
@@ -57,10 +57,10 @@ func Deployment_Tools() {
 
 		// GetRS get all replicaset that created by the deployment.
 		rsList, err := handler.GetRS(deploy)
-		checkErr("GetRS", printRS(rsList), err)
+		checkErr("GetRS", outputRS(rsList), err)
 		// GetPods get all pods that created by the deployment.
 		podList, err := handler.GetPods(deploy)
-		checkErr("GetPods", printPods(podList), err)
+		checkErr("GetPods", outputPods(podList), err)
 		// GetPV get all persistentvolume that attached by the deployment.
 		pvList, err := handler.GetPV(deploy)
 		checkErr("GetPV", pvList, err)
@@ -110,14 +110,20 @@ func Deployment_Tools() {
 	//2022/08/18 10:38:26 ===== Get Deployment By Object Cost Time: 354.565842ms
 }
 
-func printPods(podList []*corev1.Pod) []string {
+func outputPods(podList []*corev1.Pod) []string {
+	if podList == nil {
+		return nil
+	}
 	var pl []string
 	for _, pod := range podList {
 		pl = append(pl, pod.Name)
 	}
 	return pl
 }
-func printRS(rsList []*appsv1.ReplicaSet) []string {
+func outputRS(rsList []*appsv1.ReplicaSet) []string {
+	if rsList == nil {
+		return nil
+	}
 	var rl []string
 	for _, rs := range rsList {
 		rl = append(rl, rs.Name)

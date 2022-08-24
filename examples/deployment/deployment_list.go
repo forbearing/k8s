@@ -36,6 +36,9 @@ func Deployment_List() {
 }
 
 func outputDeploy(deployList []*appsv1.Deployment) []string {
+	if deployList == nil {
+		return nil
+	}
 	var dl []string
 	for _, deploy := range deployList {
 		dl = append(dl, deploy.Name)
