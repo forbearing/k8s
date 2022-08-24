@@ -51,7 +51,9 @@ func (h *Handler) ScaleByName(name string, replicas int32) (*appsv1.Deployment, 
 		return nil, err
 	}
 	copiedDeploy := deploy.DeepCopy()
-	copiedDeploy.Spec.Replicas = &replicas
+	if copiedDeploy.Spec.Replicas != nil {
+		copiedDeploy.Spec.Replicas = &replicas
+	}
 	return h.Update(copiedDeploy)
 
 	//scale := &autoscalingv1.Scale{}
