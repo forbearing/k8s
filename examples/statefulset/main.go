@@ -23,7 +23,8 @@ var (
 )
 
 func main() {
-	StatefulSet_Tools()
+	//StatefulSet_Tools()
+	StatefulSet_Scale()
 }
 
 func checkErr(name string, val interface{}, err error) {
