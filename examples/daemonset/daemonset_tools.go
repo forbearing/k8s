@@ -35,9 +35,9 @@ func DaemonSet_Tools() {
 	}
 
 	pods1, err := handler.GetPods(name)
-	checkErr("GetPods", printPods(pods1), err)
+	checkErr("GetPods", outputPods(pods1), err)
 	pods2, err := handler.GetPods(ds)
-	checkErr("GetPods", printPods(pods2), err)
+	checkErr("GetPods", outputPods(pods2), err)
 
 	pvList1, err := handler.GetPV(name2)
 	checkErr("GetPV", pvList1, err)
@@ -134,7 +134,10 @@ func DaemonSet_Tools() {
 
 }
 
-func printPods(podList []*corev1.Pod) []string {
+func outputPods(podList []*corev1.Pod) []string {
+	if podList == nil {
+		return nil
+	}
 	var pl []string
 	for _, pod := range podList {
 		pl = append(pl, pod.Name)
