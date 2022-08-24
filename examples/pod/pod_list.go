@@ -37,6 +37,9 @@ func Pod_List() {
 }
 
 func outputPods(podList []*corev1.Pod) []string {
+	if podList == nil {
+		return nil
+	}
 	var pl []string
 	for _, pod := range podList {
 		pl = append(pl, pod.Name)
