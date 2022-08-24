@@ -9,4 +9,5 @@ var (
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType
 	ErrInvalidGetType    = ErrInvalidCreateType
+	ErrInvalidScaleType  = ErrInvalidCreateType
 )
