@@ -31,7 +31,7 @@ func StatefulSet_Tools() {
 		begin := time.Now()
 
 		pods, err := handler.GetPods(name)
-		checkErr("GetPods", printPods(pods), err)
+		checkErr("GetPods", outputPods(pods), err)
 		pvcList, err := handler.GetPVC(name2)
 		checkErr("GetPVC", pvcList, err)
 		pvList, err := handler.GetPV(name2)
@@ -50,7 +50,7 @@ func StatefulSet_Tools() {
 		begin := time.Now()
 
 		pods, err := handler.GetPods(sts)
-		checkErr("GetPods", printPods(pods), err)
+		checkErr("GetPods", outputPods(pods), err)
 		pvcList, err := handler.GetPVC(sts2)
 		checkErr("GetPVC", pvcList, err)
 		pvList, err := handler.GetPV(sts2)
@@ -87,7 +87,10 @@ func StatefulSet_Tools() {
 	//2022/07/11 10:51:49 ===== Get StatefulSet By Object Cost Time: 106.91293ms
 }
 
-func printPods(podList []*corev1.Pod) []string {
+func outputPods(podList []*corev1.Pod) []string {
+	if podList == nil {
+		return nil
+	}
 	var pl []string
 	for _, pod := range podList {
 		pl = append(pl, pod.Name)
