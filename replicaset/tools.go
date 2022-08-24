@@ -29,10 +29,10 @@ func (h *Handler) IsReady(name string) bool {
 			return false
 		}
 		if *rs.Spec.Replicas != rs.Status.ReadyReplicas {
-
+			return false
 		}
 		if *rs.Spec.Replicas != rs.Status.AvailableReplicas {
-
+			return false
 		}
 		if *rs.Spec.Replicas != rs.Status.Replicas {
 			return false
