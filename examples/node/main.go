@@ -19,10 +19,10 @@ var (
 func main() {
 	Node_Tools()
 }
-func checkErr(name string, err error) {
+func checkErr(name string, val interface{}, err error) {
 	if err != nil {
 		log.Printf("%s failed: %v\n", name, err)
 	} else {
-		log.Printf("%s success.\n", name)
+		log.Printf("%s success: %v\n", name, val)
 	}
 }

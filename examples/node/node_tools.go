@@ -41,60 +41,44 @@ func Node_Tools() {
 		//log.Println(phase2)
 
 		hostname1, err := handler.GetHostname(masterName)
-		checkErr("GetHostname", err)
+		checkErr("GetHostname", hostname1, err)
 		hostname2, err := handler.GetHostname(workerName)
-		checkErr("GetHostname", err)
-		log.Println(hostname1)
-		log.Println(hostname2)
+		checkErr("GetHostname", hostname2, err)
 
 		internalIP1, err := handler.GetInternalIP(masterName)
-		checkErr("GetInternalIP", err)
+		checkErr("GetInternalIP", internalIP1, err)
 		internalIP2, err := handler.GetInternalIP(workerName)
-		checkErr("GetInternalIP", err)
-		log.Println(internalIP1)
-		log.Println(internalIP2)
+		checkErr("GetInternalIP", internalIP2, err)
 
 		roles1, err := handler.GetRoles(masterName)
-		checkErr("GetRoles", err)
+		checkErr("GetRoles", roles1, err)
 		roles2, err := handler.GetRoles(workerName)
-		checkErr("GetRoles", err)
-		log.Println(roles1)
-		log.Println(roles2)
+		checkErr("GetRoles", roles2, err)
 
 		podList1, err := handler.GetPods(masterName)
-		checkErr("GetPods", err)
+		checkErr("GetPods", outputPods(podList1), err)
 		podList2, err := handler.GetPods(workerName)
-		checkErr("GetPods", err)
-		printPods(podList1)
-		printPods(podList2)
+		checkErr("GetPods", outputPods(podList2), err)
 
 		cidr1, err := handler.GetCIDR(masterName)
-		checkErr("GetCIDR", err)
+		checkErr("GetCIDR", cidr1, err)
 		cidr2, err := handler.GetCIDR(workerName)
-		checkErr("GetCIDR", err)
-		log.Println(cidr1)
-		log.Println(cidr2)
+		checkErr("GetCIDR", cidr2, err)
 
 		cidrs1, err := handler.GetCIDRs(masterName)
-		checkErr("GetCIDRs", err)
+		checkErr("GetCIDRs", cidrs1, err)
 		cidrs2, err := handler.GetCIDRs(workerName)
-		checkErr("GetCIDRs", err)
-		log.Println(cidrs1)
-		log.Println(cidrs2)
+		checkErr("GetCIDRs", cidrs2, err)
 
 		masterInfo, err := handler.GetNodeInfo(masterName)
-		checkErr("GetNodeInfo", err)
+		checkErr("GetNodeInfo", masterInfo, err)
 		workerInfo, err := handler.GetNodeInfo(workerName)
-		checkErr("GetNodeInfo", err)
-		log.Println(masterInfo)
-		log.Println(workerInfo)
+		checkErr("GetNodeInfo", workerInfo, err)
 
 		age1, err := handler.GetAge(masterName)
-		checkErr("GetAge", err)
+		checkErr("GetAge", age1, err)
 		age2, err := handler.GetAge(workerName)
-		checkErr("GetAge", err)
-		log.Println(age1)
-		log.Println(age2)
+		checkErr("GetAge", age2, err)
 
 		end := time.Now()
 		log.Println("===== Get Node By Name Cost Time:", end.Sub(begin))
@@ -118,60 +102,44 @@ func Node_Tools() {
 		//log.Println(phase2)
 
 		hostname1, err := handler.GetHostname(masterObj)
-		checkErr("GetHostname", err)
+		checkErr("GetHostname", hostname1, err)
 		hostname2, err := handler.GetHostname(workerObj)
-		checkErr("GetHostname", err)
-		log.Println(hostname1)
-		log.Println(hostname2)
+		checkErr("GetHostname", hostname2, err)
 
 		internalIP1, err := handler.GetInternalIP(masterObj)
-		checkErr("GetInternalIP", err)
+		checkErr("GetInternalIP", internalIP1, err)
 		internalIP2, err := handler.GetInternalIP(workerObj)
-		checkErr("GetInternalIP", err)
-		log.Println(internalIP1)
-		log.Println(internalIP2)
+		checkErr("GetInternalIP", internalIP2, err)
 
 		roles1, err := handler.GetRoles(masterObj)
-		checkErr("GetRoles", err)
+		checkErr("GetRoles", roles1, err)
 		roles2, err := handler.GetRoles(workerObj)
-		checkErr("GetRoles", err)
-		log.Println(roles1)
-		log.Println(roles2)
+		checkErr("GetRoles", roles2, err)
 
 		podList1, err := handler.GetPods(masterObj)
-		checkErr("GetPods", err)
+		checkErr("GetPods", outputPods(podList1), err)
 		podList2, err := handler.GetPods(workerObj)
-		checkErr("GetPods", err)
-		printPods(podList1)
-		printPods(podList2)
+		checkErr("GetPods", outputPods(podList2), err)
 
 		cidr1, err := handler.GetCIDR(masterObj)
-		checkErr("GetCIDR", err)
+		checkErr("GetCIDR", cidr1, err)
 		cidr2, err := handler.GetCIDR(workerObj)
-		checkErr("GetCIDR", err)
-		log.Println(cidr1)
-		log.Println(cidr2)
+		checkErr("GetCIDR", cidr2, err)
 
 		cidrs1, err := handler.GetCIDRs(masterObj)
-		checkErr("GetCIDRs", err)
+		checkErr("GetCIDRs", cidrs1, err)
 		cidrs2, err := handler.GetCIDRs(workerObj)
-		checkErr("GetCIDRs", err)
-		log.Println(cidrs1)
-		log.Println(cidrs2)
+		checkErr("GetCIDRs", cidrs2, err)
 
 		masterInfo, err := handler.GetNodeInfo(masterObj)
-		checkErr("GetNodeInfo", err)
+		checkErr("GetNodeInfo", masterInfo, err)
 		workerInfo, err := handler.GetNodeInfo(workerObj)
-		checkErr("GetNodeInfo", err)
-		log.Println(masterInfo)
-		log.Println(workerInfo)
+		checkErr("GetNodeInfo", workerInfo, err)
 
 		age1, err := handler.GetAge(masterObj)
-		checkErr("GetAge", err)
+		checkErr("GetAge", age1, err)
 		age2, err := handler.GetAge(workerObj)
-		checkErr("GetAge", err)
-		log.Println(age1)
-		log.Println(age2)
+		checkErr("GetAge", age2, err)
 
 		end := time.Now()
 		log.Println("===== Get Node By Object Cost Time:", end.Sub(begin))
@@ -180,12 +148,64 @@ func Node_Tools() {
 
 	getByName()
 	getByObj()
+
+	// Output:
+
+	//2022/08/24 13:32:51 ===== Get Node By Name
+	//2022/08/24 13:32:51 true
+	//2022/08/24 13:32:51 false
+	//2022/08/24 13:32:51 true
+	//2022/08/24 13:32:51 false
+	//2022/08/24 13:32:51 GetHostname success: [d11-k8s-master1]
+	//2022/08/24 13:32:51 GetHostname success: [d11-k8s-worker1]
+	//2022/08/24 13:32:51 GetInternalIP success: [10.250.16.11]
+	//2022/08/24 13:32:51 GetInternalIP success: [10.250.16.21]
+	//2022/08/24 13:32:51 GetRoles success: [control-plane master]
+	//2022/08/24 13:32:52 GetRoles success: []
+	//2022/08/24 13:32:52 GetPods success: [nginx calico-node-smlk6 metrics-server-6c4b586fbb-zxmkf]
+	//2022/08/24 13:32:52 GetPods success: [kustomize-guestbook-ui-65f8795578-pmnhj ingress-controller-ingress-nginx-controller-jb2w9 calico-kube-controllers-756b87c6c4-f62gt calico-node-sw8hn calico-typha-6dd58fffb8-9hqws coredns-6bf8d6b86b-z7d42 metrics-server-6c4b586fbb-rwbpq local-path-provisioner-7fdb4745c6-r5nbt nfs-provisioner-nfs-subdir-external-provisioner-6668cc6487d6wjt]
+	//2022/08/24 13:32:53 GetCIDR success: 192.169.3.0/24
+	//2022/08/24 13:32:53 GetCIDR success: 192.169.0.0/24
+	//2022/08/24 13:32:53 GetCIDRs success: [192.169.3.0/24]
+	//2022/08/24 13:32:53 GetCIDRs success: [192.169.0.0/24]
+	//2022/08/24 13:32:54 GetNodeInfo success: &{d11-k8s-master1 [10.250.16.11] 2 3915380Ki 59217979294 2 4017780Ki 64255620Ki amd64 9788d8c4-42de-45e5-b23f-9ae944a23bdd containerd://1.6.7 5.10.0-17-amd64 v1.24.3 v1.24.3 82e56fd2e3a04ed693fbd3412d3b1c60 linux Debian GNU/Linux 11 (bullseye) 054a110d-4cef-3f4d-9c74-2f7ebf7faf59}
+	//2022/08/24 13:32:54 GetNodeInfo success: &{d11-k8s-worker1 [10.250.16.21] 2 3915380Ki 59217979294 2 4017780Ki 64255620Ki amd64 bbd3aafa-70df-4fd3-af7a-c87bb23f5ee5 containerd://1.6.7 5.10.0-17-amd64 v1.24.3 v1.24.3 82e56fd2e3a04ed693fbd3412d3b1c60 linux Debian GNU/Linux 11 (bullseye) 054a110d-4cef-3f4d-9c74-2f7ebf7faf59}
+	//2022/08/24 13:32:54 GetAge success: 51h35m37.62745s
+	//2022/08/24 13:32:54 GetAge success: 51h35m50.827587s
+	//2022/08/24 13:32:54 ===== Get Node By Name Cost Time: 3.195244474s
+	//2022/08/24 13:32:54
+	//2022/08/24 13:32:54 ===== Get Node By Object
+	//2022/08/24 13:32:54 true
+	//2022/08/24 13:32:54 false
+	//2022/08/24 13:32:54 true
+	//2022/08/24 13:32:54 false
+	//2022/08/24 13:32:54 GetHostname success: [d11-k8s-master1]
+	//2022/08/24 13:32:54 GetHostname success: [d11-k8s-worker1]
+	//2022/08/24 13:32:54 GetInternalIP success: [10.250.16.11]
+	//2022/08/24 13:32:54 GetInternalIP success: [10.250.16.21]
+	//2022/08/24 13:32:54 GetRoles success: [control-plane master]
+	//2022/08/24 13:32:54 GetRoles success: []
+	//2022/08/24 13:32:55 GetPods success: [nginx calico-node-smlk6 metrics-server-6c4b586fbb-zxmkf]
+	//2022/08/24 13:32:55 GetPods success: [kustomize-guestbook-ui-65f8795578-pmnhj ingress-controller-ingress-nginx-controller-jb2w9 calico-kube-controllers-756b87c6c4-f62gt calico-node-sw8hn calico-typha-6dd58fffb8-9hqws coredns-6bf8d6b86b-z7d42 metrics-server-6c4b586fbb-rwbpq local-path-provisioner-7fdb4745c6-r5nbt nfs-provisioner-nfs-subdir-external-provisioner-6668cc6487d6wjt]
+	//2022/08/24 13:32:55 GetCIDR success: 192.169.3.0/24
+	//2022/08/24 13:32:55 GetCIDR success: 192.169.0.0/24
+	//2022/08/24 13:32:55 GetCIDRs success: [192.169.3.0/24]
+	//2022/08/24 13:32:55 GetCIDRs success: [192.169.0.0/24]
+	//2022/08/24 13:32:55 GetNodeInfo success: &{d11-k8s-master1 [10.250.16.11] 2 3915380Ki 59217979294 2 4017780Ki 64255620Ki amd64 9788d8c4-42de-45e5-b23f-9ae944a23bdd containerd://1.6.7 5.10.0-17-amd64 v1.24.3 v1.24.3 82e56fd2e3a04ed693fbd3412d3b1c60 linux Debian GNU/Linux 11 (bullseye) 054a110d-4cef-3f4d-9c74-2f7ebf7faf59}
+	//2022/08/24 13:32:55 GetNodeInfo success: &{d11-k8s-worker1 [10.250.16.21] 2 3915380Ki 59217979294 2 4017780Ki 64255620Ki amd64 bbd3aafa-70df-4fd3-af7a-c87bb23f5ee5 containerd://1.6.7 5.10.0-17-amd64 v1.24.3 v1.24.3 82e56fd2e3a04ed693fbd3412d3b1c60 linux Debian GNU/Linux 11 (bullseye) 054a110d-4cef-3f4d-9c74-2f7ebf7faf59}
+	//2022/08/24 13:32:55 GetAge success: 51h35m38.623516s
+	//2022/08/24 13:32:55 GetAge success: 51h35m51.62352s
+	//2022/08/24 13:32:55 ===== Get Node By Object Cost Time: 795.900374ms
+	//2022/08/24 13:32:55
 }
 
-func printPods(podList []corev1.Pod) {
+func outputPods(podList []*corev1.Pod) []string {
+	if podList == nil {
+		return nil
+	}
 	var pl []string
 	for _, pod := range podList {
 		pl = append(pl, pod.Name)
 	}
-	log.Println(pl)
+	return pl
 }
