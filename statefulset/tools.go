@@ -26,10 +26,22 @@ func (h *Handler) IsReady(name string) bool {
 		return true
 	}
 	checkReplicas := func(sts *appsv1.StatefulSet) bool {
-		if sts.Spec.Replicas != nil && *sts.Spec.Replicas != sts.Status.ReadyReplicas {
+		if sts.Spec.Replicas == nil {
 			return false
 		}
-		if sts.Spec.Replicas != nil && *sts.Spec.Replicas != sts.Status.AvailableReplicas {
+		if *sts.Spec.Replicas != sts.Status.ReadyReplicas {
+			return false
+		}
+		if *sts.Spec.Replicas != sts.Status.AvailableReplicas {
+			return false
+		}
+		if *sts.Spec.Replicas != sts.Status.CurrentReplicas {
+			return false
+		}
+		if *sts.Spec.Replicas != sts.Status.UpdatedReplicas {
+			return false
+		}
+		if *sts.Spec.Replicas != sts.Status.Replicas {
 			return false
 		}
 		return true
