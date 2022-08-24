@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rs-nginx-data
+  namespace: test
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: nfs-sc
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rs-nginx-html
+  namespace: test
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: nfs-sc
+  resources:
+    requests:
+      storage: 8Gi
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-rs
+  namespace: test
+  labels:
+    app: nginx-rs
+    type: replicaset
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-rs
+      type: replicaset
+  template:
+    metadata:
+      labels:
+        app: nginx-rs
+        type: replicaset
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: html
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: rs-nginx-data
+      - name: html
+        persistentVolumeClaim:
+          claimName: rs-nginx-html
