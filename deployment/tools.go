@@ -26,13 +26,19 @@ func (h *Handler) IsReady(name string) bool {
 		return true
 	}
 	checkReplicas := func(deploy *appsv1.Deployment) bool {
-		if deploy.Spec.Replicas != nil && *deploy.Spec.Replicas != deploy.Status.UpdatedReplicas {
+		if deploy.Spec.Replicas == nil {
 			return false
 		}
-		if deploy.Status.Replicas != deploy.Status.UpdatedReplicas {
+		if *deploy.Spec.Replicas != deploy.Status.ReadyReplicas {
 			return false
 		}
-		if deploy.Status.AvailableReplicas != deploy.Status.UpdatedReplicas {
+		if *deploy.Spec.Replicas != deploy.Status.AvailableReplicas {
+			return false
+		}
+		if *deploy.Spec.Replicas != deploy.Status.UpdatedReplicas {
+			return false
+		}
+		if *deploy.Spec.Replicas != deploy.Status.Replicas {
 			return false
 		}
 		return true
