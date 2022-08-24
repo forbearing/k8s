@@ -303,7 +303,7 @@ func (h *Handler) getRoles(node *corev1.Node) []string {
 }
 
 // GetPods get all pods running in the node
-func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
+func (h *Handler) GetPods(object interface{}) ([]*corev1.Pod, error) {
 	switch val := object.(type) {
 	case string:
 		node, err := h.Get(val)
@@ -319,7 +319,7 @@ func (h *Handler) GetPods(object interface{}) ([]corev1.Pod, error) {
 		return nil, ErrInvalidToolsType
 	}
 }
-func (h *Handler) getPods(node *corev1.Node) ([]corev1.Pod, error) {
+func (h *Handler) getPods(node *corev1.Node) ([]*corev1.Pod, error) {
 	// ParseSelector takes a string representing a selector and returns an
 	// object suitable for matching, or an error.
 	fieldSelector, err := fields.ParseSelector(fmt.Sprintf("spec.nodeName=%s", node.Name))
@@ -334,9 +334,9 @@ func (h *Handler) getPods(node *corev1.Node) ([]corev1.Pod, error) {
 		return nil, err
 	}
 
-	var pl []corev1.Pod
-	for _, p := range podList.Items {
-		pl = append(pl, p)
+	var pl []*corev1.Pod
+	for i := range podList.Items {
+		pl = append(pl, &podList.Items[i])
 	}
 	return pl, nil
 }
