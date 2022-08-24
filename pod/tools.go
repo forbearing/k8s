@@ -31,15 +31,27 @@ type PodController struct {
 
 // IsReady check whether the pod is ready.
 func (h *Handler) IsReady(name string) bool {
+	checkPhase := func(pod *corev1.Pod) bool {
+		if pod.Status.Phase == corev1.PodRunning {
+			return true
+		}
+		return false
+	}
+	checkCondition := func(pod *corev1.Pod) bool {
+		for _, cond := range pod.Status.Conditions {
+			if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
+				return true
+			}
+		}
+		return false
+	}
+
 	pod, err := h.Get(name)
 	if err != nil {
 		return false
 	}
-	// 必须要 type=Ready 和 Status=True 才能算 Pod 已经就绪
-	for _, cond := range pod.Status.Conditions {
-		if cond.Type == corev1.PodReady && cond.Status == corev1.ConditionTrue {
-			return true
-		}
+	if checkPhase(pod) && checkCondition(pod) {
+		return true
 	}
 	return false
 }
