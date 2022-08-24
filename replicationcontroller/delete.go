@@ -69,7 +69,7 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	if err = json.Unmarshal(rcJson, rc); err != nil {
 		return err
 	}
-	return h.deleteRS(rc)
+	return h.deleteRC(rc)
 }
 
 // DeleteFromObject deletes replicationcontroller from runtime.Object.
@@ -78,7 +78,7 @@ func (h *Handler) DeleteFromObject(obj runtime.Object) error {
 	if !ok {
 		return fmt.Errorf("object type is not *corev1.ReplicationController")
 	}
-	return h.deleteRS(rc)
+	return h.deleteRC(rc)
 }
 
 // DeleteFromUnstructured deletes replicationcontroller from *unstructured.Unstructured.
@@ -88,7 +88,7 @@ func (h *Handler) DeleteFromUnstructured(u *unstructured.Unstructured) error {
 	if err != nil {
 		return err
 	}
-	return h.deleteRS(rc)
+	return h.deleteRC(rc)
 }
 
 // DeleteFromMap deletes replicationcontroller from map[string]interface{}.
@@ -98,11 +98,11 @@ func (h *Handler) DeleteFromMap(u map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
-	return h.deleteRS(rc)
+	return h.deleteRC(rc)
 }
 
-// deleteRS
-func (h *Handler) deleteRS(rc *corev1.ReplicationController) error {
+// deleteRC
+func (h *Handler) deleteRC(rc *corev1.ReplicationController) error {
 	var namespace string
 	if len(rc.Namespace) != 0 {
 		namespace = rc.Namespace
