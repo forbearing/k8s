@@ -3,6 +3,7 @@ package replicationcontroller
 import (
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/informers"
 	informerscore "k8s.io/client-go/informers/core/v1"
 	listerscore "k8s.io/client-go/listers/core/v1"
@@ -37,16 +38,47 @@ func (h *Handler) Lister() listerscore.ReplicationControllerLister {
 	return h.informerFactory.Core().V1().ReplicationControllers().Lister()
 }
 
-// RunInformer
+// RunInformer start and run the shared informer, returning after it stops.
+// The informer will be stopped when stopCh is closed.
+//
+// AddFunc, updateFunc, and deleteFunc are used to handle add, update,
+// and delete event of k8s replicationcontroller resource, respectively.
 func (h *Handler) RunInformer(
+	stopCh chan struct{},
 	addFunc func(obj interface{}),
 	updateFunc func(oldObj, newObj interface{}),
-	deleteFunc func(obj interface{}),
-	stopCh chan struct{}) {
+	deleteFunc func(obj interface{})) {
+
 	h.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    addFunc,
 		UpdateFunc: updateFunc,
 		DeleteFunc: deleteFunc,
 	})
-	h.Informer().Run(stopCh)
+
+	// method 1, recommended
+	h.InformerFactory().Start(stopCh)
+	logrus.Info("Waiting for informer caches to sync")
+	if ok := cache.WaitForCacheSync(stopCh, h.Informer().HasSynced); !ok {
+		logrus.Error("failed to wait for caches to sync")
+	}
+
+	//// method 2
+	//h.InformerFactory().Start(stopCh)
+	//logrus.Info("Waiting for informer caches to sync")
+	//h.InformerFactory().WaitForCacheSync(stopCh)
+
+	//// method 3
+	//logrus.Info("Waiting for informer caches to sync")
+	//h.informerFactory.WaitForCacheSync(stopCh)
+	//h.Informer().Run(stopCh)
+}
+
+// StartInformer simply call RunInformer.
+func (h *Handler) StartInformer(
+	addFunc func(obj interface{}),
+	updateFunc func(oldObj, newObj interface{}),
+	deleteFunc func(obj interface{}),
+	stopCh chan struct{}) {
+
+	h.RunInformer(stopCh, addFunc, updateFunc, deleteFunc)
 }

@@ -3,6 +3,7 @@ package pod
 import (
 	"time"
 
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -82,39 +83,56 @@ func (h *Handler) TestInformer(stopCh chan struct{}) {
 			log.Printf("Pod Deleted from Store: %s", myObj.GetName())
 		},
 	})
-	h.informerFactory.WaitForCacheSync(stopCh)
-	//cache.WaitForCacheSync(stopCh, h.informer.HasSynced)
-	h.Informer().Run(stopCh)
-	//h.informerFactory.WaitForCacheSync(wait.NeverStop)
-	//h.informerFactory.Start(wait.NeverStop)
+	h.InformerFactory().Start(stopCh)
+	logrus.Info("Waiting for informer caches to sync")
+	if ok := cache.WaitForCacheSync(stopCh, h.Informer().HasSynced); !ok {
+		logrus.Error("failed to wait for caches to sync")
+	}
 }
 
-// RunInformer
-// addFunc, updateFunc, stopChan 分别是
-// informer 的三个回调函数 addFunc, updateFunc, deleteFunc
-// 管道用来存放回调函数处理的 k8s 资源对象
+// RunInformer start and run the shared informer, returning after it stops.
+// The informer will be stopped when stopCh is closed.
+//
+// AddFunc, updateFunc, and deleteFunc are used to handle add, update,
+// and delete event of k8s pod resource, respectively.
 func (h *Handler) RunInformer(
+	stopCh chan struct{},
 	addFunc func(obj interface{}),
 	updateFunc func(oldObj, newObj interface{}),
-	deleteFunc func(obj interface{}),
-	stopCh chan struct{}) {
+	deleteFunc func(obj interface{})) {
+
 	h.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    addFunc,
 		UpdateFunc: updateFunc,
 		DeleteFunc: deleteFunc,
 	})
-	h.informerFactory.WaitForCacheSync(stopCh)
-	//cache.WaitForCacheSync(stopCh, h.informer.HasSynced)
-	h.Informer().Run(stopCh)
 
-	//h.informer.AddIndexers(cache.Indexers{
-	//    controllerUIDIndex: func(obj interface{}) ([]string, error) {
-	//        pod, ok := obj.(*corev1.Pod)
-	//        if ok {
-	//            return []string{}, nil
-	//        }
-	//    },
-	//})
+	// method 1, recommended
+	h.InformerFactory().Start(stopCh)
+	logrus.Info("Waiting for informer caches to sync")
+	if ok := cache.WaitForCacheSync(stopCh, h.Informer().HasSynced); !ok {
+		logrus.Error("failed to wait for caches to sync")
+	}
+
+	//// method 2
+	//h.InformerFactory().Start(stopCh)
+	//logrus.Info("Waiting for informer caches to sync")
+	//h.InformerFactory().WaitForCacheSync(stopCh)
+
+	//// method 3
+	//logrus.Info("Waiting for informer caches to sync")
+	//h.informerFactory.WaitForCacheSync(stopCh)
+	//h.Informer().Run(stopCh)
+}
+
+// StartInformer simply call RunInformer.
+func (h *Handler) StartInformer(
+	addFunc func(obj interface{}),
+	updateFunc func(oldObj, newObj interface{}),
+	deleteFunc func(obj interface{}),
+	stopCh chan struct{}) {
+
+	h.RunInformer(stopCh, addFunc, updateFunc, deleteFunc)
 }
 
 // 1.PodInformer 继承了 SharedIndexInformer 和 PodLister
