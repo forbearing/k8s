@@ -28,7 +28,8 @@ var (
 )
 
 func main() {
-	Service_Tools()
+	//Service_Tools()
+	Service_Informer()
 }
 
 func checkErr(name string, val interface{}, err error) {
