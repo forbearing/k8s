@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/forbearing/k8s/deployment"
+	"github.com/forbearing/k8s/util/signals"
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,10 +31,10 @@ func Deployment_Informer() {
 		updateQueue <- uo
 	}
 	deleteFunc := func(obj interface{}) { deleteQueue <- obj }
-	stopCh := make(chan struct{}, 1)
+	stopCh := signals.SetupSignalChannel()
 
 	go func() {
-		handler.RunInformer(addFunc, updateFunc, deleteFunc, stopCh)
+		handler.RunInformer(stopCh, addFunc, updateFunc, deleteFunc)
 	}()
 
 	for {
