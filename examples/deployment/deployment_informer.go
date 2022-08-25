@@ -63,6 +63,7 @@ func Deployment_Informer() {
 			log.Println("Delete", myObj.GetName())
 		case <-stopCh:
 			log.Println("Informer stopped.")
+			return
 		}
 
 	}
