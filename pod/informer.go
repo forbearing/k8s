@@ -67,7 +67,7 @@ func (h *Handler) Lister() listerscore.PodLister {
 // AddFunc, updateFunc, and deleteFunc are used to handle add, update,
 // and delete event of k8s pod resource, respectively.
 func (h *Handler) RunInformer(
-	stopCh chan struct{},
+	stopCh <-chan struct{},
 	addFunc func(obj interface{}),
 	updateFunc func(oldObj, newObj interface{}),
 	deleteFunc func(obj interface{})) {
@@ -98,10 +98,10 @@ func (h *Handler) RunInformer(
 
 // StartInformer simply call RunInformer.
 func (h *Handler) StartInformer(
+	stopCh <-chan struct{},
 	addFunc func(obj interface{}),
 	updateFunc func(oldObj, newObj interface{}),
-	deleteFunc func(obj interface{}),
-	stopCh chan struct{}) {
+	deleteFunc func(obj interface{})) {
 
 	h.RunInformer(stopCh, addFunc, updateFunc, deleteFunc)
 }
