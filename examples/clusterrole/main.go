@@ -20,15 +20,15 @@ var (
 )
 
 func main() {
-	Clusterrole_Create()
-	//Deployment_Update()
-	//Deployment_Apply()
-	//Deployment_Delete()
-	//Deployment_Get()
-	//Deployment_List()
-	//Deployment_Watch()
-	//Deployment_Informer()
-	//Deployment_Tools()
+	ClusterRole_Create()
+	//ClusterRole_Update()
+	//ClusterRole_Apply()
+	//ClusterRole_Delete()
+	//ClusterRole_Get()
+	//ClusterRole_List()
+	//ClusterRole_Watch()
+	//ClusterRole_Informer()
+	//ClusterRole_Tools()
 
 }
 

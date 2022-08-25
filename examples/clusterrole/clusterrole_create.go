@@ -7,7 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func Clusterrole_Create() {
+func ClusterRole_Create() {
 	// New returns a handler used to multiples deployment.
 	handler, err := clusterrole.New(ctx, kubeconfig)
 	if err != nil {
