@@ -61,35 +61,6 @@ func (h *Handler) Lister() listerscore.PodLister {
 	return h.informerFactory.Core().V1().Pods().Lister()
 }
 
-// TestInformer
-func (h *Handler) TestInformer(stopCh chan struct{}) {
-	h.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			myObj := obj.(metav1.Object)
-			log.Printf("New Pod Added to Store: %s", myObj.GetName())
-		},
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			newPod := newObj.(*corev1.Pod)
-			oldPod := oldObj.(*corev1.Pod)
-			if newPod.ResourceVersion != oldPod.ResourceVersion {
-				log.Printf("Pod Updated to Store: %s\n", newPod.Name)
-			}
-			//if !reflect.DeepEqual(newObj, oldObj) {
-			//    log.Printf("Pod Updated to Store: %s\n", newObj.(metav1.Object).GetName())
-			//}
-		},
-		DeleteFunc: func(obj interface{}) {
-			myObj := obj.(metav1.Object)
-			log.Printf("Pod Deleted from Store: %s", myObj.GetName())
-		},
-	})
-	h.InformerFactory().Start(stopCh)
-	logrus.Info("Waiting for informer caches to sync")
-	if ok := cache.WaitForCacheSync(stopCh, h.Informer().HasSynced); !ok {
-		logrus.Error("failed to wait for caches to sync")
-	}
-}
-
 // RunInformer start and run the shared informer, returning after it stops.
 // The informer will be stopped when stopCh is closed.
 //
@@ -133,6 +104,35 @@ func (h *Handler) StartInformer(
 	stopCh chan struct{}) {
 
 	h.RunInformer(stopCh, addFunc, updateFunc, deleteFunc)
+}
+
+// TestInformer
+func (h *Handler) TestInformer(stopCh chan struct{}) {
+	h.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			myObj := obj.(metav1.Object)
+			log.Printf("New Pod Added to Store: %s", myObj.GetName())
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			newPod := newObj.(*corev1.Pod)
+			oldPod := oldObj.(*corev1.Pod)
+			if newPod.ResourceVersion != oldPod.ResourceVersion {
+				log.Printf("Pod Updated to Store: %s\n", newPod.Name)
+			}
+			//if !reflect.DeepEqual(newObj, oldObj) {
+			//    log.Printf("Pod Updated to Store: %s\n", newObj.(metav1.Object).GetName())
+			//}
+		},
+		DeleteFunc: func(obj interface{}) {
+			myObj := obj.(metav1.Object)
+			log.Printf("Pod Deleted from Store: %s", myObj.GetName())
+		},
+	})
+	h.InformerFactory().Start(stopCh)
+	logrus.Info("Waiting for informer caches to sync")
+	if ok := cache.WaitForCacheSync(stopCh, h.Informer().HasSynced); !ok {
+		logrus.Error("failed to wait for caches to sync")
+	}
 }
 
 // 1.PodInformer 继承了 SharedIndexInformer 和 PodLister
