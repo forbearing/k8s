@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/forbearing/k8s/pod"
+	"github.com/forbearing/k8s/util/signals"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -35,11 +36,11 @@ func Pod_Informer() {
 		updateQueue <- uo
 	}
 	deleteFunc := func(obj interface{}) { deleteQueue <- obj }
-	stopCh := make(chan struct{}, 1)
+	stopCh := signals.SetupSignalChannel()
 
 	// RunInformer 必须开启一个新的 goroutine 来执行
 	go func() {
-		handler.RunInformer(addFunc, updateFunc, deleteFunc, stopCh)
+		handler.RunInformer(stopCh, addFunc, updateFunc, deleteFunc)
 	}()
 
 	for {
