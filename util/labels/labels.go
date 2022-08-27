@@ -144,7 +144,7 @@ func RemoveAll(obj runtime.Object) error {
 	return nil
 }
 
-// parseLabel parse the label and return label key and label value.
+// parseLabel parse the label and return label key and value.
 // Label key and value separated by "=".
 func parseLabel(label string) (key, val string, err error) {
 	parts := strings.Split(label, "=")
