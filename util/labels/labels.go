@@ -30,7 +30,7 @@ func Has(obj runtime.Object, label string) bool {
 
 	// meta.Accessor convert runtime.Object to metav1.Object.
 	// metav1.Object have all kinds of method to get/set k8s object metadata,
-	// such like: GetNamespace/SetNamespace, GetName/SetName, GetLabels/SetLabels.
+	// such like: GetNamespace/SetNamespace, GetName/SetName, GetLabels/SetLabels, etc.
 	accessor, err := meta.Accessor(obj)
 	if err != nil {
 		return false
@@ -82,13 +82,13 @@ func GetAll(obj runtime.Object) map[string]string {
 // If label already exist, it will update the label.
 // If label not exist, it will add the label.
 func Set(obj runtime.Object, label ...string) error {
+	accessor, err := meta.Accessor(obj)
+	if err != nil {
+		return err
+	}
+
 	for _, l := range label {
 		key, val, err := parseLabel(l)
-		if err != nil {
-			return err
-		}
-
-		accessor, err := meta.Accessor(obj)
 		if err != nil {
 			return err
 		}
@@ -101,17 +101,16 @@ func Set(obj runtime.Object, label ...string) error {
 
 // Remove will delete the provided label for the k8s object if contains it.
 func Remove(obj runtime.Object, label ...string) error {
+	accessor, err := meta.Accessor(obj)
+	if err != nil {
+		return err
+	}
+
 	for _, l := range label {
 		key, val, err := parseLabel(l)
 		if err != nil {
 			return err
 		}
-
-		accessor, err := meta.Accessor(obj)
-		if err != nil {
-			return err
-		}
-
 		// label only contains label key
 		newLabels := make(map[string]string)
 		if len(val) == 0 {
@@ -149,12 +148,12 @@ func RemoveAll(obj runtime.Object) error {
 // Label key and value separated by "=".
 func parseLabel(label string) (key, val string, err error) {
 	parts := strings.Split(label, "=")
-	// label only contains label key
+	// the label only contains key
 	if len(parts) == 1 {
 		// return the label key
 		return parts[0], "", nil
 	}
-	// label contains the label key and value, and validate label value.
+	// the label contains the key and value, and validate label value.
 	if errs := validation.IsValidLabelValue(parts[1]); len(errs) != 0 {
 		return "", "", fmt.Errorf("invalid label value: %q: %v", label, strings.Join(errs, ";"))
 	}
