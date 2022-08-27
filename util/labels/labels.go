@@ -12,6 +12,7 @@ import (
 /*
 reference:
 https://github.com/kubernetes/kubectl/blob/master/pkg/cmd/label/label.go
+https://github.com/kubernetes/kubectl/blob/master/pkg/cmd/annotate/annotate.go
 https://github.com/fenggolang/client-go-example/blob/master/vendor/k8s.io/apimachinery/pkg/labels/labels.go
 */
 
