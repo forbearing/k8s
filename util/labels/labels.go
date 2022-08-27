@@ -16,12 +16,12 @@ https://github.com/fenggolang/client-go-example/blob/master/vendor/k8s.io/apimac
 */
 
 // Has will return true if the k8s object has specified label, otherwise return false.
-// The key and value of a label separated by "="
+// Label key and value separated by "=".
 //
-// If the label only contains label key, only to check whether the labels of
-// the k8s object contains the label key.
-// If the label contains label key and value, and check whether the labels of
-// the k8s object contains the label key and value.
+// If the provided label only contains label key, then only to check whether
+// the labels of the k8s object contains the label key.
+// If the provided label contains label key and value, then check whether
+// the labels of the k8s object contains the label key and value.
 func Has(obj runtime.Object, label string) bool {
 	key, val, err := parseLabel(label)
 	if err != nil {
@@ -56,7 +56,7 @@ func Has(obj runtime.Object, label string) bool {
 }
 
 // Get get the label value of the provided k8s object for the specified label key.
-// Return empty string if the k8s object is not runtime.Object.
+// Return empty string if the object is not runtime.Object.
 func Get(obj runtime.Object, label string) string {
 	key, _, _ := parseLabel(label)
 
@@ -67,7 +67,7 @@ func Get(obj runtime.Object, label string) string {
 	return accessor.GetLabels()[key]
 }
 
-// GetAll get all labels of the provides k8s object.
+// GetAll get all labels of the provided k8s object.
 // Return nil if the provided object is not runtime.Object.
 func GetAll(obj runtime.Object) map[string]string {
 	accessor, err := meta.Accessor(obj)
@@ -77,8 +77,8 @@ func GetAll(obj runtime.Object) map[string]string {
 	return accessor.GetLabels()
 }
 
-// Set set labels for the provided k8s object, it will replace all labels.
-// the key and value of a label separated by "="
+// Set set labels for the provided k8s object.
+// Label key and value separated by "=".
 // If label already exist, it will update the label.
 // If label not exist, it will add the label.
 func Set(obj runtime.Object, label ...string) error {
@@ -99,7 +99,7 @@ func Set(obj runtime.Object, label ...string) error {
 	return nil
 }
 
-// Remove will delete a label for the k8s object if has this l.
+// Remove will delete the provided label for the k8s object if contains it.
 func Remove(obj runtime.Object, label ...string) error {
 	for _, l := range label {
 		key, val, err := parseLabel(l)
@@ -146,7 +146,7 @@ func RemoveAll(obj runtime.Object) error {
 }
 
 // parseLabel parse the label and return label key and label value.
-// label separated by "=".
+// Label key and value separated by "=".
 func parseLabel(label string) (key, val string, err error) {
 	parts := strings.Split(label, "=")
 	// label only contains label key
