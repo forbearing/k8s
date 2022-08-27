@@ -23,15 +23,15 @@ https://github.com/fenggolang/client-go-example/blob/master/vendor/k8s.io/apimac
 // If the provided label contains label key and value, then check whether
 // the labels of the k8s object contains the label key and value.
 func Has(obj runtime.Object, label string) bool {
-	key, val, err := parseLabel(label)
-	if err != nil {
-		return false
-	}
-
 	// meta.Accessor convert runtime.Object to metav1.Object.
 	// metav1.Object have all kinds of method to get/set k8s object metadata,
 	// such like: GetNamespace/SetNamespace, GetName/SetName, GetLabels/SetLabels, etc.
 	accessor, err := meta.Accessor(obj)
+	if err != nil {
+		return false
+	}
+
+	key, val, err := parseLabel(label)
 	if err != nil {
 		return false
 	}
@@ -58,12 +58,11 @@ func Has(obj runtime.Object, label string) bool {
 // Get get the label value of the provided k8s object for the specified label key.
 // Return empty string if the object is not runtime.Object.
 func Get(obj runtime.Object, label string) string {
-	key, _, _ := parseLabel(label)
-
 	accessor, err := meta.Accessor(obj)
 	if err != nil {
 		return ""
 	}
+	key, _, _ := parseLabel(label)
 	return accessor.GetLabels()[key]
 }
 
