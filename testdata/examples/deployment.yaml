@@ -5,6 +5,8 @@ metadata:
   labels:
     app: mydep
     type: deployment
+  annotations:
+    version: v1
 spec:
   replicas: 3
   selector: 
