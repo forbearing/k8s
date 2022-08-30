@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	informerscore "k8s.io/client-go/informers/core/v1"
+	"k8s.io/client-go/informers/internalinterfaces"
 	listerscore "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
@@ -33,9 +34,48 @@ ref:
   完全信任 etcd.
 */
 
-// SetInformerResyncPeriod will set informer resync period.
-func (h *Handler) SetInformerResyncPeriod(resyncPeriod time.Duration) {
-	h.informerFactory = informers.NewSharedInformerFactory(h.clientset, resyncPeriod)
+// SetInformerFactoryResyncPeriod will set informer resync period.
+func (h *Handler) SetInformerFactoryResyncPeriod(resyncPeriod time.Duration) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.resyncPeriod = resyncPeriod
+	if len(h.informerScope) == 0 {
+		h.informerScope = metav1.NamespaceAll
+	}
+	h.informerFactory = informers.NewSharedInformerFactoryWithOptions(
+		h.clientset, h.resyncPeriod,
+		informers.WithNamespace(h.informerScope),
+		informers.WithTweakListOptions(h.tweakListOptions))
+}
+
+// SetInformerFactoryNamespace limit the scope of informer list-and-watch k8s resource.
+// informer list-and-watch all namespace k8s resource by default.
+func (h *Handler) SetInformerFactoryNamespace(namespace string) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.informerScope = namespace
+	if len(h.informerScope) == 0 {
+		h.informerScope = metav1.NamespaceAll
+	}
+	h.informerFactory = informers.NewSharedInformerFactoryWithOptions(
+		h.clientset, h.resyncPeriod,
+		informers.WithNamespace(h.informerScope),
+		informers.WithTweakListOptions(h.tweakListOptions))
+}
+
+// SetInformerFactoryTweakListOptions sets a custom filter on all listers of
+// the configured SharedInformerFactory.
+func (h *Handler) SetInformerFactoryTweakListOptions(tweakListOptions internalinterfaces.TweakListOptionsFunc) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.tweakListOptions = tweakListOptions
+	if len(h.informerScope) == 0 {
+		h.informerScope = metav1.NamespaceAll
+	}
+	h.informerFactory = informers.NewSharedInformerFactoryWithOptions(
+		h.clientset, h.resyncPeriod,
+		informers.WithNamespace(h.informerScope),
+		informers.WithTweakListOptions(h.tweakListOptions))
 }
 
 // InformerFactory returns underlying SharedInformerFactory which provides

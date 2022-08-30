@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/forbearing/k8s/types"
 	corev1 "k8s.io/api/core/v1"
@@ -17,6 +18,7 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
+	"k8s.io/client-go/informers/internalinterfaces"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -24,16 +26,20 @@ import (
 )
 
 type Handler struct {
+	ctx        context.Context
 	kubeconfig string
 
-	ctx             context.Context
 	config          *rest.Config
 	httpClient      *http.Client
 	restClient      *rest.RESTClient
 	clientset       *kubernetes.Clientset
 	dynamicClient   dynamic.Interface
 	discoveryClient *discovery.DiscoveryClient
-	informerFactory informers.SharedInformerFactory
+
+	resyncPeriod     time.Duration
+	informerScope    string
+	tweakListOptions internalinterfaces.TweakListOptionsFunc
+	informerFactory  informers.SharedInformerFactory
 
 	Options *types.HandlerOptions
 
