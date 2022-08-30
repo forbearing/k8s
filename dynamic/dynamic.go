@@ -6,11 +6,13 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/forbearing/k8s/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -27,6 +29,11 @@ type Handler struct {
 	httpClient    *http.Client
 	restClient    *rest.RESTClient
 	dynamicClient dynamic.Interface
+
+	resyncPeriod     time.Duration
+	informerScope    string
+	tweakListOptions dynamicinformer.TweakListOptionsFunc
+	informerFactory  dynamicinformer.DynamicSharedInformerFactory
 
 	Options *types.HandlerOptions
 
@@ -130,6 +137,7 @@ func New(ctx context.Context, kubeconfig, namespace string, gvr schema.GroupVers
 	return handler, nil
 }
 
+// DeepCopy
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
@@ -161,6 +169,8 @@ func (in *Handler) DeepCopy() *Handler {
 
 	return out
 }
+
+// setPropagationPolicy
 func (h *Handler) setPropagationPolicy(policy string) {
 	h.l.Lock()
 	defer h.l.Unlock()
@@ -179,28 +189,14 @@ func (h *Handler) setPropagationPolicy(policy string) {
 		h.Options.DeleteOptions.PropagationPolicy = &propagationPolicy
 	}
 }
+
+// IsNamespacedResource
 func (h *Handler) IsNamespacedResource() bool {
 	if len(h.namespace) == 0 {
 		return false
 	}
 	return true
 }
-
-//// SetNamespacedResource sets whether this unstructured resource is namespaced
-//// k8s resource, default is namespaced k8s resource.
-//// If this unstructured k8s resource is global scope but SetNamespacedResource(false)
-//// not called, then create/delete/update/delete/get will be failed.
-
-//// For example, if you create "deployment" resource with dynamic client handler,
-//// just call Create() method, but if you create "namespace" resource with dynamic
-//// client handler without call SetNamespacedResource(false) before to mark it is
-//// global k8s resource, it will fail.
-
-//func (h *Handler) SetNamespacedResource(namespaced bool) {
-//    h.l.Lock()
-//    defer h.l.Unlock()
-//    h.namespacedResource = namespaced
-//}
 
 // WithNamespace returns the same handler but with provided namespace.
 func (h *Handler) WithNamespace(namespace string) *Handler {
