@@ -4,19 +4,23 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"reflect"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/forbearing/k8s/util/signals"
 	log "github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/client-go/transport/spdy"
 )
@@ -693,18 +697,59 @@ func (h *Handler) ExecuteWithStream(podName, containerName string, command []str
 	})
 }
 
-// PortForward forward a local port to the pod.
-//
 // ref:
 //   https://github.com/kubernetes/client-go/issues/51
 //   https://github.com/anthhub/forwarder
 //   https://www.modb.pro/db/137716
-func (h *Handler) PortForward(podName string, addr net.IP, localPort, remotePort int32) error {
+
+// PortForward forward a local port to the pod.
+func (h *Handler) PortForward(podName string, localPort, remotePort uint32, stopChan ...<-chan struct{}) error {
 	roundTripper, upgrader, err := spdy.RoundTripperFor(h.config)
 	if err != nil {
 		return err
 	}
+	apiPath := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward", h.namespace, podName)
+	hostIP := strings.TrimLeft(h.config.Host, "https:/")
+	serverURL := url.URL{Scheme: "https", Path: apiPath, Host: hostIP}
+	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: roundTripper}, http.MethodPost, &serverURL)
 
-	_, _ = roundTripper, upgrader
-	return nil
+	var stopCh <-chan struct{}
+	if len(stopChan) == 0 {
+		stopCh = signals.NewSignalChannel()
+	} else {
+		stopCh = stopChan[0]
+	}
+	readyCh := make(chan struct{}, 1)
+
+	forwarder, err := portforward.New(dialer, []string{fmt.Sprintf("%d:%d", localPort, remotePort)}, stopCh, readyCh, os.Stdout, os.Stderr)
+	if err != nil {
+		return err
+	}
+	return forwarder.ForwardPorts()
+}
+
+// PortForwardWithStreama forward a local port to the pod, and you should provide the stdout, stderr.
+func (h *Handler) PortForwardWithStream(podName string, localPort, remotePort uint32, stdout, stderr io.Writer, stopChan ...<-chan struct{}) error {
+	roundTripper, upgrader, err := spdy.RoundTripperFor(h.config)
+	if err != nil {
+		return err
+	}
+	apiPath := fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/portforward", h.namespace, podName)
+	hostIP := strings.TrimLeft(h.config.Host, "https:/")
+	serverURL := url.URL{Scheme: "https", Path: apiPath, Host: hostIP}
+	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: roundTripper}, http.MethodPost, &serverURL)
+
+	var stopCh <-chan struct{}
+	if len(stopChan) == 0 {
+		stopCh = signals.NewSignalChannel()
+	} else {
+		stopCh = stopChan[0]
+	}
+	readyCh := make(chan struct{}, 1)
+
+	forwarder, err := portforward.New(dialer, []string{fmt.Sprintf("%d:%d", localPort, remotePort)}, stopCh, readyCh, stdout, stderr)
+	if err != nil {
+		return err
+	}
+	return forwarder.ForwardPorts()
 }
