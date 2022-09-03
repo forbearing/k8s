@@ -7,15 +7,20 @@ import (
 )
 
 func Dynamic_Apply() {
-	handler := dynamic.NewOrDie(context.TODO(), "")
+	namespace := "test"
+	handler := dynamic.NewOrDie(context.TODO(), "", namespace)
 	defer cleanup(handler)
 
 	// apply deployment
-	_, err := handler.WithNamespace("test").Apply(deployUnstructData)
-	checkErr("apply deployment", "", err)
+	_, err := handler.Apply(deployUnstructData)
+	checkErr("apply deployment from map[string]interface{}", "", err)
+	_, err = handler.Apply("../../testdata/examples/deployment.yaml")
+	checkErr("apply deployment from yaml file", "", err)
+	_, err = handler.Apply(("../../testdata/examples/deployment.json"))
+	checkErr("apply deployment from json file", "", err)
 
 	// apply pod
-	_, err = handler.WithNamespace("test").Apply(podUnstructData)
+	_, err = handler.Apply(podUnstructData)
 	checkErr("apply pod", "", err)
 
 	// apply namespace
@@ -32,9 +37,9 @@ func Dynamic_Apply() {
 
 	// Output:
 
-	//2022/08/10 13:55:00 apply deployment success:
-	//2022/08/10 13:55:00 apply pod success:
-	//2022/08/10 13:55:00 apply namespace success:
-	//2022/08/10 13:55:00 apply persistentvolume success:
-	//2022/08/10 13:55:00 apply clusterrole success:
+	//2022/09/03 22:03:30 apply deployment success:
+	//2022/09/03 22:03:30 apply pod success:
+	//2022/09/03 22:03:30 apply namespace success:
+	//2022/09/03 22:03:30 apply persistentvolume success:
+	//2022/09/03 22:03:30 apply clusterrole success:
 }

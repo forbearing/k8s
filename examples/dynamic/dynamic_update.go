@@ -4,18 +4,18 @@ import (
 	"context"
 
 	"github.com/forbearing/k8s/dynamic"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func Dynamic_Update() {
-	handler := dynamic.NewOrDie(context.TODO(), clientcmd.RecommendedHomeFile)
+	namespace := "test"
+	handler := dynamic.NewOrDie(context.TODO(), "", namespace)
 	defer cleanup(handler)
 
 	// update deployment.
-	if _, err := handler.WithNamespace("test").Create(deployUnstructData); err != nil {
+	if _, err := handler.Create(deployUnstructData); err != nil {
 		panic(err)
 	}
-	_, err := handler.WithNamespace("test").Update(deployUnstructData)
+	_, err := handler.Update(deployUnstructData)
 	checkErr("update deployment", "", err)
 
 	// update namespace
@@ -41,8 +41,9 @@ func Dynamic_Update() {
 
 	// Output:
 
-	//2022/08/10 13:57:40 update deployment success:
-	//2022/08/10 13:57:41 update namespace success:
-	//2022/08/10 13:57:41 update persistentvolume success:
-	//2022/08/10 13:57:41 update clusterrole success:
+	//2022/09/03 22:00:38 update deployment success:
+	//2022/09/03 22:00:38 update namespace success:
+	//2022/09/03 22:00:38 update persistentvolume success:
+	//2022/09/03 22:00:38 update clusterrole success:
+
 }

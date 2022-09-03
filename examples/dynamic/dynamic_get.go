@@ -8,21 +8,26 @@ import (
 )
 
 func Dynamic_Get() {
-	handler := dynamic.NewOrDie(context.TODO(), "")
+	namespace := "test"
+	handler := dynamic.NewOrDie(context.TODO(), "", namespace)
 	defer cleanup(handler)
 
 	// get deployment
-	if _, err := handler.WithNamespace("test").Apply(deployUnstructData); err != nil {
+	if _, err := handler.Apply(deployUnstructData); err != nil {
 		panic(err)
 	}
-	u1, err := handler.WithNamespace("test").Get(deployUnstructData)
+	// if the Get() parameter is []byte which containing the resource defination.
+	// it's not necessarily to provides GroupVersionKind with WithGVK() method.
+	u1, err := handler.Get(deployUnstructData)
 	checkErr("get deployment", u1.GetName(), err)
 
 	// get pod
-	if _, err := handler.WithNamespace("test").Apply(podUnstructData); err != nil {
+	if _, err := handler.Apply(podUnstructData); err != nil {
 		panic(err)
 	}
-	u2, err := handler.WithGVK(pod.GVK()).WithNamespace("test").Get(podUnstructName)
+	// if the Get() parameter is resource name, you should call WithGVK()
+	// to provides the GroupVersionkind of this resource.
+	u2, err := handler.WithGVK(pod.GVK()).Get(podUnstructName)
 	checkErr("get pod", u2.GetName(), err)
 
 	// get namespace
@@ -48,9 +53,9 @@ func Dynamic_Get() {
 
 	// Output:
 
-	//2022/08/10 13:57:04 get deployment success: mydep-unstruct
-	//2022/08/10 13:57:04 get pod success: pod-unstruct
-	//2022/08/10 13:57:05 get namespace success: ns-unstruct
-	//2022/08/10 13:57:05 get persistentvolume success: pv-unstruct
-	//2022/08/10 13:57:05 get clusterrole success: cr-unstruct
+	//2022/09/03 22:04:10 get deployment success: mydep-unstruct
+	//2022/09/03 22:04:10 get pod success: pod-unstruct
+	//2022/09/03 22:04:10 get namespace success: ns-unstruct
+	//2022/09/03 22:04:11 get persistentvolume success: pv-unstruct
+	//2022/09/03 22:04:11 get clusterrole success: cr-unstruct
 }

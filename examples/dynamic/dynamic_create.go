@@ -7,15 +7,16 @@ import (
 )
 
 func Dynamic_Create() {
-	handler := dynamic.NewOrDie(context.TODO(), "")
+	namespace := "test"
+	handler := dynamic.NewOrDie(context.TODO(), "", namespace)
 	defer cleanup(handler)
 
 	// create deployment
-	_, err := handler.WithNamespace("test").Create(deployUnstructData)
+	_, err := handler.Create(deployUnstructData)
 	checkErr("create deployment", "", err)
 
 	// create pod
-	_, err = handler.WithNamespace("test").Create(podUnstructData)
+	_, err = handler.Create(podUnstructData)
 	checkErr("create pod", "", err)
 
 	// create namespace
@@ -32,9 +33,10 @@ func Dynamic_Create() {
 
 	// Output:
 
-	//2022/08/10 13:58:21 create deployment success:
-	//2022/08/10 13:58:21 create pod success:
-	//2022/08/10 13:58:21 create namespace success:
-	//2022/08/10 13:58:21 create persistentvolume success:
-	//2022/08/10 13:58:21 create clusterrole success:
+	//2022/09/03 21:58:35 create deployment success:
+	//2022/09/03 21:58:35 create pod success:
+	//2022/09/03 21:58:35 create namespace success:
+	//2022/09/03 21:58:35 create persistentvolume success:
+	//2022/09/03 21:58:35 create clusterrole success:
+
 }

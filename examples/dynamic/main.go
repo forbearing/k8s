@@ -14,13 +14,15 @@ import (
 func main() {
 	//Dynamic_Create()
 	//Dynamic_Update()
-	//Dynamic_Apply()
-	Dynamic_Get()
+	Dynamic_Apply()
+	//Dynamic_Get()
 }
 
 func cleanup(handler *dynamic.Handler) {
-	handler.WithGVK(deployment.GVK()).WithNamespace("test").Delete(deployUnstructName)
-	handler.WithGVK(pod.GVK()).WithNamespace("test").Delete(podUnstructData)
+	handler.WithGVK(deployment.GVK()).Delete(deployUnstructName)
+	handler.DeleteFromFile("../../testdata/examples/deployment.yaml")
+	handler.DeleteFromFile("../../testdata/examples/deployment.json")
+	handler.WithGVK(pod.GVK()).Delete(podUnstructData)
 	handler.WithGVK(namespace.GVK()).Delete(nsUnstructData)
 	handler.WithGVK(persistentvolume.GVK()).Delete(pvUnstructData)
 	handler.WithGVK(clusterrole.GVK()).Delete(crUnstructName)
