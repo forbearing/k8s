@@ -33,3 +33,12 @@ func IgnoreDeadlineExceeded(err error) error {
 	}
 	return err
 }
+
+// IgnoreInvalid returns nil on Invalid errors.
+// All other values that are not Invalid or nil are returned unmodified.
+func IgnoreInvalid(err error) error {
+	if apierrors.IsInvalid(err) {
+		return nil
+	}
+	return err
+}
