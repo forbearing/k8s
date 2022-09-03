@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"regexp"
 
-	k8sdynamic "github.com/forbearing/k8s/dynamic"
 	utilerrors "github.com/forbearing/k8s/util/errors"
 	"github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -15,7 +14,7 @@ import (
 // DeleteF work like "kubectl delete -f filename.yaml -n test",
 // The namespace defined in yaml have higher precedence than namespace specified here.
 func DeleteF(ctx context.Context, kubeconfig, filename string, namespace string, opts ...Options) error {
-	dynamicHandler, err := k8sdynamic.New(ctx, kubeconfig, namespace)
+	handler, err := New(ctx, kubeconfig, namespace)
 	if err != nil {
 		return err
 	}
@@ -39,7 +38,7 @@ func DeleteF(ctx context.Context, kubeconfig, filename string, namespace string,
 		// If the k8s resource is namespace scope and no namespace is defined in yaml file, then
 		// dynaimc hanler will create the k8s resource is the namespace specified in dynamic.New().
 		// (namespace defined in yaml file have higher precedence than specified in dynamic.New())
-		err = dynamicHandler.Delete(item)
+		err = handler.Delete(item)
 		for _, opt := range opts {
 			switch opt {
 			case IgnoreAlreadyExists:
