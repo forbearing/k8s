@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/forbearing/k8s/clusterrole"
+	"github.com/forbearing/k8s/deployment"
 	"github.com/forbearing/k8s/dynamic"
 	"github.com/forbearing/k8s/namespace"
 	"github.com/forbearing/k8s/persistentvolume"
@@ -11,18 +12,18 @@ import (
 )
 
 func main() {
-	Dynamic_Create()
+	//Dynamic_Create()
 	//Dynamic_Update()
 	//Dynamic_Apply()
-	//Dynamic_Get()
+	Dynamic_Get()
 }
 
 func cleanup(handler *dynamic.Handler) {
-	handler.WithNamespace("test").Delete(deployUnstructName)
-	handler.WithNamespace("test").WithGVR(pod.GVR()).Delete(podUnstructData)
-	handler.WithGVR(namespace.GVR()).Delete(nsUnstructData)
-	handler.WithGVR(persistentvolume.GVR()).Delete(pvUnstructData)
-	handler.WithGVR(clusterrole.GVR()).Delete(crUnstructName)
+	handler.WithGVK(deployment.GVK()).WithNamespace("test").Delete(deployUnstructName)
+	handler.WithGVK(pod.GVK()).WithNamespace("test").Delete(podUnstructData)
+	handler.WithGVK(namespace.GVK()).Delete(nsUnstructData)
+	handler.WithGVK(persistentvolume.GVK()).Delete(pvUnstructData)
+	handler.WithGVK(clusterrole.GVK()).Delete(crUnstructName)
 }
 
 func checkErr(name string, val interface{}, err error) {

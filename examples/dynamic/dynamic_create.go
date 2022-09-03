@@ -3,40 +3,31 @@ package main
 import (
 	"context"
 
-	"github.com/forbearing/k8s/clusterrole"
-	"github.com/forbearing/k8s/deployment"
 	"github.com/forbearing/k8s/dynamic"
-	"github.com/forbearing/k8s/namespace"
-	"github.com/forbearing/k8s/persistentvolume"
-	"github.com/forbearing/k8s/pod"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func Dynamic_Create() {
-	handler, err := dynamic.New(context.TODO(), clientcmd.RecommendedHomeFile, "", deployment.GVR())
-	if err != nil {
-		panic(err)
-	}
+	handler := dynamic.NewOrDie(context.TODO(), "")
 	defer cleanup(handler)
 
 	// create deployment
-	_, err = handler.WithNamespace("test").Create(deployUnstructData)
+	_, err := handler.WithNamespace("test").Create(deployUnstructData)
 	checkErr("create deployment", "", err)
 
 	// create pod
-	_, err = handler.WithNamespace("test").WithGVR(pod.GVR()).Create(podUnstructData)
+	_, err = handler.WithNamespace("test").Create(podUnstructData)
 	checkErr("create pod", "", err)
 
 	// create namespace
-	_, err = handler.WithGVR(namespace.GVR()).Create(nsUnstructData)
+	_, err = handler.Create(nsUnstructData)
 	checkErr("create namespace", "", err)
 
 	// create persistentvolume
-	_, err = handler.WithGVR(persistentvolume.GVR()).Create(pvUnstructData)
+	_, err = handler.Create(pvUnstructData)
 	checkErr("create persistentvolume", "", err)
 
 	// create clusterrole
-	_, err = handler.WithGVR(clusterrole.GVR()).Create(crUnstructData)
+	_, err = handler.Create(crUnstructData)
 	checkErr("create clusterrole", "", err)
 
 	// Output:

@@ -3,40 +3,31 @@ package main
 import (
 	"context"
 
-	"github.com/forbearing/k8s/clusterrole"
-	"github.com/forbearing/k8s/deployment"
 	"github.com/forbearing/k8s/dynamic"
-	"github.com/forbearing/k8s/namespace"
-	"github.com/forbearing/k8s/persistentvolume"
-	"github.com/forbearing/k8s/pod"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func Dynamic_Apply() {
-	handler, err := dynamic.New(context.TODO(), clientcmd.RecommendedHomeFile, "", deployment.GVR())
-	if err != nil {
-		panic(err)
-	}
+	handler := dynamic.NewOrDie(context.TODO(), "")
 	defer cleanup(handler)
 
 	// apply deployment
-	_, err = handler.WithNamespace("test").Apply(deployUnstructData)
+	_, err := handler.WithNamespace("test").Apply(deployUnstructData)
 	checkErr("apply deployment", "", err)
 
 	// apply pod
-	_, err = handler.WithNamespace("test").WithGVR(pod.GVR()).Apply(podUnstructData)
+	_, err = handler.WithNamespace("test").Apply(podUnstructData)
 	checkErr("apply pod", "", err)
 
 	// apply namespace
-	_, err = handler.WithGVR(namespace.GVR()).Apply(nsUnstructData)
+	_, err = handler.Apply(nsUnstructData)
 	checkErr("apply namespace", "", err)
 
 	// apply persistentvolume
-	_, err = handler.WithGVR(persistentvolume.GVR()).Apply(pvUnstructData)
+	_, err = handler.Apply(pvUnstructData)
 	checkErr("apply persistentvolume", "", err)
 
 	// apply clusterrole
-	_, err = handler.WithGVR(clusterrole.GVR()).Apply(crUnstructData)
+	_, err = handler.Apply(crUnstructData)
 	checkErr("apply clusterrole", "", err)
 
 	// Output:

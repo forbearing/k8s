@@ -81,7 +81,7 @@ var (
 	nsUnstructName = "ns-unstruct"
 	nsUnstructData = map[string]interface{}{
 		"apiVersion": "v1",
-		"kind:":      "Namespace",
+		"kind":       "Namespace",
 		"metadata": map[string]interface{}{
 			"name": nsUnstructName,
 		},

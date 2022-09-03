@@ -3,20 +3,12 @@ package main
 import (
 	"context"
 
-	"github.com/forbearing/k8s/clusterrole"
-	"github.com/forbearing/k8s/deployment"
 	"github.com/forbearing/k8s/dynamic"
-	"github.com/forbearing/k8s/namespace"
-	"github.com/forbearing/k8s/persistentvolume"
 	"github.com/forbearing/k8s/pod"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func Dynamic_Get() {
-	handler, err := dynamic.New(context.TODO(), clientcmd.RecommendedHomeFile, "", deployment.GVR())
-	if err != nil {
-		panic(err)
-	}
+	handler := dynamic.NewOrDie(context.TODO(), "")
 	defer cleanup(handler)
 
 	// get deployment
@@ -27,32 +19,31 @@ func Dynamic_Get() {
 	checkErr("get deployment", u1.GetName(), err)
 
 	// get pod
-
-	if _, err := handler.WithNamespace("test").WithGVR(pod.GVR()).Apply(podUnstructData); err != nil {
+	if _, err := handler.WithNamespace("test").Apply(podUnstructData); err != nil {
 		panic(err)
 	}
-	u2, err := handler.WithNamespace("test").WithGVR(pod.GVR()).Get(podUnstructName)
+	u2, err := handler.WithGVK(pod.GVK()).WithNamespace("test").Get(podUnstructName)
 	checkErr("get pod", u2.GetName(), err)
 
 	// get namespace
-	if _, err := handler.WithGVR(namespace.GVR()).Apply(nsUnstructData); err != nil {
+	if _, err := handler.Apply(nsUnstructData); err != nil {
 		panic(err)
 	}
-	u3, err := handler.WithGVR(namespace.GVR()).Get(nsUnstructData)
+	u3, err := handler.Get(nsUnstructData)
 	checkErr("get namespace", u3.GetName(), err)
 
 	// get persistentvolume
-	if _, err := handler.WithGVR(persistentvolume.GVR()).Apply(pvUnstructData); err != nil {
+	if _, err := handler.Apply(pvUnstructData); err != nil {
 		panic(err)
 	}
-	u4, err := handler.WithGVR(persistentvolume.GVR()).Get(pvUnstructData)
+	u4, err := handler.Get(pvUnstructData)
 	checkErr("get persistentvolume", u4.GetName(), err)
 
 	// get clusterrole
-	if _, err := handler.WithGVR(clusterrole.GVR()).Apply(crUnstructData); err != nil {
+	if _, err := handler.Apply(crUnstructData); err != nil {
 		panic(err)
 	}
-	u5, err := handler.WithGVR(clusterrole.GVR()).Get(crUnstructData)
+	u5, err := handler.Get(crUnstructData)
 	checkErr("get clusterrole", u5.GetName(), err)
 
 	// Output:
