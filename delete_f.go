@@ -6,246 +6,62 @@ import (
 	"io/ioutil"
 	"regexp"
 
-	"github.com/forbearing/k8s/clusterrole"
-	"github.com/forbearing/k8s/clusterrolebinding"
-	"github.com/forbearing/k8s/configmap"
-	"github.com/forbearing/k8s/cronjob"
-	"github.com/forbearing/k8s/daemonset"
-	"github.com/forbearing/k8s/deployment"
-	"github.com/forbearing/k8s/ingress"
-	"github.com/forbearing/k8s/ingressclass"
-	"github.com/forbearing/k8s/job"
-	"github.com/forbearing/k8s/namespace"
-	"github.com/forbearing/k8s/networkpolicy"
-	"github.com/forbearing/k8s/persistentvolume"
-	"github.com/forbearing/k8s/persistentvolumeclaim"
-	"github.com/forbearing/k8s/pod"
-	"github.com/forbearing/k8s/replicaset"
-	"github.com/forbearing/k8s/replicationcontroller"
-	"github.com/forbearing/k8s/role"
-	"github.com/forbearing/k8s/rolebinding"
-	"github.com/forbearing/k8s/secret"
-	"github.com/forbearing/k8s/service"
-	"github.com/forbearing/k8s/serviceaccount"
-	"github.com/forbearing/k8s/statefulset"
-	"github.com/forbearing/k8s/storageclass"
-	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
-	networking "k8s.io/api/networking/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
-	storagev1 "k8s.io/api/storage/v1"
-	"k8s.io/klog"
+	k8sdynamic "github.com/forbearing/k8s/dynamic"
+	utilerrors "github.com/forbearing/k8s/util/errors"
+	"github.com/sirupsen/logrus"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
-// DeleteF works like "kubectl delete -f filename.yaml"
-func DeleteF(ctx context.Context, kubeconfig, filename string) error {
-	k8sResourceFile, err := ioutil.ReadFile(filename)
+// DeleteF work like "kubectl delete -f filename.yaml -n test",
+// The namespace defined in yaml have higher precedence than namespace specified here.
+func DeleteF(ctx context.Context, kubeconfig, filename string, namespace string, opts ...Options) error {
+	dynamicHandler, err := k8sdynamic.New(ctx, kubeconfig, namespace)
 	if err != nil {
 		return err
 	}
-	// remove all comments in the yaml file.
-	removeComments := regexp.MustCompile(`#.*`)
-	k8sResourceFile = removeComments.ReplaceAll(k8sResourceFile, []byte(""))
-	// split yaml file by "---"
-	k8sResourceItems := bytes.Split(k8sResourceFile, []byte("---"))
 
-	for _, k8sResource := range k8sResourceItems {
-		// ignore empty line
-		if len(bytes.TrimSpace(k8sResource)) == 0 {
+	yamlData, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+	// Remove all comments from yaml documents.
+	removeComments := regexp.MustCompile(`#.*`)
+	yamlData = removeComments.ReplaceAll(yamlData, []byte(""))
+	// Split yaml documents into multiple single yaml document base on the delimiter("---")
+	yamlList := bytes.Split(yamlData, []byte("---"))
+
+	for _, item := range yamlList {
+		// If the yaml document is empty, skip create it.
+		if len(bytes.TrimSpace(item)) == 0 {
 			continue
 		}
-		object, err := Decode(k8sResource)
+		// If the k8s resource is cluster scope, the namespace specified in dynamic.New() will be ignored.
+		// If the k8s resource is namespace scope and no namespace is defined in yaml file, then
+		// dynaimc hanler will create the k8s resource is the namespace specified in dynamic.New().
+		// (namespace defined in yaml file have higher precedence than specified in dynamic.New())
+		err = dynamicHandler.Delete(item)
+		for _, opt := range opts {
+			switch opt {
+			case IgnoreAlreadyExists:
+				err = utilerrors.IgnoreAlreadyExists(err)
+			case IgnoreNotFound:
+				err = utilerrors.IgnoreNotFound(err)
+			case IgnoreInvalid:
+				err = utilerrors.IgnoreInvalid(err)
+			}
+		}
+
+		// If the err returned by dynamic handler is "NotFound", just output the
+		// error message and continue process the next items.
+		// You can call DeleteF() with IgnoreNotFound option to ignore the "NotFound" error.
+		// A "NotFound" error will occurrs when you delete k8s resource that no longer exist in cluster.
+		if err != nil && apierrors.IsNotFound(err) {
+			logrus.Error(err)
+			continue
+		}
+		// Unexpected error, return it.
 		if err != nil {
-			klog.V(4).Info(err)
-			continue
-		}
-		switch object.(type) {
-		case *corev1.Namespace:
-			handler, err := namespace.New(ctx, kubeconfig)
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *corev1.Service:
-			handler, err := service.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *corev1.ConfigMap:
-			handler, err := configmap.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *corev1.Secret:
-			handler, err := secret.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *corev1.ServiceAccount:
-			handler, err := serviceaccount.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *corev1.Pod:
-			handler, err := pod.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *corev1.PersistentVolume:
-			handler, err := persistentvolume.New(ctx, kubeconfig)
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *corev1.PersistentVolumeClaim:
-			handler, err := persistentvolumeclaim.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *appsv1.Deployment:
-			handler, err := deployment.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *appsv1.StatefulSet:
-			handler, err := statefulset.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *appsv1.DaemonSet:
-			handler, err := daemonset.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *networking.Ingress:
-			handler, err := ingress.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *networking.IngressClass:
-			handler, err := ingressclass.New(ctx, kubeconfig)
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *networking.NetworkPolicy:
-			handler, err := networkpolicy.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *batchv1.Job:
-			handler, err := job.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *batchv1.CronJob:
-			handler, err := cronjob.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *rbacv1.Role:
-			handler, err := role.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *rbacv1.RoleBinding:
-			handler, err := rolebinding.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *rbacv1.ClusterRole:
-			handler, err := clusterrole.New(ctx, kubeconfig)
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *rbacv1.ClusterRoleBinding:
-			handler, err := clusterrolebinding.New(ctx, kubeconfig)
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *appsv1.ReplicaSet:
-			handler, err := replicaset.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *corev1.ReplicationController:
-			handler, err := replicationcontroller.New(ctx, kubeconfig, "")
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		case *storagev1.StorageClass:
-			handler, err := storageclass.New(ctx, kubeconfig)
-			if err != nil {
-				return err
-			}
-			if err := handler.Delete(k8sResource); err != nil {
-				klog.V(4).Info(err)
-			}
-		default:
+			return err
 		}
 	}
 
