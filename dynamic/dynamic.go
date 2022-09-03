@@ -3,32 +3,33 @@ package dynamic
 import (
 	"context"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/forbearing/k8s/types"
+	"github.com/forbearing/k8s/util/client"
+	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 type Handler struct {
-	kubeconfig         string
-	namespace          string
-	gvr                schema.GroupVersionResource
-	namespacedResource bool
+	ctx        context.Context
+	gvk        schema.GroupVersionKind
+	kubeconfig string
+	namespace  string
 
-	ctx           context.Context
 	config        *rest.Config
 	httpClient    *http.Client
 	restClient    *rest.RESTClient
 	dynamicClient dynamic.Interface
+	restMapper    meta.RESTMapper
 
 	resyncPeriod     time.Duration
 	informerScope    string
@@ -42,8 +43,8 @@ type Handler struct {
 
 // NewOrDie creates a dynamic client.
 // Panic if there is any error.
-func NewOrDie(ctx context.Context, kubeconfig, namespace string, gvr schema.GroupVersionResource) *Handler {
-	handler, err := New(ctx, kubeconfig, namespace, gvr)
+func NewOrDie(ctx context.Context, kubeconfig string, namespace string) *Handler {
+	handler, err := New(ctx, kubeconfig, namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -53,51 +54,53 @@ func NewOrDie(ctx context.Context, kubeconfig, namespace string, gvr schema.Grou
 // New creates a dynamic client from kubeconfig or in-cluster config.
 // If provided namespace is empty, it means the k8s resources created/updated/deleted
 // by dynamic client is cluster scope. or it's namespaced scope.
-// The dynamic client is reuseable, WithNamespace(), WithGVR()
 //
 // The kubeconfig precedence is:
 // * kubeconfig variable passed.
 // * KUBECONFIG environment variable pointing at a file
 // * $HOME/.kube/config if exists.
 // * In-cluster config if running in cluster
-func New(ctx context.Context, kubeconfig, namespace string, gvr schema.GroupVersionResource) (*Handler, error) {
+func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, error) {
 	var (
+		err           error
 		config        *rest.Config
 		httpClient    *http.Client
 		restClient    *rest.RESTClient
 		dynamicClient dynamic.Interface
+		restMapper    meta.RESTMapper
 	)
-	handler := &Handler{}
-	var err error
 
-	// create rest config, and config precedence.
-	// * kubeconfig variable passed.
-	// * KUBECONFIG environment variable pointing at a file
-	// * $HOME/.kube/config if exists.
-	// * In-cluster config if running in cluster
-	//
-	// create the outside-cluster config
-	if len(kubeconfig) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
-			return nil, err
-		}
-	} else if len(os.Getenv(clientcmd.RecommendedConfigPathEnvVar)) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar)); err != nil {
-			return nil, err
-		}
-	} else if len(clientcmd.RecommendedHomeFile) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile); err != nil {
-			return nil, err
-		}
-	} else {
-		// create the in-cluster config
-		if config, err = rest.InClusterConfig(); err != nil {
-			return nil, err
-		}
+	//// create rest config, and config precedence.
+	//// * kubeconfig variable passed.
+	//// * KUBECONFIG environment variable pointing at a file
+	//// * $HOME/.kube/config if exists.
+	//// * In-cluster config if running in cluster
+	////
+	//// create the outside-cluster config
+	//if len(kubeconfig) != 0 {
+	//    if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
+	//        return nil, err
+	//    }
+	//} else if len(os.Getenv(clientcmd.RecommendedConfigPathEnvVar)) != 0 {
+	//    if config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar)); err != nil {
+	//        return nil, err
+	//    }
+	//} else if len(clientcmd.RecommendedHomeFile) != 0 {
+	//    if config, err = clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile); err != nil {
+	//        return nil, err
+	//    }
+	//} else {
+	//    // create the in-cluster config
+	//    if config, err = rest.InClusterConfig(); err != nil {
+	//        return nil, err
+	//    }
+	//}
+	if config, err = client.RESTConfig(kubeconfig); err != nil {
+		return nil, err
 	}
 
 	config.APIPath = "api"
-	config.GroupVersion = &schema.GroupVersion{Group: gvr.Group, Version: gvr.Version}
+	config.GroupVersion = &schema.GroupVersion{}
 	config.NegotiatedSerializer = scheme.Codecs
 
 	// create a http client for the given config.
@@ -112,29 +115,55 @@ func New(ctx context.Context, kubeconfig, namespace string, gvr schema.GroupVers
 	if dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
-
-	//if len(namespace) == 0 {
-	//    namespace = metav1.NamespaceDefault
-	//}
-	if len(gvr.Version) == 0 {
-		return nil, ErrVersionEmpty
+	if restMapper, err = utilrestmapper.NewRESTMapper(kubeconfig); err != nil {
+		return nil, err
 	}
-	if len(gvr.Resource) == 0 {
-		return nil, ErrResourceEmpty
+	if len(namespace) == 0 {
+		namespace = metav1.NamespaceDefault
 	}
 
-	handler.kubeconfig = kubeconfig
-	handler.namespacedResource = true
+	return &Handler{
+		ctx:           ctx,
+		kubeconfig:    kubeconfig,
+		namespace:     namespace,
+		config:        config,
+		httpClient:    httpClient,
+		restClient:    restClient,
+		dynamicClient: dynamicClient,
+		restMapper:    restMapper,
+		Options:       &types.HandlerOptions{},
+	}, nil
+}
+
+// WithNamespace returns the same handler but with provided namespace.
+// If the k8s resource is namespace scope, it will create/delete/update/apply
+// k8s resource in the new namespace.
+// If the k8s resource is cluster scope, it will ignore the namespace.
+//
+// But the namespace defined in yaml file have higher precedence than namespace specified here.
+//
+// If no namespace is defined in yaml file and no namespace is specified using
+// WithNamespace() method, then the namespace default to metav1.NamespaceDefault("default").
+//
+// namespace precedence:
+// * namespace defined in yaml file or json file.
+// * namespace specified by WithNamespace() method.
+// * namespace specified in dynamic.New() or dynamic.NewOrDie() funciton.
+// * namespace will be ignored if k8s resource is cluster scope.
+func (h *Handler) WithNamespace(namespace string) *Handler {
+	handler := h.DeepCopy()
+	if len(namespace) == 0 {
+		namespace = metav1.NamespaceDefault
+	}
 	handler.namespace = namespace
-	handler.gvr = gvr
-	handler.ctx = ctx
-	handler.config = config
-	handler.httpClient = httpClient
-	handler.restClient = restClient
-	handler.dynamicClient = dynamicClient
-	handler.Options = &types.HandlerOptions{}
+	return handler
+}
 
-	return handler, nil
+// WithGVK returns the same handler but with provided group, version and resource.
+func (h *Handler) WithGVK(gvk schema.GroupVersionKind) *Handler {
+	handler := h.DeepCopy()
+	handler.gvk = gvk
+	return handler
 }
 
 // DeepCopy
@@ -142,36 +171,56 @@ func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
 	}
-	out := new(Handler)
-
-	out.kubeconfig = in.kubeconfig
-	out.namespacedResource = in.namespacedResource
-	out.namespace = in.namespace
-	out.gvr = in.gvr
-	out.ctx = in.ctx
-	out.config = in.config
-	out.httpClient = in.httpClient
-	out.restClient = in.restClient
-	out.dynamicClient = in.dynamicClient
-
-	out.Options = &types.HandlerOptions{}
-	out.Options.CreateOptions = *in.Options.CreateOptions.DeepCopy()
-	out.Options.UpdateOptions = *in.Options.UpdateOptions.DeepCopy()
-	out.Options.ApplyOptions = *in.Options.ApplyOptions.DeepCopy()
-	out.Options.DeleteOptions = *in.Options.DeleteOptions.DeepCopy()
-	out.Options.GetOptions = *in.Options.GetOptions.DeepCopy()
-	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()
-	out.Options.PatchOptions = *in.Options.PatchOptions.DeepCopy()
-
-	if in.gvr.Resource == "jobs" || in.gvr.Resource == "cronjobs" {
-		out.setPropagationPolicy("background")
+	return &Handler{
+		ctx:           in.ctx,
+		gvk:           in.gvk,
+		kubeconfig:    in.kubeconfig,
+		namespace:     in.namespace,
+		config:        in.config,
+		httpClient:    in.httpClient,
+		restClient:    in.restClient,
+		dynamicClient: in.dynamicClient,
+		restMapper:    in.restMapper,
+		Options: &types.HandlerOptions{
+			CreateOptions: in.Options.CreateOptions,
+			UpdateOptions: in.Options.UpdateOptions,
+			ApplyOptions:  in.Options.ApplyOptions,
+			DeleteOptions: in.Options.DeleteOptions,
+			GetOptions:    in.Options.GetOptions,
+			ListOptions:   in.Options.ListOptions,
+			PatchOptions:  in.Options.PatchOptions,
+		},
 	}
-
-	return out
 }
 
-// setPropagationPolicy
-func (h *Handler) setPropagationPolicy(policy string) {
+// SetTimeout
+func (h *Handler) SetTimeout(timeout int64) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.Options.ListOptions.TimeoutSeconds = &timeout
+}
+
+// SetLimit
+func (h *Handler) SetLimit(limit int64) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	h.Options.ListOptions.Limit = limit
+}
+
+// SetForceDelete
+func (h *Handler) SetForceDelete(force bool) {
+	h.l.Lock()
+	defer h.l.Unlock()
+	if force {
+		h.Options.DeleteOptions.GracePeriodSeconds = new(int64)
+	}
+}
+
+// SetPropagationPolicy will set the PropagationPolicy.
+// If we delete job or/and cronjob, we should always set the PropagationPolicy to
+// DeletePropagationBackground to delete all pods managed by that job or/and cronjob.
+// Default to "DeletePropagationBackground" to job and/or cronjob.
+func (h *Handler) SetPropagationPolicy(policy string) {
 	h.l.Lock()
 	defer h.l.Unlock()
 	switch strings.ToLower(policy) {
@@ -190,29 +239,7 @@ func (h *Handler) setPropagationPolicy(policy string) {
 	}
 }
 
-// IsNamespacedResource
-func (h *Handler) IsNamespacedResource() bool {
-	if len(h.namespace) == 0 {
-		return false
-	}
-	return true
-}
-
-// WithNamespace returns the same handler but with provided namespace.
-func (h *Handler) WithNamespace(namespace string) *Handler {
-	handler := h.DeepCopy()
-	handler.namespace = namespace
-	return handler
-}
-
-// WithGVR returns the same handler but with provided group, version and resource.
-func (h *Handler) WithGVR(gvr schema.GroupVersionResource) *Handler {
-	handler := h.DeepCopy()
-	handler.gvr = gvr
-	return handler
-}
-
-// DynamicClient returns the underlying dynamic client.
+// DynamicClient returns the underlying dynamic client used by this dynamic handler.
 func (h *Handler) DynamicClient() dynamic.Interface {
 	return h.dynamicClient
 }

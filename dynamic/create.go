@@ -3,10 +3,13 @@ package dynamic
 import (
 	"encoding/json"
 	"io/ioutil"
-	"reflect"
 
+	"github.com/forbearing/k8s/types"
+	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
+	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -19,11 +22,11 @@ func (h *Handler) Create(obj interface{}) (*unstructured.Unstructured, error) {
 		return h.CreateFromFile(val)
 	case []byte:
 		return h.CreateFromBytes(val)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.createUnstructured(val.(*unstructured.Unstructured))
-		}
-		return h.CreateFromObject(val)
+	//case runtime.Object:
+	//    if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+	//        return h.createUnstructured(val.(*unstructured.Unstructured))
+	//    }
+	//    return h.CreateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.createUnstructured(val)
 	case unstructured.Unstructured:
@@ -74,10 +77,42 @@ func (h *Handler) CreateFromMap(obj map[string]interface{}) (*unstructured.Unstr
 
 // createUnstructured
 func (h *Handler) createUnstructured(obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
+	var (
+		err          error
+		gvk          schema.GroupVersionKind
+		gvr          schema.GroupVersionResource
+		isNamespaced bool
+	)
+	if gvr, err = utilrestmapper.FindGVR(h.restMapper, obj); err != nil {
+		logrus.Error("get gvr failed", err)
+		return nil, err
+	}
+	if gvk, err = utilrestmapper.FindGVK(h.restMapper, obj); err != nil {
+		logrus.Error("get gvk failed", err)
+		return nil, err
+	}
+	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, gvk); err != nil {
+		logrus.Error("get isNamespaced failed", err)
+		return nil, err
+	}
+	if gvk.Kind == types.KindJob || gvk.Kind == types.KindCronJob {
+		h.SetPropagationPolicy("background")
+	}
+
+	//logrus.Info(gvk)
+	//logrus.Info(gvr)
+	//logrus.Info("IsNamespaced: ", isNamespaced)
+	//logrus.Info()
 	obj.SetUID("")
 	obj.SetResourceVersion("")
-	if h.IsNamespacedResource() {
-		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Create(h.ctx, obj, h.Options.CreateOptions)
+	if isNamespaced {
+		var namespace string
+		if len(obj.GetNamespace()) != 0 {
+			namespace = obj.GetNamespace()
+		} else {
+			namespace = h.namespace
+		}
+		return h.dynamicClient.Resource(gvr).Namespace(namespace).Create(h.ctx, obj, h.Options.CreateOptions)
 	}
-	return h.dynamicClient.Resource(h.gvr).Create(h.ctx, obj, h.Options.CreateOptions)
+	return h.dynamicClient.Resource(gvr).Create(h.ctx, obj, h.Options.CreateOptions)
 }

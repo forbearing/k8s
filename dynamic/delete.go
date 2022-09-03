@@ -3,10 +3,12 @@ package dynamic
 import (
 	"encoding/json"
 	"io/ioutil"
-	"reflect"
 
+	"github.com/forbearing/k8s/types"
+	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -23,11 +25,11 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteByName(val)
 	case []byte:
 		return h.DeleteFromBytes(val)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.deleteUnstructured(val.(*unstructured.Unstructured))
-		}
-		return h.DeleteFromObject(val)
+	//case runtime.Object:
+	//    if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
+	//        return h.deleteUnstructured(val.(*unstructured.Unstructured))
+	//    }
+	//    return h.DeleteFromObject(val)
 	case *unstructured.Unstructured:
 		return h.deleteUnstructured(val)
 	case unstructured.Unstructured:
@@ -41,10 +43,24 @@ func (h *Handler) Delete(obj interface{}) error {
 
 // DeleteByName deletes unstructured k8s resource with given name.
 func (h *Handler) DeleteByName(name string) error {
-	if h.IsNamespacedResource() {
-		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+	var (
+		err          error
+		gvr          schema.GroupVersionResource
+		isNamespaced bool
+	)
+	if gvr, err = utilrestmapper.GVKToGVR(h.restMapper, h.gvk); err != nil {
+		return err
 	}
-	return h.dynamicClient.Resource(h.gvr).Delete(h.ctx, name, h.Options.DeleteOptions)
+	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, h.gvk); err != nil {
+		return err
+	}
+	if h.gvk.Kind == types.KindJob || h.gvk.Kind == types.KindCronJob {
+		h.SetPropagationPolicy("background")
+	}
+	if isNamespaced {
+		return h.dynamicClient.Resource(gvr).Namespace(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
+	}
+	return h.dynamicClient.Resource(gvr).Delete(h.ctx, name, h.Options.DeleteOptions)
 }
 
 // DeleteFromFile deletes unstructured k8s resource from yaml file.
@@ -86,8 +102,33 @@ func (h *Handler) DeleteFromMap(obj map[string]interface{}) error {
 
 // deleteUnstructured
 func (h *Handler) deleteUnstructured(obj *unstructured.Unstructured) error {
-	if h.IsNamespacedResource() {
-		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)
+	var (
+		err          error
+		gvk          schema.GroupVersionKind
+		gvr          schema.GroupVersionResource
+		isNamespaced bool
+	)
+	if gvr, err = utilrestmapper.FindGVR(h.restMapper, obj); err != nil {
+		return err
 	}
-	return h.dynamicClient.Resource(h.gvr).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)
+	if gvk, err = utilrestmapper.FindGVK(h.restMapper, obj); err != nil {
+		return err
+	}
+	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, gvk); err != nil {
+		return err
+	}
+	if gvk.Kind == types.KindJob || gvk.Kind == types.KindCronJob {
+		h.SetPropagationPolicy("background")
+	}
+
+	if isNamespaced {
+		var namespace string
+		if len(obj.GetNamespace()) != 0 {
+			namespace = obj.GetNamespace()
+		} else {
+			namespace = h.namespace
+		}
+		return h.dynamicClient.Resource(gvr).Namespace(namespace).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)
+	}
+	return h.dynamicClient.Resource(gvr).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)
 }

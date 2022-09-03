@@ -3,9 +3,12 @@ package dynamic
 import (
 	"fmt"
 
+	"github.com/forbearing/k8s/types"
+	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // List list all k8s objects in the k8s cluster, it simply call `ListAll`.
@@ -19,14 +22,19 @@ func (h *Handler) List() ([]*unstructured.Unstructured, error) {
 func (h *Handler) ListByLabel(labels string) ([]*unstructured.Unstructured, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = labels
-	if h.namespacedResource {
-		unstructList, err := h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).List(h.ctx, *listOptions)
+
+	gvr, isNamespaced, err := h.getGVRAndNamespaceScope()
+	if err != nil {
+		return nil, err
+	}
+	if isNamespaced {
+		unstructList, err := h.dynamicClient.Resource(gvr).Namespace(h.namespace).List(h.ctx, *listOptions)
 		if err != nil {
 			return nil, err
 		}
 		return extractList(unstructList), nil
 	}
-	unstructList, err := h.dynamicClient.Resource(h.gvr).List(h.ctx, *listOptions)
+	unstructList, err := h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -42,14 +50,18 @@ func (h *Handler) ListByField(field string) ([]*unstructured.Unstructured, error
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.FieldSelector = fieldSelector.String()
 
-	if h.namespacedResource {
-		unstructList, err := h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).List(h.ctx, *listOptions)
+	gvr, isNamespaced, err := h.getGVRAndNamespaceScope()
+	if err != nil {
+		return nil, err
+	}
+	if isNamespaced {
+		unstructList, err := h.dynamicClient.Resource(gvr).Namespace(h.namespace).List(h.ctx, *listOptions)
 		if err != nil {
 			return nil, err
 		}
 		return extractList(unstructList), nil
 	}
-	unstructList, err := h.dynamicClient.Resource(h.gvr).List(h.ctx, *listOptions)
+	unstructList, err := h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -61,28 +73,38 @@ func (h *Handler) ListByField(field string) ([]*unstructured.Unstructured, error
 func (h *Handler) ListByNamespace(namespace string) ([]*unstructured.Unstructured, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = ""
-	if h.namespacedResource {
-		unstructList, err := h.dynamicClient.Resource(h.gvr).Namespace(namespace).List(h.ctx, *listOptions)
+
+	gvr, isNamespaced, err := h.getGVRAndNamespaceScope()
+	if err != nil {
+		return nil, err
+	}
+	if isNamespaced {
+		unstructList, err := h.dynamicClient.Resource(gvr).Namespace(namespace).List(h.ctx, *listOptions)
 		if err != nil {
 			return nil, err
 		}
 		return extractList(unstructList), nil
 	}
-	return nil, fmt.Errorf("%s is not namespace-scoped k8s resource", h.gvr)
+	return nil, fmt.Errorf("%s is not namespace-scoped k8s resource", gvr)
 }
 
 // ListAll list all k8s objects in the k8s cluster.
 func (h *Handler) ListAll() ([]*unstructured.Unstructured, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = ""
-	if h.namespacedResource {
-		unstructList, err := h.dynamicClient.Resource(h.gvr).Namespace(metav1.NamespaceAll).List(h.ctx, *listOptions)
+
+	gvr, isNamespaced, err := h.getGVRAndNamespaceScope()
+	if err != nil {
+		return nil, err
+	}
+	if isNamespaced {
+		unstructList, err := h.dynamicClient.Resource(gvr).Namespace(metav1.NamespaceAll).List(h.ctx, *listOptions)
 		if err != nil {
 			return nil, err
 		}
 		return extractList(unstructList), nil
 	}
-	unstructList, err := h.dynamicClient.Resource(h.gvr).List(h.ctx, *listOptions)
+	unstructList, err := h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -96,4 +118,24 @@ func extractList(unstructList *unstructured.UnstructuredList) []*unstructured.Un
 		objList = append(objList, &unstructList.Items[i])
 	}
 	return objList
+}
+
+func (h *Handler) getGVRAndNamespaceScope() (schema.GroupVersionResource, bool, error) {
+	var (
+		err          error
+		gvr          schema.GroupVersionResource
+		isNamespaced bool
+	)
+
+	if gvr, err = utilrestmapper.GVKToGVR(h.restMapper, h.gvk); err != nil {
+		return gvr, isNamespaced, err
+	}
+	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, h.gvk); err != nil {
+		return gvr, isNamespaced, err
+	}
+	if h.gvk.Kind == types.KindJob || h.gvk.Kind == types.KindCronJob {
+		h.SetPropagationPolicy("background")
+	}
+
+	return gvr, isNamespaced, nil
 }
