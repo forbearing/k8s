@@ -9,7 +9,7 @@
       "app": "mydep",
       "type": "deployment"
     },
-    "name": "mydep"
+    "name": "mydep-json"
   },
   "spec": {
     "replicas": 3,
