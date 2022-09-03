@@ -17,4 +17,7 @@ func Handler() {
 		log.Fatal(err)
 	}
 	fmt.Println(deploy.GetName())
+	if err := handler.DeleteFromFile(filename); err != nil {
+		log.Fatal(err)
+	}
 }
