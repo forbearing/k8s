@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/forbearing/k8s"
 	"github.com/forbearing/k8s/types"
 )
 
@@ -22,21 +22,8 @@ var (
 )
 
 func main() {
-	deployHandler, err := k8s.NewDeployment(ctx, kubeconfig, namespace)
-	if err != nil {
-		panic(err)
-	}
-	podHandler, err := k8s.NewPod(ctx, kubeconfig, namespace)
-	if err != nil {
-		panic(err)
-	}
-	cleanup(deployHandler)
-	cleanup(podHandler)
-
-	deploy, err := deployHandler.Create(deployFile)
-	checkErr("create deployment from file", deploy.Name, err)
-	pod, err := podHandler.Create(podFile)
-	checkErr("create pod from file", pod.Name, err)
+	//Alias()
+	Apply()
 }
 
 func checkErr(name string, val interface{}, err error) {
@@ -49,6 +36,6 @@ func checkErr(name string, val interface{}, err error) {
 
 // cleanup will delete or prune created deployments.
 func cleanup(handler types.Deleter) {
-	handler.Delete(deployName)
-	handler.Delete(podName)
+	fmt.Println(handler.Delete(deployName))
+	fmt.Println(handler.Delete(podName))
 }
