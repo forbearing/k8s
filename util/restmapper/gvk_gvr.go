@@ -15,7 +15,7 @@ import (
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// FindGVR find the GroupVersionResource from signal yaml document or json documents.
+// FindGVR find the GroupVersionResource from signal yaml document or json document.
 //
 // Supported type are: map[string]interface{}, *unstructured.Unstructured,
 // unstructured.Unstructured, string and []byte.
@@ -34,7 +34,7 @@ func FindGVR(restMapper meta.RESTMapper, obj interface{}) (schema.GroupVersionRe
 	return restMapping.Resource, nil
 }
 
-// FindGVK find the GroupVersionKind from signal yaml document or json documents.
+// FindGVK find the GroupVersionKind from signal yaml document or json document.
 //
 // Supported type are: map[string]interface{}, *unstructured.Unstructured,
 // unstructured.Unstructured, string and []byte.
