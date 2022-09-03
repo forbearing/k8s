@@ -23,7 +23,8 @@ var (
 
 func main() {
 	//Alias()
-	Apply()
+	//Apply()
+	Handler()
 }
 
 func checkErr(name string, val interface{}, err error) {
