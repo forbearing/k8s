@@ -17,10 +17,12 @@ var (
 func TestK8S(t *testing.T) {
 	defer cancel()
 
-	err := ApplyF(ctx, kubeconfig, filename)
+	namespace := "test"
+
+	err := ApplyF(ctx, kubeconfig, filename, namespace)
 	checkErr(t, "ApplyF", err)
 
-	err = DeleteF(ctx, kubeconfig, filename)
+	err = DeleteF(ctx, kubeconfig, filename, namespace)
 	checkErr(t, "DeleteF", err)
 }
 
