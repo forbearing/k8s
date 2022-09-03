@@ -15,18 +15,6 @@ import (
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// IsNamespaced
-func IsNamespaced(restMapper meta.RESTMapper, gvk schema.GroupVersionKind) (bool, error) {
-	restMapping, err := restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
-	if err != nil {
-		return false, err
-	}
-	if restMapping.Scope.Name() == meta.RESTScopeNameNamespace {
-		return true, nil
-	}
-	return false, nil
-}
-
 // FindGVR find the GroupVersionResource from signal yaml document or json documents.
 //
 // Supported type are: map[string]interface{}, *unstructured.Unstructured,
@@ -46,15 +34,6 @@ func FindGVR(restMapper meta.RESTMapper, obj interface{}) (schema.GroupVersionRe
 	return restMapping.Resource, nil
 }
 
-// GVKToGVR
-func GVKToGVR(restMapper meta.RESTMapper, gvk schema.GroupVersionKind) (schema.GroupVersionResource, error) {
-	restMapping, err := restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
-	if err != nil {
-		return schema.GroupVersionResource{}, err
-	}
-	return restMapping.Resource, nil
-}
-
 // FindGVK find the GroupVersionKind from signal yaml document or json documents.
 //
 // Supported type are: map[string]interface{}, *unstructured.Unstructured,
@@ -68,35 +47,51 @@ func FindGVK(restMapper meta.RESTMapper, obj interface{}) (schema.GroupVersionKi
 		if err != nil {
 			return gvk, err
 		}
-		//logrus.Info(string(data))
 		return findGVK(restMapper, data)
 	case *unstructured.Unstructured:
 		data, err := json.Marshal(val)
 		if err != nil {
 			return gvk, err
 		}
-		//logrus.Info(string(data))
 		return findGVK(restMapper, data)
 	case unstructured.Unstructured:
 		data, err := json.Marshal(&val)
 		if err != nil {
 			return gvk, err
 		}
-		//logrus.Info(string(data))
 		return findGVK(restMapper, data)
 	case string:
 		data, err := ioutil.ReadFile(val)
 		if err != nil {
 			return gvk, err
 		}
-		//logrus.Info(string(data))
 		return findGVK(restMapper, data)
 	case []byte:
-		//logrus.Info(string(val))
 		return findGVK(restMapper, val)
 	default:
 		return gvk, errors.New("type must be string, []byte, map[string]interface{}, *unstructured.Unstructured, unstructured.Unstructured or runtime.Object")
 	}
+}
+
+// IsNamespaced check if the gvk is namespace scope.
+func IsNamespaced(restMapper meta.RESTMapper, gvk schema.GroupVersionKind) (bool, error) {
+	restMapping, err := restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return false, err
+	}
+	if restMapping.Scope.Name() == meta.RESTScopeNameNamespace {
+		return true, nil
+	}
+	return false, nil
+}
+
+// GVKToGVR convert GVK to GVR.
+func GVKToGVR(restMapper meta.RESTMapper, gvk schema.GroupVersionKind) (schema.GroupVersionResource, error) {
+	restMapping, err := restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if err != nil {
+		return schema.GroupVersionResource{}, err
+	}
+	return restMapping.Resource, nil
 }
 
 // findGVK find the GroupVersionKind from signal yaml document or json document.
