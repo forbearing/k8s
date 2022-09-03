@@ -1,0 +1,51 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "annotations": {
+      "region": "east"
+    },
+    "labels": {
+      "app": "mydep",
+      "type": "deployment"
+    },
+    "name": "mydep"
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "mydep",
+        "type": "deployment"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "mydep",
+          "type": "deployment"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "image": "nginx",
+            "name": "nginx",
+            "ports": [
+              {
+                "containerPort": 80,
+                "name": "http"
+              }
+            ],
+            "resources": {
+              "limits": {
+                "cpu": "100m"
+              }
+            }
+          }
+        ],
+        "terminationGracePeriodSeconds": 1
+      }
+    }
+  }
+}
