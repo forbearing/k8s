@@ -89,3 +89,12 @@ For more examples on how to use this library, you can refer to the [examples](./
     - GetPVC()/GetPV(): Get PVC/PV mounted by deployment
     - IsReady(): check if the deployment is ready/available/rollout finished.
     - WaitReady(): block here until deployment is ready/available/rollout finished.
+
+### more
+
+- [Check whether the k8s resources has the specifed label, Get/Set/Remove labels of k8s resources](./examples/labels/main.go)
+- [Check whether the k8s resources has the specifed annotation, Get/Set/Remove labels of k8s annotations](./examples/labels/main.go)
+
+- [Find k8s resource's GroupVersionKind from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvk.go)
+- [Find k8s resource's GroupVersionResources from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvr.go)
+- [Check if the k8s resource is namespace scope from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/is_namespaced.go)
