@@ -16,15 +16,22 @@ var (
 	namespace   = "test"
 	kubeconfig  = filepath.Join(os.Getenv("HOME"), ".kube/config")
 	deployFile  = "../../testdata/examples/deployment.yaml"
-	deployName  = "mydep"
+	stsFile     = "../../testdata/examples/statefulset.yaml"
 	podFile     = "../../testdata/examples/pod.yaml"
+	deployName  = "mydep"
+	stsName     = "mysts"
 	podName     = "mypod"
 )
 
 func main() {
 	//Alias()
-	Apply()
-	//Handler()
+	//Apply()
+	//K8S_Create()
+	//K8S_Update()
+	//K8S_Apply()
+	//K8S_Delete()
+	K8S_Get()
+	//K8S_List()
 }
 
 func checkErr(name string, val interface{}, err error) {
@@ -35,8 +42,9 @@ func checkErr(name string, val interface{}, err error) {
 	}
 }
 
-// cleanup will delete or prune created deployments.
+// cleanup will delete or prune created k8s resource.
 func cleanup(handler types.Deleter) {
-	fmt.Println(handler.Delete(deployName))
-	fmt.Println(handler.Delete(podName))
+	fmt.Println(handler.Delete(deployFile))
+	fmt.Println(handler.Delete(stsFile))
+	fmt.Println(handler.Delete(podFile))
 }
