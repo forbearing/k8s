@@ -32,9 +32,9 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ## Documents
 
-### k8s handler
+### k8s handler examples. (a universal handler, simply invoke dynamic handler to create/update/delete/get/list k8s resources.)
 
-### dynamic handler
+### dynamic handler examples. (a universal handler, create/update/delete/get/list k8s resources by the underlying dynamic client.)
 
 - [How to create k8s resource inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
 - [How to update k8s resource.](./examples/dynamic/dynamic_update.go)
@@ -42,7 +42,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [How to delete k8s resources.](./examples/dynamic/dynamic_delete.go)
 - [How to get k8s resources.](./examples/dynamic/dynamic_get.go)
 
-### deployment handler examples
+### deployment handler examples. (just for deployment resource, create/update/delete/get/list deployment resources by the underlying clientset.)
 
 - [How to create deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_create.go)
 - [How to update deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_update.go)
@@ -65,14 +65,14 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [How to execute command within pod](./examples/pod/pod_execute.go)
 - [How to port-forward a local port to pod](./examples/port-forward/portforward_pod.go)
 
-### more
+### more usage.
 
 - [ApplyF()/DeleteF() apply/delete various k8s resource from a yaml file.](./k8s_test.go)
-- [Check whether the k8s resources has the specifed label, Get/Set/Remove labels of k8s resources](./examples/labels/main.go)
-- [Check whether the k8s resources has the specifed annotation, Get/Set/Remove labels of k8s annotations](./examples/annotations/main.go)
-- [Find k8s resource's GroupVersionKind from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvk.go)
-- [Find k8s resource's GroupVersionResources from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvr.go)
-- [Check if the k8s resource is namespace scope from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/is_namespaced.go)
+- util/labels: [Check whether the k8s resources has the specifed label, Get/Set/Remove labels of k8s resources](./examples/labels/main.go)
+- util/annotations: [Check whether the k8s resources has the specifed annotation, Get/Set/Remove labels of k8s annotations](./examples/annotations/main.go)
+- util/restmapper: [Find k8s resource's GroupVersionKind from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvk.go)
+- util/restmapper: [Find k8s resource's GroupVersionResources from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvr.go)
+- util/restmapper: [Check if the k8s resource is namespace scope from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/is_namespaced.go)
 
 ## TODO
 
