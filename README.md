@@ -32,8 +32,6 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 `go get github.com/forbearing/k8s@v0.10.4`
 
-
-
 ## Documents
 
 ### pod handler examples
@@ -66,8 +64,6 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [Find k8s resource's GroupVersionKind from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvk.go)
 - [Find k8s resource's GroupVersionResources from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvr.go)
 - [Check if the k8s resource is namespace scope from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/is_namespaced.go)
-
-
 
 ## TODO
 
