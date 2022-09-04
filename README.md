@@ -119,3 +119,4 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [ ] proxy
 - [ ] operators refer to https://sdk.operatorframework.io/docs/building-operators/golang/references/client/
 - [x] Add/Set/Remove/Has Labels and Annotations
+- [ ] Add MultiNamespace() method to create/update/delete k8s resource in multi namespaces.
