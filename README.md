@@ -34,13 +34,25 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ### k8s handler examples. (a universal handler, simply invoke dynamic handler to create/update/delete/get/list k8s resources.)
 
+- How to create k8s resources.
+- How to update k8s resources.
+- How to apply k8s resources.
+- How to delete k8s resources.
+- How to get k8s resources.
+- How to list k8s resources.
+- Howt to watch k8s resources.
+- informer usage.
+
 ### dynamic handler examples. (a universal handler, create/update/delete/get/list k8s resources by the underlying dynamic client.)
 
-- [How to create k8s resource inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
-- [How to update k8s resource.](./examples/dynamic/dynamic_update.go)
-- [How to apply k8s resource.](./examples/dynamic/dynamic_apply.go)
+- [How to create k8s resources inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
+- [How to update k8s resources.](./examples/dynamic/dynamic_update.go)
+- [How to apply k8s resources.](./examples/dynamic/dynamic_apply.go)
 - [How to delete k8s resources.](./examples/dynamic/dynamic_delete.go)
 - [How to get k8s resources.](./examples/dynamic/dynamic_get.go)
+- How to list k8s resources.
+- How to watch k8s resources.
+- dynamic informer usage.
 
 ### deployment handler examples. (just for deployment resource, create/update/delete/get/list deployment resources by the underlying clientset.)
 
@@ -53,7 +65,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [How to watch deployment resources.](./examples/deployment/deployment_watch.go)
 - [Deployment informer.](./examples/deployment/deployment_informer.go)
 - [More usage for informer.](./deployment/informer.go)
-- [Tools](./examples/deployment/deployment_tools.go)
+- [Deployment tools](./examples/deployment/deployment_tools.go)
     - GetPods(): get all pods ownerd by a deployment
     - GetRS(): get all replicaset ownerd by a deployment
     - GetPVC()/GetPV(): Get PVC/PV mounted by a deployment
