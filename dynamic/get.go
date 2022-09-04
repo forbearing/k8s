@@ -17,8 +17,12 @@ import (
 // or map[string]interface{}.
 //
 // If psssed parameter type is string, it will call GetByName insteard of GetFromFile.
-// You  should always explicitly call GetFromFile to delete a unstructured object
+// You should always explicitly call GetFromFile to delete a unstructured object
 // from filename.
+//
+// GetByName requires WithGVK() to explicitly specify the k8s resource's GroupVersionKind.
+// GetFromFile, GetFromBytes and GetFromMap will find GVK and GVR from
+// the provided structured or unstructured data, it's not reuqired to call WithGVK().
 func (h *Handler) Get(obj interface{}) (*unstructured.Unstructured, error) {
 	switch val := obj.(type) {
 	case string:

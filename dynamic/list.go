@@ -19,6 +19,7 @@ func (h *Handler) List() ([]*unstructured.Unstructured, error) {
 // ListByLabel list k8s objects by labels.
 // Multiple labels separated by comma(",") eg: "name=myapp,role=devops",
 // and there is an "And" relationship between multiple labels.
+// Calling this method requires WithGVK() to explicitly specify GVK.
 func (h *Handler) ListByLabel(labels string) ([]*unstructured.Unstructured, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = labels
@@ -42,6 +43,7 @@ func (h *Handler) ListByLabel(labels string) ([]*unstructured.Unstructured, erro
 }
 
 // ListByField list k8s objects by field, work like `kubectl get xxx --field-selector=xxx`.
+// Calling this method requires WithGVK() to explicitly specify GVK.
 func (h *Handler) ListByField(field string) ([]*unstructured.Unstructured, error) {
 	fieldSelector, err := fields.ParseSelector(field)
 	if err != nil {
@@ -70,6 +72,7 @@ func (h *Handler) ListByField(field string) ([]*unstructured.Unstructured, error
 
 // ListByNamespace list all k8s objects in the specified namespace.
 // It will return empty slice and error if this k8s object is cluster scope.
+// Calling this method requires WithGVK() to explicitly specify GVK.
 func (h *Handler) ListByNamespace(namespace string) ([]*unstructured.Unstructured, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = ""
@@ -89,6 +92,7 @@ func (h *Handler) ListByNamespace(namespace string) ([]*unstructured.Unstructure
 }
 
 // ListAll list all k8s objects in the k8s cluster.
+// Calling this method requires WithGVK() to explicitly specify GVK.
 func (h *Handler) ListAll() ([]*unstructured.Unstructured, error) {
 	listOptions := h.Options.ListOptions.DeepCopy()
 	listOptions.LabelSelector = ""

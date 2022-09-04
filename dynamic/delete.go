@@ -17,8 +17,12 @@ import (
 // or map[string]interface{}.
 //
 // If psssed parameter type is string, it will call DeleteByName insteard of DeleteFromFile.
-// You  should always explicitly call DeleteFromFile to delete a unstructured object
+// You should always explicitly call DeleteFromFile to delete a unstructured object
 // from filename.
+//
+// DeleteByName requires WithGVK() to explicitly specify the k8s resource's GroupVersionKind.
+// DeleteFromFile, DeleteFromBytes and DeleteFromMap will find GVK and GVR from
+// the provided structured or unstructured data, it's not reuqired to call WithGVK().
 func (h *Handler) Delete(obj interface{}) error {
 	switch val := obj.(type) {
 	case string:
