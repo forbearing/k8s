@@ -55,8 +55,8 @@ func FindGVK() {
 	checkErr("FindGVK from unstructured.Unstructured", gvk, err)
 	gvk, err = utilrestmapper.FindGVK(restMapper, object)
 	checkErr("FindGVK from runtime.Object", gvk, err)
-	//gvk, err = utilrestmapper.FindGVK(restMapper, new(int))
-	//checkErr("FindGVK from int", gvk, err) // error
+	gvk, err = utilrestmapper.FindGVK(restMapper, new(int))
+	checkErr("FindGVK from int", gvk, err) // error
 
 	// Output:
 	//2022/09/02 14:26:16 FindGVK from yaml file success: apps/v1, Kind=Deployment
