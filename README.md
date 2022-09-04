@@ -28,10 +28,11 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 Namespace precedence:
 
-1.namespace defined in yaml file or json file.
-2.namespace specified by WithNamespace() or MultiNamespace() method.
-3.namespace specified in New() or NewOrDie() funciton.
-4.namespace will be ignored if k8s resource is cluster scope.
+1. namespace defined in yaml file or json file.
+2. namespace specified by `WithNamespace()` or `MultiNamespace()` method.
+
+3. namespace specified in `New()` or `NewOrDie()` funciton.
+4. namespace will be ignored if k8s resource is cluster scope.
 
 ## Installation
 
