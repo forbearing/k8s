@@ -39,15 +39,15 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ### deployment handler examples
 
-- [How to create deployment resources inside cluster or outside cluster](./examples/deployment/deployment_create.go)
-- [How to update deployment resources inside cluster or outside cluster](./examples/deployment/deployment_update.go)
-- [How to apply deployment resources](./examples/deployment/deployment_apply.go)
-- [How to delete deployment resources](./examples/deployment/deployment_delete.go)
-- [How to get deployment resources](./examples/deployment/deployment_get.go)
-- [How to list deployment resources](./examples/deployment/deployment_list.go)
-- [How to watch deployment resources](./examples/deployment/deployment_watch.go)
-- [deployment informer](./examples/deployment/deployment_informer.go)
-- [more usage for informer](./deployment/informer.go)
+- [How to create deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_create.go)
+- [How to update deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_update.go)
+- [How to apply deployment resources.](./examples/deployment/deployment_apply.go)
+- [How to delete deployment resources.](./examples/deployment/deployment_delete.go)
+- [How to get deployment resources.](./examples/deployment/deployment_get.go)
+- [How to list deployment resources.](./examples/deployment/deployment_list.go)
+- [How to watch deployment resources.](./examples/deployment/deployment_watch.go)
+- [Deployment informer.](./examples/deployment/deployment_informer.go)
+- [More usage for informer.](./deployment/informer.go)
 - [Tools](./examples/deployment/deployment_tools.go)
     - GetPods(): get all pods ownerd by a deployment
     - GetRS(): get all replicaset ownerd by a deployment
@@ -56,6 +56,12 @@ For more examples on how to use this library, you can refer to the [examples](./
     - WaitReady(): block here until a deployment is ready/available/rollout finished.
 
 ### dynamic handler
+
+- [How to create k8s resource inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
+- [How to update k8s resource.](./examples/dynamic/dynamic_update.go)
+- [How to apply k8s resource.](./examples/dynamic/dynamic_apply.go)
+- [How to delete k8s resources.](./examples/dynamic/dynamic_delete.go)
+- [How to get k8s resources.](./examples/dynamic/dynamic_get.go)
 
 ### k8s handler
 
