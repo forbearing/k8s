@@ -63,6 +63,7 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [How to get deployment resources.](./examples/deployment/deployment_get.go)
 - [How to list deployment resources.](./examples/deployment/deployment_list.go)
 - [How to watch deployment resources.](./examples/deployment/deployment_watch.go)
+- [How to change the number of deployment replicas](./examples/deployment/deployment_scale.go)
 - [Deployment informer.](./examples/deployment/deployment_informer.go)
 - [More usage for informer.](./deployment/informer.go)
 - [Deployment tools](./examples/deployment/deployment_tools.go)
