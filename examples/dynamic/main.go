@@ -3,12 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/forbearing/k8s/clusterrole"
 	"github.com/forbearing/k8s/deployment"
 	"github.com/forbearing/k8s/dynamic"
-	"github.com/forbearing/k8s/namespace"
-	"github.com/forbearing/k8s/persistentvolume"
-	"github.com/forbearing/k8s/pod"
 )
 
 func main() {
@@ -19,13 +15,15 @@ func main() {
 }
 
 func cleanup(handler *dynamic.Handler) {
+	// if call Delete() to delete a k8s resource and the passed parameter type is string,
+	// you should always to explicitly specify the GroupVersionKind by WithGVK() method to delete it.
 	handler.WithGVK(deployment.GVK()).Delete(deployUnstructName)
 	handler.DeleteFromFile("../../testdata/examples/deployment.yaml")
 	handler.DeleteFromFile("../../testdata/examples/deployment.json")
-	handler.WithGVK(pod.GVK()).Delete(podUnstructData)
-	handler.WithGVK(namespace.GVK()).Delete(nsUnstructData)
-	handler.WithGVK(persistentvolume.GVK()).Delete(pvUnstructData)
-	handler.WithGVK(clusterrole.GVK()).Delete(crUnstructName)
+	handler.Delete(podUnstructData)
+	handler.Delete(nsUnstructData)
+	handler.Delete(pvUnstructData)
+	handler.Delete(crUnstructData)
 }
 
 func checkErr(name string, val interface{}, err error) {
