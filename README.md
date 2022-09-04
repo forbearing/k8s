@@ -34,11 +34,11 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ### k8s handler examples. (a universal handler, simply invoke dynamic handler to create/update/delete/get/list k8s resources.)
 
-- How to create k8s resources.
-- How to update k8s resources.
-- How to apply k8s resources.
-- How to delete k8s resources.
-- How to get k8s resources.
+- [How to create k8s resources.](./examples/k8s/k8s_create.go)
+- [How to update k8s resources.](./examples/k8s/k8s_update.go)
+- [How to apply k8s resources.](./examples/k8s/k8s_apply.go)
+- [How to delete k8s resources.](./examples/k8s_delete.go)
+- [How to get k8s resources.](./examples/k8s/k8s_get.go)
 - How to list k8s resources.
 - Howt to watch k8s resources.
 - informer usage.
