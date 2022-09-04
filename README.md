@@ -55,8 +55,13 @@ For more examples on how to use this library, you can refer to the [examples](./
     - IsReady(): check if a deployment is ready/available/rollout finished.
     - WaitReady(): block here until a deployment is ready/available/rollout finished.
 
+### dynamic handler
+
+### k8s handler
+
 ### more
 
+- [ApplyF()/DeleteF() apply/delete various k8s resource from a yaml file.](./k8s_test.go)
 - [Check whether the k8s resources has the specifed label, Get/Set/Remove labels of k8s resources](./examples/labels/main.go)
 - [Check whether the k8s resources has the specifed annotation, Get/Set/Remove labels of k8s annotations](./examples/annotations/main.go)
 - [Find k8s resource's GroupVersionKind from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvk.go)
