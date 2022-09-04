@@ -14,7 +14,7 @@ func Pod_Execute() {
 	if err != nil {
 		panic(err)
 	}
-	//defer cleanup(handler)
+	defer cleanup(handler)
 	handler.Apply(filename)
 	handler.WaitReady(name)
 
