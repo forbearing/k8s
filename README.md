@@ -84,11 +84,11 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [deployment informer](./examples/deployment/deployment_informer.go)
 - [more usage for informer](./deployment/informer.go)
 - [Tools](./examples/deployment/deployment_tools.go)
-    - GetPods(): get all pods ownerd by deployment
-    - GetRS(): get all replicaset ownerd by deployment
-    - GetPVC()/GetPV(): Get PVC/PV mounted by deployment
-    - IsReady(): check if the deployment is ready/available/rollout finished.
-    - WaitReady(): block here until deployment is ready/available/rollout finished.
+    - GetPods(): get all pods ownerd by a deployment
+    - GetRS(): get all replicaset ownerd by a deployment
+    - GetPVC()/GetPV(): Get PVC/PV mounted by a deployment
+    - IsReady(): check if a deployment is ready/available/rollout finished.
+    - WaitReady(): block here until a deployment is ready/available/rollout finished.
 
 ### more
 
