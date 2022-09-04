@@ -7,7 +7,6 @@ import (
 )
 
 func Dynamic_Create() {
-	namespace := "test"
 	handler := dynamic.NewOrDie(context.TODO(), "", namespace)
 	defer cleanup(handler)
 

@@ -7,10 +7,15 @@ import (
 	"github.com/forbearing/k8s/dynamic"
 )
 
+var (
+	namespace = "test"
+)
+
 func main() {
 	//Dynamic_Create()
 	//Dynamic_Update()
-	Dynamic_Apply()
+	//Dynamic_Apply()
+	Dynamic_Delete()
 	//Dynamic_Get()
 }
 

@@ -8,7 +8,6 @@ import (
 )
 
 func Dynamic_Get() {
-	namespace := "test"
 	handler := dynamic.NewOrDie(context.TODO(), "", namespace)
 	defer cleanup(handler)
 
