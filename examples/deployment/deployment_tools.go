@@ -18,7 +18,7 @@ func Deployment_Tools() {
 	defer cleanup(handler)
 
 	// kubectl apply -f ../../testdata/nginx/nginx-deploy.yaml
-	k8s.ApplyF(ctx, kubeconfig, filename2)
+	k8s.ApplyF(ctx, kubeconfig, filename2, namespace, k8s.IgnoreInvalid)
 
 	log.Println(handler.IsReady(name2)) // false
 	handler.WaitReady(name2)            // block until the deployment is ready and available.

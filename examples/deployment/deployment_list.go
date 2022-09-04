@@ -14,7 +14,7 @@ func Deployment_List() {
 	}
 	defer cleanup(handler)
 
-	k8s.ApplyF(ctx, kubeconfig, filename2)
+	k8s.ApplyF(ctx, kubeconfig, filename2, namespace, k8s.IgnoreInvalid)
 
 	// ListByLabel list deployment by label.
 	deployList, err := handler.WithNamespace("kube-system").ListByLabel("k8s-app=kube-dns")
