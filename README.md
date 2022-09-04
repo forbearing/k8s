@@ -26,42 +26,11 @@ The library is used by another open source project that used to backup pv/pvc da
 
 For more examples on how to use this library, you can refer to the [examples](./examples) folder or related test code.
 
+
+
 ## Installation
 
 `go get github.com/forbearing/k8s@v0.10.4`
-
-
-
-## TODO
-
-- [ ] https://github.com/kubernetes/kubectl/tree/master/pkg
-- [x] Simplify the use of client-go informer, lister
-- [x] create/delete/update/delete/get ... all kinds of k8s resources by dyanmic client.
-- [ ] Support crate/update/delete/get... `Event` resources
-- [ ] Support crate/update/delete/get... `Endpoint` resources
-- [ ] Support crate/update/delete/get... `EndpointSlice` resources
-- [ ] Support crate/update/delete/get... `LimitRange` resources
-- [ ] Support crate/update/delete/get... `PriorityClass` resources
-- [ ] Support crate/update/delete/get... `ResourceQuota` resources
-- [ ] Support crate/update/delete/get... `Lease` resources
-- [x] Add function: GVK(), GVR(), Kind(), Group(), Version(), Resource(), KindToResource(), ResourceToKind()
-- [x] signal handler
-- [x] Finalizers
-- [x] controller and owner
-- [ ] UpdateStatus: update Deployment/StatefulSet... status
-- [ ] UpdateScale: scale Deployment/StatefulSet...
-- [ ] DeleteCollection
-- [ ] Leader Election
-- [ ] Recoder
-- [ ] Replace interface{} -> any
-- [ ] fack client
-- [ ] EnvTest
-- [ ] healthz
-- [ ] metrics
-- [x] port-forward for pod, deployment and service
-- [ ] proxy
-- [ ] operators refer to https://sdk.operatorframework.io/docs/building-operators/golang/references/client/
-- [x] Add/Set/Remove/Has Labels and Annotations
 
 
 
@@ -97,3 +66,36 @@ For more examples on how to use this library, you can refer to the [examples](./
 - [Find k8s resource's GroupVersionKind from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvk.go)
 - [Find k8s resource's GroupVersionResources from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/find_gvr.go)
 - [Check if the k8s resource is namespace scope from yaml file, json file, bytes data, map[string]interface{}, etc.](./examples/restmapper/is_namespaced.go)
+
+
+
+## TODO
+
+- [ ] https://github.com/kubernetes/kubectl/tree/master/pkg
+- [x] Simplify the use of client-go informer, lister
+- [x] create/delete/update/delete/get ... all kinds of k8s resources by dyanmic client.
+- [ ] Support crate/update/delete/get... `Event` resources
+- [ ] Support crate/update/delete/get... `Endpoint` resources
+- [ ] Support crate/update/delete/get... `EndpointSlice` resources
+- [ ] Support crate/update/delete/get... `LimitRange` resources
+- [ ] Support crate/update/delete/get... `PriorityClass` resources
+- [ ] Support crate/update/delete/get... `ResourceQuota` resources
+- [ ] Support crate/update/delete/get... `Lease` resources
+- [x] Add function: GVK(), GVR(), Kind(), Group(), Version(), Resource(), KindToResource(), ResourceToKind()
+- [x] signal handler
+- [x] Finalizers
+- [x] controller and owner
+- [ ] UpdateStatus: update Deployment/StatefulSet... status
+- [ ] UpdateScale: scale Deployment/StatefulSet...
+- [ ] DeleteCollection
+- [ ] Leader Election
+- [ ] Recoder
+- [ ] Replace interface{} -> any
+- [ ] fack client
+- [ ] EnvTest
+- [ ] healthz
+- [ ] metrics
+- [x] port-forward for pod, deployment and service
+- [ ] proxy
+- [ ] operators refer to https://sdk.operatorframework.io/docs/building-operators/golang/references/client/
+- [x] Add/Set/Remove/Has Labels and Annotations
