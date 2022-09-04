@@ -32,10 +32,15 @@ For more examples on how to use this library, you can refer to the [examples](./
 
 ## Documents
 
-### pod handler examples
+### k8s handler
 
-- [How to execute command within pod](./examples/pod/pod_execute.go)
-- [How to port-forward a local port to pod](./examples/port-forward/portforward_pod.go)
+### dynamic handler
+
+- [How to create k8s resource inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
+- [How to update k8s resource.](./examples/dynamic/dynamic_update.go)
+- [How to apply k8s resource.](./examples/dynamic/dynamic_apply.go)
+- [How to delete k8s resources.](./examples/dynamic/dynamic_delete.go)
+- [How to get k8s resources.](./examples/dynamic/dynamic_get.go)
 
 ### deployment handler examples
 
@@ -55,15 +60,10 @@ For more examples on how to use this library, you can refer to the [examples](./
     - IsReady(): check if a deployment is ready/available/rollout finished.
     - WaitReady(): block here until a deployment is ready/available/rollout finished.
 
-### dynamic handler
+### pod handler examples
 
-- [How to create k8s resource inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
-- [How to update k8s resource.](./examples/dynamic/dynamic_update.go)
-- [How to apply k8s resource.](./examples/dynamic/dynamic_apply.go)
-- [How to delete k8s resources.](./examples/dynamic/dynamic_delete.go)
-- [How to get k8s resources.](./examples/dynamic/dynamic_get.go)
-
-### k8s handler
+- [How to execute command within pod](./examples/pod/pod_execute.go)
+- [How to port-forward a local port to pod](./examples/port-forward/portforward_pod.go)
 
 ### more
 
