@@ -12,6 +12,12 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+/*
+references:
+	https://stackoverflow.com/questions/72608810/kubernetes-client-go-use-informers-to-watch-deployments
+	https://caiorcferreira.github.io/post/the-kubernetes-dynamic-client/
+*/
+
 // SetInformerFactoryResyncPeriod will set informer resync period.
 func (h *Handler) SetInformerFactoryResyncPeriod(resyncPeriod time.Duration) {
 	h.l.Lock()
