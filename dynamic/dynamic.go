@@ -57,9 +57,9 @@ func NewOrDie(ctx context.Context, kubeconfig string, namespace string) *Handler
 //
 // The kubeconfig precedence is:
 // * kubeconfig variable passed.
-// * KUBECONFIG environment variable pointing at a file
+// * KUBECONFIG environment variable pointing at a file.
 // * $HOME/.kube/config if exists.
-// * In-cluster config if running in cluster
+// * In-cluster config if running in cluster.
 func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, error) {
 	var (
 		err           error
@@ -70,31 +70,11 @@ func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, er
 		restMapper    meta.RESTMapper
 	)
 
-	//// create rest config, and config precedence.
-	//// * kubeconfig variable passed.
-	//// * KUBECONFIG environment variable pointing at a file
-	//// * $HOME/.kube/config if exists.
-	//// * In-cluster config if running in cluster
-	////
-	//// create the outside-cluster config
-	//if len(kubeconfig) != 0 {
-	//    if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
-	//        return nil, err
-	//    }
-	//} else if len(os.Getenv(clientcmd.RecommendedConfigPathEnvVar)) != 0 {
-	//    if config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar)); err != nil {
-	//        return nil, err
-	//    }
-	//} else if len(clientcmd.RecommendedHomeFile) != 0 {
-	//    if config, err = clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile); err != nil {
-	//        return nil, err
-	//    }
-	//} else {
-	//    // create the in-cluster config
-	//    if config, err = rest.InClusterConfig(); err != nil {
-	//        return nil, err
-	//    }
-	//}
+	// create rest config, and config precedence.
+	// * kubeconfig variable passed.
+	// * KUBECONFIG environment variable pointing at a file.
+	// * $HOME/.kube/config if exists.
+	// * In-cluster config if running in cluster.
 	if config, err = client.RESTConfig(kubeconfig); err != nil {
 		return nil, err
 	}
