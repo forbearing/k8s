@@ -40,7 +40,7 @@ func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(
 		// kubernetes retains the resource event history, which includes this
 		// initial event, so that when our program first start, we are automatically
 		// notified of the deployment existence and current state.
-		// There we will not ignore the first resource add event.
+		// There we will not ignore the first resource added event.
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
@@ -72,6 +72,8 @@ func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(
 //    nor miss any events.
 //  * If Event.Type is Error: *api.Status is recommended; other types may make sense
 //    depending on context.
+//
+// Multiple labels are separated by ",", label key and value conjunctaed by "=".
 func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
 	var (
 		err     error
@@ -87,7 +89,7 @@ func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc fu
 		// kubernetes retains the resource event history, which includes this
 		// initial event, so that when our program first start, we are automatically
 		// notified of the deployment existence and current state.
-		// There we will not ignore the first resource add event.
+		// There we will not ignore the first resource added event.
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
@@ -138,7 +140,7 @@ func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc fun
 		// kubernetes retains the resource event history, which includes this
 		// initial event, so that when our program first start, we are automatically
 		// notified of the deployment existence and current state.
-		// There we will not ignore the first resource add event.
+		// There we will not ignore the first resource added event.
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
