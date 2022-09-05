@@ -5,7 +5,7 @@
 The library implements various handlers to more easy manipulate k8s resources such as pods, deployments, etc, inside or outside k8s cluster. A program that uses the library and runs in a k8s pod meant to be inside k8s cluster. If you simply run [examples](./examples) in your pc/mac or server, it meant outside k8s cluster. Both of inside and outside k8s cluster is supported by the library.
 
 To create a handler for outside cluster just call `deployment.New(ctx, kubeconfig, namespace)`.
-To create a handler for the inside cluster just call `deployment.New(ctx, "", namespace)`.
+To create a handler for the inside cluster just call `deployment.New(ctx, "", namespace)` and the `New()` function will find the kubeconfig file or the file pointed to by the variable `KUBECONFIG`. If neither is found, it will use the default kubeconfig filepath `$HOME/.kube/config`. if no kubeconfig file is found, `New()` will create an in-cluster rest.Config to create the deployment handler.
 
 The variable `namespace` is used to limit the scope of the handler. If `namespace=test`, the handler is only allowed to create/update/delete deployments in namespace/test. Of course, handler.WithNamespace(newNamespace) returns a new temporary handler that allowed to create/update/delete deployments in the new namespace, for examples:
 
@@ -22,18 +22,21 @@ handler.WithNamespace(namespace2).Create(filename)
 handler.Create(filename)
 ```
 
+The namespace precedence is:
+
+- namespace defined in yaml file or json file.
+
+- namespace specified by `WithNamespace()` or `MultiNamespace()` method.
+
+- namespace specified in `New()` or `NewOrDie()` funciton.
+
+- namespace will be ignored if k8s resource is cluster scope.
+
+- if namespace is empty, default to "default" namespace.
+
 The library is used by another open source project that used to backup pv/pvc data attached by deployments/statefulsets/daemosnets/pods running in k8s cluster.
 
-For more examples on how to use this library, you can refer to the [examples](./examples) folder or related test code.
-
-Namespace precedence:
-
-1. namespace defined in yaml file or json file.
-2. namespace specified by `WithNamespace()` or `MultiNamespace()` method.
-
-3. namespace specified in `New()` or `NewOrDie()` funciton.
-4. namespace will be ignored if k8s resource is cluster scope.
-5. if namespace is empty, default to "default" namespace.
+For more examples of how to use this library, see [examples](./examples).
 
 ## Installation
 
