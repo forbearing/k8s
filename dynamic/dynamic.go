@@ -146,29 +146,45 @@ func (h *Handler) WithGVK(gvk schema.GroupVersionKind) *Handler {
 	return handler
 }
 
+// WithDryRun deep copies a new handler and prints the create/update/apply/delete
+// operations, without sending it to apiserver.
+func (h *Handler) WithDryRun() *Handler {
+	handler := h.DeepCopy()
+	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
+	return handler
+}
+
 // DeepCopy
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
 	}
 	return &Handler{
-		ctx:           in.ctx,
-		gvk:           in.gvk,
-		kubeconfig:    in.kubeconfig,
-		namespace:     in.namespace,
-		config:        in.config,
-		httpClient:    in.httpClient,
-		restClient:    in.restClient,
-		dynamicClient: in.dynamicClient,
-		restMapper:    in.restMapper,
+		ctx:              in.ctx,
+		gvk:              in.gvk,
+		kubeconfig:       in.kubeconfig,
+		namespace:        in.namespace,
+		config:           in.config,
+		httpClient:       in.httpClient,
+		restClient:       in.restClient,
+		dynamicClient:    in.dynamicClient,
+		informerFactory:  in.informerFactory,
+		resyncPeriod:     in.resyncPeriod,
+		informerScope:    in.informerScope,
+		tweakListOptions: in.tweakListOptions,
+		restMapper:       in.restMapper,
 		Options: &types.HandlerOptions{
-			CreateOptions: in.Options.CreateOptions,
-			UpdateOptions: in.Options.UpdateOptions,
-			ApplyOptions:  in.Options.ApplyOptions,
-			DeleteOptions: in.Options.DeleteOptions,
-			GetOptions:    in.Options.GetOptions,
-			ListOptions:   in.Options.ListOptions,
-			PatchOptions:  in.Options.PatchOptions,
+			CreateOptions: *in.Options.CreateOptions.DeepCopy(),
+			UpdateOptions: *in.Options.UpdateOptions.DeepCopy(),
+			ApplyOptions:  *in.Options.ApplyOptions.DeepCopy(),
+			DeleteOptions: *in.Options.DeleteOptions.DeepCopy(),
+			GetOptions:    *in.Options.GetOptions.DeepCopy(),
+			ListOptions:   *in.Options.ListOptions.DeepCopy(),
+			PatchOptions:  *in.Options.PatchOptions.DeepCopy(),
 		},
 	}
 }
