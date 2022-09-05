@@ -20,6 +20,7 @@ func (h *Handler) List() ([]*corev1.Pod, error) {
 }
 
 // ListByLabel list pods by labels.
+//
 // Multiple labels separated by comma(",") eg: "name=myapp,role=devops",
 // and there is an "And" relationship between multiple labels.
 func (h *Handler) ListByLabel(labels string) ([]*corev1.Pod, error) {
@@ -68,6 +69,7 @@ func (h *Handler) ListByNode(name string) ([]*corev1.Pod, error) {
 }
 
 // ListRunning list all pods whose .status.phase is "Running" in the k8s cluster.
+//
 // "Running" means the pod has been bound to a node and all of the containers have been started.
 // At least one container is still running or is in the process of being restarted.
 func (h *Handler) ListRunning() ([]*corev1.Pod, error) {
@@ -76,6 +78,7 @@ func (h *Handler) ListRunning() ([]*corev1.Pod, error) {
 }
 
 // ListSucceeded list all pods whose .status.phase is "Succeeded" in the k8s cluster.
+//
 // "Succeeded" means that all containers in the pod have voluntarily terminated
 // with a container exit code of 0, and the system is not going to restart
 // any of these containers.
@@ -85,6 +88,7 @@ func (h *Handler) ListSucceeded() ([]*corev1.Pod, error) {
 }
 
 // ListFailed list all pods whose .status.phase is "Failed" in the k8s cluster.
+//
 // "Failed" means that all containers in the pod have terminated, and at least
 // one container has terminated in a failure (exited with a non-zero exit code
 // or was stopped by the system).
@@ -94,6 +98,7 @@ func (h *Handler) ListFailed() ([]*corev1.Pod, error) {
 }
 
 // ListPending list all pods whose .status.phase is "Pending" in the k8s cluster.
+//
 // "Pending" means the pod has been accepted by the system, but one or more of
 // the containers has not been started. This includes time before being bound to
 // a node, as well as time spent pulling images onto the host.
@@ -103,6 +108,7 @@ func (h *Handler) ListPending() ([]*corev1.Pod, error) {
 }
 
 // ListUnknow list all pods whose .status.phase is "Unknow" in the k8s cluster.
+//
 // "Unknown" means that for some reason the state of the pod could not be obtained,
 // typically due to an error in communicating with the host of the pod.
 // Deprecated: It isn't being set since 2015 (74da3b14b0c0f658b3bb8d2def5094686d0e9095)
