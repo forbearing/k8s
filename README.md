@@ -41,7 +41,7 @@ Namespace precedence:
 
 ## Documents
 
-### k8s handler examples. a universal handler, simply invoke dynamic handler to create/update/delete/apply k8s resources, and invoke informer handler to get/list from listers.
+### k8s handler examples. Its a universal handler that simply invoke dynamic handler to create/update/patch/delete k8s resources and get/list k8s resources from listers instead of accessing the API server directly.
 
 - [How to create k8s resources.](./examples/k8s/k8s_create.go)
 - [How to update k8s resources.](./examples/k8s/k8s_update.go)
@@ -52,7 +52,7 @@ Namespace precedence:
 - Howt to watch k8s resources.
 - informer usage.
 
-### dynamic handler examples. a universal handler, create/update/delete/get/list k8s resources by the underlying dynamic client.
+### dynamic handler examples. Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
 
 - [How to create k8s resources inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
 - [How to update k8s resources.](./examples/dynamic/dynamic_update.go)
@@ -63,7 +63,7 @@ Namespace precedence:
 - How to watch k8s resources.
 - dynamic informer usage.
 
-### deployment handler examples. (just for deployment resource, create/update/delete/get/list deployment resources by the underlying clientset.)
+### deployment handler examples. Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such like deployments, pods, etc.).
 
 - [How to create deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_create.go)
 - [How to update deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_update.go)
@@ -89,6 +89,7 @@ Namespace precedence:
 
 - [How to execute command within pod.](./examples/pod/pod_execute.go)
 - [How to port-forward a local port to pod.](./examples/port-forward/portforward_pod.go)
+- [How to get pod logs](./examples/pods/pod_logs.go)
 
 ### more usage.
 
