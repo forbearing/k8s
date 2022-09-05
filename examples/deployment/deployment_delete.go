@@ -60,13 +60,13 @@ func Deployment_Delete() {
 
 	// Output:
 
-	//2022/08/03 20:55:20 delete deployment by name success:
-	//2022/08/03 20:55:20 delete deployment from file success:
-	//2022/08/03 20:55:20 delete deployment from bytes success:
-	//2022/08/03 20:55:20 delete deployment from *appsv1.Deployment success:
-	//2022/08/03 20:55:20 delete deployment from appsv1.Deployment success:
-	//2022/08/03 20:55:20 delete deployment from runtime.Object success:
-	//2022/08/03 20:55:20 delete deployment from *unstructured.Unstructured success:
-	//2022/08/03 20:55:21 delete deployment from unstructured.Unstructured success:
-	//2022/08/03 20:55:21 delete deployment from map[string]interface{} success:
+	//2022/09/05 16:55:53 delete deployment by name success:
+	//2022/09/05 16:55:53 delete deployment from file success:
+	//2022/09/05 16:55:53 delete deployment from bytes success:
+	//2022/09/05 16:55:53 delete deployment from *appsv1.Deployment success:
+	//2022/09/05 16:55:53 delete deployment from appsv1.Deployment success:
+	//2022/09/05 16:55:53 delete deployment from runtime.Object success:
+	//2022/09/05 16:55:54 delete deployment from *unstructured.Unstructured success:
+	//2022/09/05 16:55:54 delete deployment from unstructured.Unstructured success:
+	//2022/09/05 16:55:54 delete deployment from map[string]interface{} success:
 }

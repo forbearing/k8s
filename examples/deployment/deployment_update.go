@@ -61,12 +61,12 @@ func Deployment_Update() {
 
 	// Output:
 
-	//2022/08/03 20:07:08 update deployment from file success: mydep
-	//2022/08/03 20:07:08 update deployment from bytes success: mydep
-	//2022/08/03 20:07:08 update deployment from *appsv1.Deployment success: mydep
-	//2022/08/03 20:07:08 update deployment from appsv1.Deployment success: mydep
-	//2022/08/03 20:07:08 update deployment from runtime.Object success: mydep
-	//2022/08/03 20:07:08 update deployment from *unstructured.Unstructured success: mydep-unstruct
-	//2022/08/03 20:07:08 update deployment from unstructured.Unstructured success: mydep-unstruct
-	//2022/08/03 20:07:08 update deployment from map[string]interface{} success: mydep-unstruct
+	//2022/09/05 16:52:13 update deployment from file success: mydep
+	//2022/09/05 16:52:13 update deployment from bytes success: mydep
+	//2022/09/05 16:52:13 update deployment from *appsv1.Deployment success: mydep
+	//2022/09/05 16:52:13 update deployment from appsv1.Deployment success: mydep
+	//2022/09/05 16:52:13 update deployment from runtime.Object success: mydep
+	//2022/09/05 16:52:13 update deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/09/05 16:52:13 update deployment from unstructured.Unstructured success: mydep-unstruct
+	//2022/09/05 16:52:13 update deployment from map[string]interface{} success: mydep-unstruct
 }

@@ -39,4 +39,8 @@ func Deployment_Patch() {
 	handler.WaitReady(unstructName)
 	time.Sleep(time.Second * 3)
 
+	// Output:
+
+	//2022/09/05 16:54:11 1 2
+	//2022/09/05 16:54:16 1 3
 }

@@ -62,12 +62,12 @@ func Deployment_Create() {
 
 	// Output:
 
-	//2022/08/03 19:56:41 create deployment from file success: mydep
-	//2022/08/03 19:56:41 create deployment from bytes success: mydep
-	//2022/08/03 19:56:41 create deployment from *appsv1.Deployment success: mydep
-	//2022/08/03 19:56:41 create deployment from appsv1.Deployment success: mydep
-	//2022/08/03 19:56:41 create deployment from runtime.Object success: mydep
-	//2022/08/03 19:56:41 create deployment from *unstructured.Unstructured success: mydep-unstruct
-	//2022/08/03 19:56:42 create deployment from *unstructured.Unstructured success: mydep-unstruct
-	//2022/08/03 19:56:42 create deployment from map[string]interface{} success: mydep-unstruct
+	//2022/09/05 16:51:23 create deployment from file success: mydep
+	//2022/09/05 16:51:23 create deployment from bytes success: mydep
+	//2022/09/05 16:51:23 create deployment from *appsv1.Deployment success: mydep
+	//2022/09/05 16:51:23 create deployment from appsv1.Deployment success: mydep
+	//2022/09/05 16:51:23 create deployment from runtime.Object success: mydep
+	//2022/09/05 16:51:23 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/09/05 16:51:24 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/09/05 16:51:24 create deployment from map[string]interface{} success: mydep-unstruct
 }

@@ -67,13 +67,13 @@ func Deployment_Get() {
 
 	// Output:
 
-	//2022/08/03 20:43:38 get deployment by name success: mydep
-	//2022/08/03 20:43:38 get deployment from file success: mydep
-	//2022/08/03 20:43:38 get deployment from bytes success: mydep
-	//2022/08/03 20:43:38 get deployment from *appsv1.Deployment success: mydep
-	//2022/08/03 20:43:38 get deployment from appsv1.Deployment success: mydep
-	//2022/08/03 20:43:38 get deployment from runtime.Object success: mydep
-	//2022/08/03 20:43:38 get deployment from *unstructured.Unstructured success: mydep-unstruct
-	//2022/08/03 20:43:38 get deployment from unstructured.Unstructured success: mydep-unstruct
-	//2022/08/03 20:43:38 get deployment from map[string]interface{} success: mydep-unstruct
+	//2022/09/05 16:56:17 get deployment by name success: mydep
+	//2022/09/05 16:56:17 get deployment from file success: mydep
+	//2022/09/05 16:56:17 get deployment from bytes success: mydep
+	//2022/09/05 16:56:17 get deployment from *appsv1.Deployment success: mydep
+	//2022/09/05 16:56:17 get deployment from appsv1.Deployment success: mydep
+	//2022/09/05 16:56:17 get deployment from runtime.Object success: mydep
+	//2022/09/05 16:56:17 get deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/09/05 16:56:17 get deployment from unstructured.Unstructured success: mydep-unstruct
+	//2022/09/05 16:56:17 get deployment from map[string]interface{} success: mydep-unstruct
 }

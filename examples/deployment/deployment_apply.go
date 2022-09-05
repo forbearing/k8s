@@ -90,20 +90,20 @@ func Deployment_Apply() {
 
 	// Output:
 
-	//2022/08/03 20:24:08 apply deployment from file (deployment not exists) success: mydep
-	//2022/08/03 20:24:08 apply deployment from file (deployment exists) success: mydep
-	//2022/08/03 20:24:08 apply deployment from bytes (deployment not exists) success: mydep
-	//2022/08/03 20:24:08 apply deployment from bytes (deployment exists) success: mydep
-	//2022/08/03 20:24:08 apply deployment from *appsv1.Deployment (deployment not exists) success: mydep
-	//2022/08/03 20:24:08 apply deployment from *appsv1.Deployment (deployment exists) success: mydep
-	//2022/08/03 20:24:08 apply deployment from appsv1.Deployment (deployment not exists) success: mydep
-	//2022/08/03 20:24:09 apply deployment from appsv1.Deployment (deployment exists) success: mydep
-	//2022/08/03 20:24:09 apply deployment from runtime.Object (deployment not exists) success: mydep
-	//2022/08/03 20:24:09 apply deployment from runtime.Object (deployment exists) success: mydep
-	//2022/08/03 20:24:10 apply deployment from *unstructured.Unstructured (deployment not exists) success: mydep-unstruct
-	//2022/08/03 20:24:10 apply deployment from *unstructured.Unstructured (deployment exists) success: mydep-unstruct
-	//2022/08/03 20:24:11 apply deployment from unstructured.Unstructured (deployment not exists) success: mydep-unstruct
-	//2022/08/03 20:24:11 apply deployment from unstructured.Unstructured (deployment exists) success: mydep-unstruct
-	//2022/08/03 20:24:11 apply deployment from map[string]interface{} (deployment not exists) success: mydep-unstruct
-	//2022/08/03 20:24:12 apply deployment from map[string]interface{} (deployment exists) success: mydep-unstruct
+	//2022/09/05 16:53:25 apply deployment from file (deployment not exists) success: mydep
+	//2022/09/05 16:53:25 apply deployment from file (deployment exists) success: mydep
+	//2022/09/05 16:53:25 apply deployment from bytes (deployment not exists) success: mydep
+	//2022/09/05 16:53:25 apply deployment from bytes (deployment exists) success: mydep
+	//2022/09/05 16:53:25 apply deployment from *appsv1.Deployment (deployment not exists) success: mydep
+	//2022/09/05 16:53:25 apply deployment from *appsv1.Deployment (deployment exists) success: mydep
+	//2022/09/05 16:53:25 apply deployment from appsv1.Deployment (deployment not exists) success: mydep
+	//2022/09/05 16:53:26 apply deployment from appsv1.Deployment (deployment exists) success: mydep
+	//2022/09/05 16:53:26 apply deployment from runtime.Object (deployment not exists) success: mydep
+	//2022/09/05 16:53:27 apply deployment from runtime.Object (deployment exists) success: mydep
+	//2022/09/05 16:53:27 apply deployment from *unstructured.Unstructured (deployment not exists) success: mydep-unstruct
+	//2022/09/05 16:53:27 apply deployment from *unstructured.Unstructured (deployment exists) success: mydep-unstruct
+	//2022/09/05 16:53:28 apply deployment from unstructured.Unstructured (deployment not exists) success: mydep-unstruct
+	//2022/09/05 16:53:28 apply deployment from unstructured.Unstructured (deployment exists) success: mydep-unstruct
+	//2022/09/05 16:53:29 apply deployment from map[string]interface{} (deployment not exists) success: mydep-unstruct
+	//2022/09/05 16:53:29 apply deployment from map[string]interface{} (deployment exists) success: mydep-unstruct
 }
