@@ -7,6 +7,12 @@ The library implements various handlers to more easy manipulate k8s resources su
 To create a handler for outside cluster just call `deployment.New(ctx, kubeconfig, namespace)`.
 To create a handler for the inside cluster just call `deployment.New(ctx, "", namespace)` and the `New()` function will find the kubeconfig file or the file pointed to by the variable `KUBECONFIG`. If neither is found, it will use the default kubeconfig filepath `$HOME/.kube/config`. if no kubeconfig file is found, `New()` will create an in-cluster rest.Config to create the deployment handler.
 
+The kubeconfig precedence is:
+* kubeconfig variable passed.
+* KUBECONFIG environment variable pointing at a file.
+* $HOME/.kube/config if exists.
+* In-cluster config if running in cluster.
+
 The variable `namespace` is used to limit the scope of the handler. If `namespace=test`, the handler is only allowed to create/update/delete deployments in namespace/test. Of course, handler.WithNamespace(newNamespace) returns a new temporary handler that allowed to create/update/delete deployments in the new namespace, for examples:
 
 ```go
