@@ -81,8 +81,8 @@ Namespace precedence:
     - GetPods(): get all pods ownerd by a deployment
     - GetRS(): get all replicaset ownerd by a deployment
     - GetPVC()/GetPV(): Get PVC/PV mounted by a deployment
-    - IsReady(): check if a deployment is ready/available/rollout finished.
-    - WaitReady(): block here until a deployment is ready/available/rollout finished.
+    - IsReady(): check if a deployment is ready/available/rollout update finished.
+    - WaitReady(): block here until a deployment is ready/available/rollout update finished.
 
 ### pod handler examples
 
@@ -129,5 +129,5 @@ Namespace precedence:
 - [ ] operators refer to https://sdk.operatorframework.io/docs/building-operators/golang/references/client/
 - [x] Add/Set/Remove/Has Labels and Annotations
 - [ ] Add MultiNamespace() method to create/update/delete k8s resource in multi namespaces.
-- [ ] informer handler create/update/delete/apply k8s resource by the underling dynamic but get/list from listers.
+- [ ] k8s handler create/update/delete/apply k8s resource by the underling dynamic but get/list from listers.
 - [ ] create/update/delete/apply muitlple k8s resource.
