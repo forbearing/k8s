@@ -40,7 +40,7 @@ Namespace precedence:
 
 ## Documents
 
-### k8s handler examples. (a universal handler, simply invoke dynamic handler to create/update/delete/get/list k8s resources.)
+### k8s handler examples. a universal handler, simply invoke dynamic handler to create/update/delete/apply k8s resources, and invoke informer handler to get/list from listers.
 
 - [How to create k8s resources.](./examples/k8s/k8s_create.go)
 - [How to update k8s resources.](./examples/k8s/k8s_update.go)
@@ -51,7 +51,7 @@ Namespace precedence:
 - Howt to watch k8s resources.
 - informer usage.
 
-### dynamic handler examples. (a universal handler, create/update/delete/get/list k8s resources by the underlying dynamic client.)
+### dynamic handler examples. a universal handler, create/update/delete/get/list k8s resources by the underlying dynamic client.
 
 - [How to create k8s resources inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
 - [How to update k8s resources.](./examples/dynamic/dynamic_update.go)
@@ -71,13 +71,13 @@ Namespace precedence:
 - [How to get deployment resources.](./examples/deployment/deployment_get.go)
 - [How to list deployment resources.](./examples/deployment/deployment_list.go)
 - [How to watch a single deployment resources.](./examples/deployment/deployment_watch_single.go)
-- [How to watch multiple deployment resources selected by label](./examples/deployment/deployment_watch_label.go)
-- [How to watch multiple deployment resources selected by field](./examples/deployment/deployment_watch_field.go)
-- [How to watch all deployment resources](./examples/deployment/deployment_watch_all.go)
-- [How to change the number of deployment replicas](./examples/deployment/deployment_scale.go)
+- [How to watch multiple deployment resources selected by label.](./examples/deployment/deployment_watch_label.go)
+- [How to watch multiple deployment resources selected by field.](./examples/deployment/deployment_watch_field.go)
+- [How to watch all deployment resources.](./examples/deployment/deployment_watch_all.go)
+- [How to change the number of deployment replicas.](./examples/deployment/deployment_scale.go)
 - [Deployment informer.](./examples/deployment/deployment_informer.go)
 - [More usage for informer.](./deployment/informer.go)
-- [Deployment tools](./examples/deployment/deployment_tools.go)
+- [Deployment tools.](./examples/deployment/deployment_tools.go)
     - GetPods(): get all pods ownerd by a deployment
     - GetRS(): get all replicaset ownerd by a deployment
     - GetPVC()/GetPV(): Get PVC/PV mounted by a deployment
@@ -86,8 +86,8 @@ Namespace precedence:
 
 ### pod handler examples
 
-- [How to execute command within pod](./examples/pod/pod_execute.go)
-- [How to port-forward a local port to pod](./examples/port-forward/portforward_pod.go)
+- [How to execute command within pod.](./examples/pod/pod_execute.go)
+- [How to port-forward a local port to pod.](./examples/port-forward/portforward_pod.go)
 
 ### more usage.
 
