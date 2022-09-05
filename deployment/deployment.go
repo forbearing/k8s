@@ -3,11 +3,11 @@ package deployment
 import (
 	"context"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
 	"github.com/forbearing/k8s/types"
+	"github.com/forbearing/k8s/util/client"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -18,7 +18,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 type Handler struct {
@@ -26,13 +25,12 @@ type Handler struct {
 	kubeconfig string
 	namespace  string
 
-	config             *rest.Config
-	httpClient         *http.Client
-	restClient         *rest.RESTClient
-	clientset          *kubernetes.Clientset
-	dynamicClient      dynamic.Interface
-	discoveryClient    *discovery.DiscoveryClient
-	discoveryInterface discovery.DiscoveryInterface
+	config          *rest.Config
+	httpClient      *http.Client
+	restClient      *rest.RESTClient
+	clientset       *kubernetes.Clientset
+	dynamicClient   dynamic.Interface
+	discoveryClient *discovery.DiscoveryClient
 
 	resyncPeriod     time.Duration
 	informerScope    string
@@ -57,55 +55,35 @@ func NewOrDie(ctx context.Context, kubeconfig, namespace string) *Handler {
 // New returns a deployment handler from kubeconfig or in-cluster config.
 // The kubeconfig precedence is:
 // * kubeconfig variable passed.
-// * KUBECONFIG environment variable pointing at a file
+// * KUBECONFIG environment variable pointing at a file.
 // * $HOME/.kube/config if exists.
-// * In-cluster config if running in cluster
-func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, err error) {
+// * In-cluster config if running in cluster.
+func New(ctx context.Context, kubeconfig, namespace string) (*Handler, error) {
 	var (
-		config             *rest.Config
-		httpClient         *http.Client
-		restClient         *rest.RESTClient
-		clientset          *kubernetes.Clientset
-		dynamicClient      dynamic.Interface
-		discoveryClient    *discovery.DiscoveryClient
-		discoveryInterface discovery.DiscoveryInterface
-		informerFactory    informers.SharedInformerFactory
+		err             error
+		config          *rest.Config
+		httpClient      *http.Client
+		restClient      *rest.RESTClient
+		clientset       *kubernetes.Clientset
+		dynamicClient   dynamic.Interface
+		discoveryClient *discovery.DiscoveryClient
+		informerFactory informers.SharedInformerFactory
 	)
-	handler = &Handler{}
 
 	// create rest config, and config precedence.
 	// * kubeconfig variable passed.
-	// * KUBECONFIG environment variable pointing at a file
+	// * KUBECONFIG environment variable pointing at a file.
 	// * $HOME/.kube/config if exists.
-	// * In-cluster config if running in cluster
-	//
-	// create the outside-cluster config
-	if len(kubeconfig) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
-			return nil, err
-		}
-	} else if len(os.Getenv(clientcmd.RecommendedConfigPathEnvVar)) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar)); err != nil {
-			return nil, err
-		}
-	} else if len(clientcmd.RecommendedHomeFile) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile); err != nil {
-			return nil, err
-		}
-	} else {
-		// create the in-cluster config
-		if config, err = rest.InClusterConfig(); err != nil {
-			return nil, err
-		}
+	// * In-cluster config if running in cluster.
+	if config, err = client.RESTConfig(kubeconfig); err != nil {
+		return nil, err
 	}
-
 	// setup APIPath, GroupVersion and NegotiatedSerializer before initializing a RESTClient
 	config.APIPath = "api"
 	config.GroupVersion = &appsv1.SchemeGroupVersion
 	//config.GroupVersion = &schema.GroupVersion{Group: "apps", Version: "v1"}
 	config.NegotiatedSerializer = scheme.Codecs
 	//config.UserAgent = rest.DefaultKubernetesUserAgent()
-
 	//// k8s cluster endpoint, eg: https://10.250.16.10:8443
 	//config.Host = "127.0.0.1"
 	//config.ContentConfig = rest.ContentConfig{
@@ -117,71 +95,41 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 	if httpClient, err = rest.HTTPClientFor(config); err != nil {
 		return nil, err
 	}
-
-	//// create a RESTClient for the given config
-	//restClient, err = rest.RESTClientFor(config)
-	//if err != nil {
-	//    return nil, err
-	//}
 	// create a RESTClient for the given config and http client
 	if restClient, err = rest.RESTClientForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
-
-	//// create a Clientset for the given config
-	//clientset, err = kubernetes.NewForConfig(config)
-	//if err != nil {
-	//    return nil, err
-	//}
 	// create a clientset for the given config and http client.
 	if clientset, err = kubernetes.NewForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
-	//// create a dynamic client for the given config
-	//dynamicClient, err = dynamic.NewForConfig(config)
-	//if err != nil {
-	//    return nil, err
-	//}
 	// create a dynamic client for the given config and http client.
 	if dynamicClient, err = dynamic.NewForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
-
-	//// create a DiscoveryClient for the given config
-	//discoveryClient, err = discovery.NewDiscoveryClientForConfig(config)
-	//if err != nil {
-	//    return nil, err
-	//}
 	// create a DiscoveryClient for the given config and http client.
 	if discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
-
-	// create a sharedInformerFactory for all namespaces.
-	informerFactory = informers.NewSharedInformerFactory(clientset, 0)
-	//discoveryClient = clientset.DiscoveryClient
-	//discoveryInterface = clientset.Discovery()
-
-	// default namespace is meatv1.NamespaceDefault ("default")
 	if len(namespace) == 0 {
 		namespace = metav1.NamespaceDefault
 	}
-	handler.kubeconfig = kubeconfig
-	handler.namespace = namespace
-	handler.ctx = ctx
-	handler.config = config
-	handler.httpClient = httpClient
-	handler.restClient = restClient
-	handler.clientset = clientset
-	handler.dynamicClient = dynamicClient
-	handler.discoveryClient = discoveryClient
-	handler.informerFactory = informerFactory
-	//handler.discoveryInterface = discoveryInterface
-	_ = discoveryInterface
+	// create a sharedInformerFactory for all namespaces.
+	informerFactory = informers.NewSharedInformerFactory(clientset, 0)
 
-	handler.Options = &types.HandlerOptions{}
-
-	return handler, nil
+	return &Handler{
+		ctx:             ctx,
+		kubeconfig:      kubeconfig,
+		namespace:       namespace,
+		config:          config,
+		httpClient:      httpClient,
+		restClient:      restClient,
+		clientset:       clientset,
+		dynamicClient:   dynamicClient,
+		discoveryClient: discoveryClient,
+		informerFactory: informerFactory,
+		Options:         &types.HandlerOptions{},
+	}, nil
 }
 
 // WithNamespace deep copies a new handler, but set the handler.namespace to
@@ -198,40 +146,39 @@ func (h *Handler) WithDryRun() *Handler {
 	handler := h.DeepCopy()
 	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
 	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
 	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
 	return handler
 }
 func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
 	}
-	out := new(Handler)
-
-	out.kubeconfig = in.kubeconfig
-	out.namespace = in.namespace
-
-	// 和几个字段都是共用的, 不需要深拷贝
-	out.ctx = in.ctx
-	out.config = in.config
-	out.httpClient = in.httpClient
-	out.restClient = in.restClient
-	out.clientset = in.clientset
-	out.dynamicClient = in.dynamicClient
-	out.discoveryClient = in.discoveryClient
-	out.informerFactory = in.informerFactory
-
-	// 锁 sync.RWMutex 不需要拷贝, 也不能拷贝. 拷贝 sync.RWMutex 会直接 panic
-	out.Options = &types.HandlerOptions{}
-	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()
-	out.Options.GetOptions = *in.Options.GetOptions.DeepCopy()
-	out.Options.CreateOptions = *in.Options.CreateOptions.DeepCopy()
-	out.Options.UpdateOptions = *in.Options.UpdateOptions.DeepCopy()
-	out.Options.PatchOptions = *in.Options.PatchOptions.DeepCopy()
-	out.Options.ApplyOptions = *in.Options.ApplyOptions.DeepCopy()
-
-	return out
+	return &Handler{
+		ctx:              in.ctx,
+		kubeconfig:       in.kubeconfig,
+		namespace:        in.namespace,
+		config:           in.config,
+		httpClient:       in.httpClient,
+		restClient:       in.restClient,
+		clientset:        in.clientset,
+		dynamicClient:    in.dynamicClient,
+		discoveryClient:  in.discoveryClient,
+		informerFactory:  in.informerFactory,
+		resyncPeriod:     in.resyncPeriod,
+		informerScope:    in.informerScope,
+		tweakListOptions: in.tweakListOptions,
+		Options: &types.HandlerOptions{
+			CreateOptions: *in.Options.CreateOptions.DeepCopy(),
+			UpdateOptions: *in.Options.UpdateOptions.DeepCopy(),
+			ApplyOptions:  *in.Options.ApplyOptions.DeepCopy(),
+			DeleteOptions: *in.Options.DeleteOptions.DeepCopy(),
+			GetOptions:    *in.Options.GetOptions.DeepCopy(),
+			ListOptions:   *in.Options.ListOptions.DeepCopy(),
+			PatchOptions:  *in.Options.PatchOptions.DeepCopy(),
+		},
+	}
 }
 func (h *Handler) resetNamespace(namespace string) {
 	h.l.Lock()

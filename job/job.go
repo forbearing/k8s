@@ -3,12 +3,12 @@ package job
 import (
 	"context"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/forbearing/k8s/types"
+	"github.com/forbearing/k8s/util/client"
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -19,7 +19,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 type Handler struct {
@@ -57,11 +56,12 @@ func NewOrDie(ctx context.Context, kubeconfig, namespace string) *Handler {
 // New returns a job handler from kubeconfig or in-cluster config.
 // The kubeconfig precedence is:
 // * kubeconfig variable passed.
-// * KUBECONFIG environment variable pointing at a file
+// * KUBECONFIG environment variable pointing at a file.
 // * $HOME/.kube/config if exists.
-// * In-cluster config if running in cluster
-func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, err error) {
+// * In-cluster config if running in cluster.
+func New(ctx context.Context, kubeconfig, namespace string) (*Handler, error) {
 	var (
+		err             error
 		config          *rest.Config
 		httpClient      *http.Client
 		restClient      *rest.RESTClient
@@ -70,34 +70,15 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 		discoveryClient *discovery.DiscoveryClient
 		informerFactory informers.SharedInformerFactory
 	)
-	handler = &Handler{}
 
 	// create rest config, and config precedence.
 	// * kubeconfig variable passed.
-	// * KUBECONFIG environment variable pointing at a file
+	// * KUBECONFIG environment variable pointing at a file.
 	// * $HOME/.kube/config if exists.
-	// * In-cluster config if running in cluster
-	//
-	// create the outside-cluster config
-	if len(kubeconfig) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
-			return nil, err
-		}
-	} else if len(os.Getenv(clientcmd.RecommendedConfigPathEnvVar)) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar)); err != nil {
-			return nil, err
-		}
-	} else if len(clientcmd.RecommendedHomeFile) != 0 {
-		if config, err = clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile); err != nil {
-			return nil, err
-		}
-	} else {
-		// create the in-cluster config
-		if config, err = rest.InClusterConfig(); err != nil {
-			return nil, err
-		}
+	// * In-cluster config if running in cluster.
+	if config, err = client.RESTConfig(kubeconfig); err != nil {
+		return nil, err
 	}
-
 	// setup APIPath, GroupVersion and NegotiatedSerializer before initializing a RESTClient
 	config.APIPath = "api"
 	config.GroupVersion = &batchv1.SchemeGroupVersion
@@ -123,25 +104,26 @@ func New(ctx context.Context, kubeconfig, namespace string) (handler *Handler, e
 	if discoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(config, httpClient); err != nil {
 		return nil, err
 	}
-	// create a sharedInformerFactory for all namespaces.
-	informerFactory = informers.NewSharedInformerFactory(clientset, 0)
-
 	if len(namespace) == 0 {
 		namespace = metav1.NamespaceDefault
 	}
-	handler.kubeconfig = kubeconfig
-	handler.namespace = namespace
-	handler.ctx = ctx
-	handler.config = config
-	handler.httpClient = httpClient
-	handler.restClient = restClient
-	handler.clientset = clientset
-	handler.dynamicClient = dynamicClient
-	handler.discoveryClient = discoveryClient
-	handler.informerFactory = informerFactory
-	handler.Options = &types.HandlerOptions{}
-	handler.SetPropagationPolicy("background")
+	// create a sharedInformerFactory for all namespaces.
+	informerFactory = informers.NewSharedInformerFactory(clientset, 0)
 
+	handler := &Handler{
+		ctx:             ctx,
+		kubeconfig:      kubeconfig,
+		namespace:       namespace,
+		config:          config,
+		httpClient:      httpClient,
+		restClient:      restClient,
+		clientset:       clientset,
+		dynamicClient:   dynamicClient,
+		discoveryClient: discoveryClient,
+		informerFactory: informerFactory,
+		Options:         &types.HandlerOptions{},
+	}
+	handler.SetPropagationPolicy("background")
 	return handler, nil
 }
 
@@ -159,9 +141,9 @@ func (h *Handler) WithDryRun() *Handler {
 	handler := h.DeepCopy()
 	handler.Options.CreateOptions.DryRun = []string{metav1.DryRunAll}
 	handler.Options.UpdateOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
-	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
 	handler.Options.ApplyOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.PatchOptions.DryRun = []string{metav1.DryRunAll}
+	handler.Options.DeleteOptions.DryRun = []string{metav1.DryRunAll}
 	handler.SetPropagationPolicy("background")
 	return handler
 }
@@ -169,30 +151,32 @@ func (in *Handler) DeepCopy() *Handler {
 	if in == nil {
 		return nil
 	}
-	out := new(Handler)
-
-	out.kubeconfig = in.kubeconfig
-	out.namespace = in.namespace
-
-	out.ctx = in.ctx
-	out.config = in.config
-	out.httpClient = in.httpClient
-	out.restClient = in.restClient
-	out.clientset = in.clientset
-	out.dynamicClient = in.dynamicClient
-	out.discoveryClient = in.discoveryClient
-	out.informerFactory = in.informerFactory
-
-	out.Options = &types.HandlerOptions{}
-	out.Options.ListOptions = *in.Options.ListOptions.DeepCopy()
-	out.Options.GetOptions = *in.Options.GetOptions.DeepCopy()
-	out.Options.CreateOptions = *in.Options.CreateOptions.DeepCopy()
-	out.Options.UpdateOptions = *in.Options.UpdateOptions.DeepCopy()
-	out.Options.PatchOptions = *in.Options.PatchOptions.DeepCopy()
-	out.Options.ApplyOptions = *in.Options.ApplyOptions.DeepCopy()
-	out.SetPropagationPolicy("background")
-
-	return out
+	handler := &Handler{
+		ctx:              in.ctx,
+		kubeconfig:       in.kubeconfig,
+		namespace:        in.namespace,
+		config:           in.config,
+		httpClient:       in.httpClient,
+		restClient:       in.restClient,
+		clientset:        in.clientset,
+		dynamicClient:    in.dynamicClient,
+		discoveryClient:  in.discoveryClient,
+		informerFactory:  in.informerFactory,
+		resyncPeriod:     in.resyncPeriod,
+		informerScope:    in.informerScope,
+		tweakListOptions: in.tweakListOptions,
+		Options: &types.HandlerOptions{
+			CreateOptions: *in.Options.CreateOptions.DeepCopy(),
+			UpdateOptions: *in.Options.UpdateOptions.DeepCopy(),
+			ApplyOptions:  *in.Options.ApplyOptions.DeepCopy(),
+			DeleteOptions: *in.Options.DeleteOptions.DeepCopy(),
+			GetOptions:    *in.Options.GetOptions.DeepCopy(),
+			ListOptions:   *in.Options.ListOptions.DeepCopy(),
+			PatchOptions:  *in.Options.PatchOptions.DeepCopy(),
+		},
+	}
+	handler.SetPropagationPolicy("background")
+	return handler
 }
 func (h *Handler) resetNamespace(namespace string) {
 	h.l.Lock()
