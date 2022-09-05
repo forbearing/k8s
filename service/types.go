@@ -1,10 +1,10 @@
 package service
 
-import "fmt"
+import "errors"
 
 var (
-	ErrInvalidToolsType  = fmt.Errorf("type must be string, *corev1.Service, or corev1.Service")
-	ErrInvalidCreateType = fmt.Errorf("type must be string, []byte, *corev1.Service, corev1.Service, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidToolsType  = errors.New("type must be string, *corev1.Service, corev1.Service or runtime.Object")
+	ErrInvalidCreateType = errors.New("type must be string, []byte, *corev1.Service, corev1.Service, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 	ErrInvalidUpdateType = ErrInvalidCreateType
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType

@@ -1,10 +1,10 @@
 package dynamic
 
-import "fmt"
+import "errors"
 
 var (
-	ErrGroupEmpty    = fmt.Errorf("group must not be empty")
-	ErrVersionEmpty  = fmt.Errorf("version must not be empty")
-	ErrResourceEmpty = fmt.Errorf("resource must not be empty")
-	ErrInvalidType   = fmt.Errorf("type must be string, []byte, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrGroupEmpty    = errors.New("group must not be empty")
+	ErrVersionEmpty  = errors.New("version must not be empty")
+	ErrResourceEmpty = errors.New("resource must not be empty")
+	ErrInvalidType   = errors.New("type must be string, []byte, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 )

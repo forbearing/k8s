@@ -1,10 +1,10 @@
 package persistentvolume
 
-import "fmt"
+import "errors"
 
 var (
-	ErrInvalidToolsType  = fmt.Errorf("type must be string, *corev1.PersistentVolume, or corev1.PersistentVolume")
-	ErrInvalidCreateType = fmt.Errorf("type must be string, []byte, *corev1.PersistentVolume, corev1.PersistentVolume, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidToolsType  = errors.New("type must be string, *corev1.PersistentVolume, corev1.PersistentVolume or runtime.Object")
+	ErrInvalidCreateType = errors.New("type must be string, []byte, *corev1.PersistentVolume, corev1.PersistentVolume, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 	ErrInvalidUpdateType = ErrInvalidCreateType
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType

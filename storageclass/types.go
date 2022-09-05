@@ -1,10 +1,10 @@
 package storageclass
 
-import "fmt"
+import "errors"
 
 var (
-	ErrInvalidToolsType  = fmt.Errorf("type must be string, *storagev1.StorageClass, or storagev1.StorageClass")
-	ErrInvalidCreateType = fmt.Errorf("type must be string, []byte, *storagev1.StorageClass, storagev1.StorageClass, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidToolsType  = errors.New("type must be string, *storagev1.StorageClass, storagev1.StorageClass or runtime.Object")
+	ErrInvalidCreateType = errors.New("type must be string, []byte, *storagev1.StorageClass, storagev1.StorageClass, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 	ErrInvalidUpdateType = ErrInvalidCreateType
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType

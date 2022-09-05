@@ -1,10 +1,10 @@
 package rolebinding
 
-import "fmt"
+import "errors"
 
 var (
-	ErrInvalidToolsType  = fmt.Errorf("type must be string, *rbacv1.RoleBinding, or rbacv1.RoleBinding")
-	ErrInvalidCreateType = fmt.Errorf("type must be string, []byte, *rbacv1.RoleBinding, rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidToolsType  = errors.New("type must be string, *rbacv1.RoleBinding, rbacv1.RoleBinding or runtime.Object")
+	ErrInvalidCreateType = errors.New("type must be string, []byte, *rbacv1.RoleBinding, rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 	ErrInvalidUpdateType = ErrInvalidCreateType
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType

@@ -1,10 +1,10 @@
 package configmap
 
-import "fmt"
+import "errors"
 
 var (
-	ErrInvalidToolsType  = fmt.Errorf("type must be string, *corev1.ConfigMap, or corev1.ConfigMap")
-	ErrInvalidCreateType = fmt.Errorf("type must be string, []byte, *corev1.ConfigMap, corev1.ConfigMap, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidToolsType  = errors.New("type must be string, *corev1.ConfigMap, corev1.ConfigMap or runtime.Object")
+	ErrInvalidCreateType = errors.New("type must be string, []byte, *corev1.ConfigMap, corev1.ConfigMap, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 	ErrInvalidUpdateType = ErrInvalidCreateType
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType

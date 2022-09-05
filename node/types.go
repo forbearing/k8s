@@ -1,10 +1,10 @@
 package node
 
-import "fmt"
+import "errors"
 
 var (
-	ErrInvalidToolsType  = fmt.Errorf("type must be string, *corev1.Node, or corev1.Node")
-	ErrInvalidCreateType = fmt.Errorf("type must be string, []byte, *corev1.Node, corev1.Node, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidToolsType  = errors.New("type must be string, *corev1.Node, corev1.Node or runtime.Object")
+	ErrInvalidCreateType = errors.New("type must be string, []byte, *corev1.Node, corev1.Node, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 	ErrInvalidUpdateType = ErrInvalidCreateType
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType

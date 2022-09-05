@@ -1,7 +1,7 @@
 package pod
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"os"
 
@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ErrInvalidToolsType  = fmt.Errorf("type must be string, *corev1.Pod, or corev1.Pod")
-	ErrInvalidCreateType = fmt.Errorf("type must be string, []byte, *corev1.Pod, corev1.Pod, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidToolsType  = errors.New("type must be string, *corev1.Pod, corev1.Pod or runtime.Object")
+	ErrInvalidCreateType = errors.New("type must be string, []byte, *corev1.Pod, corev1.Pod, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 	ErrInvalidUpdateType = ErrInvalidCreateType
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType
