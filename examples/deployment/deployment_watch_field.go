@@ -9,7 +9,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 )
 
-func Deployment_Watch_All() {
+func Deployment_Watch_Field() {
 	var (
 		addFunc = func(obj interface{}) {
 			deploy := obj.(*appsv1.Deployment)
@@ -27,6 +27,7 @@ func Deployment_Watch_All() {
 
 	filename := "../../testdata/examples/deployment.yaml"
 	filename2 := "../../testdata/examples/deployment-2.yaml"
+	field := "metadata.namespace=test"
 	name := "mydep"
 	name2 := "mydep2"
 
@@ -34,7 +35,7 @@ func Deployment_Watch_All() {
 	ctx, cancel := context.WithCancel(ctx)
 
 	go func(ctx context.Context) {
-		handler.Watch(addFunc, modifyFunc, deleteFunc)
+		handler.WatchByField(field, addFunc, modifyFunc, deleteFunc)
 	}(ctx)
 	go func(ctx context.Context) {
 		for {
