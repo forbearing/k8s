@@ -46,27 +46,22 @@ func Deployment_Watch_Single() {
 	handler.Delete(name)
 
 	// Output:
-	//2022/09/05 10:22:21 added deployment: test/mydep.
-	//2022/09/05 10:22:21 modified deployment: test/mydep.
-	//2022/09/05 10:22:22 modified deployment: test/mydep.
-	//2022/09/05 10:22:22 modified deployment: test/mydep.
-	//2022/09/05 10:22:27 modified deployment: test/mydep.
-	//2022/09/05 10:22:29 modified deployment: test/mydep.
-	//2022/09/05 10:22:32 modified deployment: test/mydep.
-	//2022/09/05 10:22:36 deleted deployment: test/mydep.
-	//2022/09/05 10:22:41 added deployment: test/mydep.
-	//2022/09/05 10:22:42 modified deployment: test/mydep.
-	//2022/09/05 10:22:42 modified deployment: test/mydep.
-	//2022/09/05 10:22:42 modified deployment: test/mydep.
-	//2022/09/05 10:22:46 modified deployment: test/mydep.
-	//2022/09/05 10:22:49 modified deployment: test/mydep.
-	//2022/09/05 10:22:52 modified deployment: test/mydep.
-	//2022/09/05 10:22:57 deleted deployment: test/mydep.
-	//2022/09/05 10:23:02 added deployment: test/mydep.
-	//2022/09/05 10:23:02 modified deployment: test/mydep.
-	//2022/09/05 10:23:02 modified deployment: test/mydep.
-	//2022/09/05 10:23:02 modified deployment: test/mydep.
-	//2022/09/05 10:23:06 modified deployment: test/mydep.
-	//2022/09/05 10:23:09 modified deployment: test/mydep.
-	//2022/09/05 10:23:12 modified deployment: test/mydep.
+	//2022/09/05 11:19:19 added deployment: test/mydep.
+	//2022/09/05 11:19:21 modified deployment: test/mydep.
+	//2022/09/05 11:19:24 modified deployment: test/mydep.
+	//2022/09/05 11:19:34 deleted deployment: test/mydep.
+	//2022/09/05 11:19:34 added deployment: test/mydep.
+	//2022/09/05 11:19:34 modified deployment: test/mydep.
+	//2022/09/05 11:19:34 modified deployment: test/mydep.
+	//2022/09/05 11:19:34 modified deployment: test/mydep.
+	//2022/09/05 11:19:34 modified deployment: test/mydep.
+	//2022/09/05 11:19:39 modified deployment: test/mydep.
+	//2022/09/05 11:19:42 modified deployment: test/mydep.
+	//2022/09/05 11:19:54 deleted deployment: test/mydep.
+	//2022/09/05 11:19:54 added deployment: test/mydep.
+	//2022/09/05 11:19:54 modified deployment: test/mydep.
+	//2022/09/05 11:19:54 modified deployment: test/mydep.
+	//2022/09/05 11:19:54 modified deployment: test/mydep.
+	//2022/09/05 11:19:59 modified deployment: test/mydep.
+	//2022/09/05 11:20:14 deleted deployment: test/mydep.
 }

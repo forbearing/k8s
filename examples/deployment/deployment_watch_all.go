@@ -34,14 +34,14 @@ func Deployment_Watch_All() {
 	ctx, cancel := context.WithCancel(ctx)
 
 	go func(ctx context.Context) {
+		time.Sleep(time.Second * 5)
 		handler.Watch(addFunc, modifyFunc, deleteFunc)
 	}(ctx)
 	go func(ctx context.Context) {
 		for {
-			time.Sleep(time.Second * 5)
 			handler.Apply(filename)
 			handler.Apply(filename2)
-			time.Sleep(time.Second * 15)
+			time.Sleep(time.Second * 20)
 			handler.Delete(name)
 			handler.Delete(name2)
 		}
@@ -54,39 +54,43 @@ func Deployment_Watch_All() {
 	handler.Delete(name2)
 
 	// Outputs:
-	//2022/09/05 10:58:26 added deployment: test/mydep.
-	//2022/09/05 10:58:26 modified deployment: test/mydep2.
-	//2022/09/05 10:58:26 modified deployment: test/mydep.
-	//2022/09/05 10:58:26 modified deployment: test/mydep2.
-	//2022/09/05 10:58:26 modified deployment: test/mydep.
-	//2022/09/05 10:58:26 modified deployment: test/mydep2.
-	//2022/09/05 10:58:26 modified deployment: test/mydep.
-	//2022/09/05 10:58:32 modified deployment: test/mydep2.
-	//2022/09/05 10:58:35 modified deployment: test/mydep2.
-	//2022/09/05 10:58:38 modified deployment: test/mydep.
-	//2022/09/05 10:58:41 deleted deployment: test/mydep.
-	//2022/09/05 10:58:41 deleted deployment: test/mydep2.
-	//2022/09/05 10:58:46 added deployment: test/mydep.
-	//2022/09/05 10:58:46 modified deployment: test/mydep.
-	//2022/09/05 10:58:46 modified deployment: test/mydep2.
-	//2022/09/05 10:58:46 modified deployment: test/mydep.
-	//2022/09/05 10:58:46 modified deployment: test/mydep2.
-	//2022/09/05 10:58:46 modified deployment: test/mydep.
-	//2022/09/05 10:58:46 modified deployment: test/mydep2.
-	//2022/09/05 10:58:50 modified deployment: test/mydep2.
-	//2022/09/05 10:58:56 modified deployment: test/mydep.
-	//2022/09/05 10:59:01 deleted deployment: test/mydep.
-	//2022/09/05 10:59:01 deleted deployment: test/mydep2.
-	//2022/09/05 10:59:06 added deployment: test/mydep.
-	//2022/09/05 10:59:06 modified deployment: test/mydep2.
-	//2022/09/05 10:59:06 modified deployment: test/mydep.
-	//2022/09/05 10:59:06 modified deployment: test/mydep2.
-	//2022/09/05 10:59:06 modified deployment: test/mydep.
-	//2022/09/05 10:59:06 modified deployment: test/mydep.
-	//2022/09/05 10:59:06 modified deployment: test/mydep2.
-	//2022/09/05 10:59:11 modified deployment: test/mydep2.
-	//2022/09/05 10:59:14 modified deployment: test/mydep.
-	//2022/09/05 10:59:17 modified deployment: test/mydep2.
-	//2022/09/05 10:59:20 modified deployment: test/mydep.
-	//2022/09/05 10:59:21 deleted deployment: test/mydep.
+	//2022/09/05 11:28:01 added deployment: kube-system/coredns.
+	//2022/09/05 11:28:01 added deployment: local-path-storage/local-path-provisioner.
+	//2022/09/05 11:28:01 added deployment: test/mydep.
+	//2022/09/05 11:28:01 added deployment: test/mydep2.
+	//2022/09/05 11:28:01 added deployment: default/nginx.
+	//2022/09/05 11:28:03 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:06 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:09 deleted deployment: test/mydep.
+	//2022/09/05 11:28:12 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:16 modified deployment: test/mydep.
+	//2022/09/05 11:28:16 modified deployment: test/mydep2.
+	//2022/09/05 11:28:16 added deployment: test/mydep.
+	//2022/09/05 11:28:16 added deployment: test/mydep2.
+	//2022/09/05 11:28:16 deleted deployment: test/mydep.
+	//2022/09/05 11:28:16 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:16 deleted deployment: test/mydep.
+	//2022/09/05 11:28:16 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:16 deleted deployment: test/mydep.
+	//2022/09/05 11:28:16 deleted deployment: test/mydep.
+	//2022/09/05 11:28:16 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:16 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:25 deleted deployment: test/mydep.
+	//2022/09/05 11:28:27 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:36 deleted deployment: test/mydep.
+	//2022/09/05 11:28:36 modified deployment: test/mydep.
+	//2022/09/05 11:28:36 modified deployment: test/mydep2.
+	//2022/09/05 11:28:36 added deployment: test/mydep.
+	//2022/09/05 11:28:36 added deployment: test/mydep2.
+	//2022/09/05 11:28:36 deleted deployment: test/mydep.
+	//2022/09/05 11:28:36 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:36 deleted deployment: test/mydep.
+	//2022/09/05 11:28:36 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:36 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:36 deleted deployment: test/mydep.
+	//2022/09/05 11:28:44 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:46 deleted deployment: test/mydep2.
+	//2022/09/05 11:28:49 deleted deployment: test/mydep.
+	//2022/09/05 11:28:56 modified deployment: test/mydep.
+	//2022/09/05 11:28:56 modified deployment: test/mydep2.
 }

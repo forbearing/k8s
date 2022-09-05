@@ -35,14 +35,14 @@ func Deployment_Watch_Field() {
 	ctx, cancel := context.WithCancel(ctx)
 
 	go func(ctx context.Context) {
+		time.Sleep(time.Second * 5)
 		handler.WatchByField(field, addFunc, modifyFunc, deleteFunc)
 	}(ctx)
 	go func(ctx context.Context) {
 		for {
-			time.Sleep(time.Second * 5)
 			handler.Apply(filename)
 			handler.Apply(filename2)
-			time.Sleep(time.Second * 15)
+			time.Sleep(time.Second * 20)
 			handler.Delete(name)
 			handler.Delete(name2)
 		}
