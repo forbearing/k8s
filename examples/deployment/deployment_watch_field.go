@@ -13,15 +13,15 @@ func Deployment_Watch_Field() {
 	var (
 		addFunc = func(obj interface{}) {
 			deploy := obj.(*appsv1.Deployment)
-			log.Printf(`added deployment: %s/%s.`, deploy.Namespace, deploy.Name)
+			log.Printf(`added deployment: "%s/%s".`, deploy.Namespace, deploy.Name)
 		}
 		modifyFunc = func(obj interface{}) {
 			deploy := obj.(*appsv1.Deployment)
-			log.Printf(`modified deployment: %s/%s.`, deploy.Namespace, deploy.Name)
+			log.Printf(`modified deployment: "%s/%s".`, deploy.Namespace, deploy.Name)
 		}
 		deleteFunc = func(obj interface{}) {
 			deploy := obj.(*appsv1.Deployment)
-			log.Printf(`deleted deployment: %s/%s.`, deploy.Namespace, deploy.Name)
+			log.Printf(`deleted deployment: "%s/%s".`, deploy.Namespace, deploy.Name)
 		}
 	)
 
@@ -55,39 +55,43 @@ func Deployment_Watch_Field() {
 	handler.Delete(name2)
 
 	// Outputs:
-	//2022/09/05 10:58:26 added deployment: test/mydep.
-	//2022/09/05 10:58:26 modified deployment: test/mydep2.
-	//2022/09/05 10:58:26 modified deployment: test/mydep.
-	//2022/09/05 10:58:26 modified deployment: test/mydep2.
-	//2022/09/05 10:58:26 modified deployment: test/mydep.
-	//2022/09/05 10:58:26 modified deployment: test/mydep2.
-	//2022/09/05 10:58:26 modified deployment: test/mydep.
-	//2022/09/05 10:58:32 modified deployment: test/mydep2.
-	//2022/09/05 10:58:35 modified deployment: test/mydep2.
-	//2022/09/05 10:58:38 modified deployment: test/mydep.
-	//2022/09/05 10:58:41 deleted deployment: test/mydep.
-	//2022/09/05 10:58:41 deleted deployment: test/mydep2.
-	//2022/09/05 10:58:46 added deployment: test/mydep.
-	//2022/09/05 10:58:46 modified deployment: test/mydep.
-	//2022/09/05 10:58:46 modified deployment: test/mydep2.
-	//2022/09/05 10:58:46 modified deployment: test/mydep.
-	//2022/09/05 10:58:46 modified deployment: test/mydep2.
-	//2022/09/05 10:58:46 modified deployment: test/mydep.
-	//2022/09/05 10:58:46 modified deployment: test/mydep2.
-	//2022/09/05 10:58:50 modified deployment: test/mydep2.
-	//2022/09/05 10:58:56 modified deployment: test/mydep.
-	//2022/09/05 10:59:01 deleted deployment: test/mydep.
-	//2022/09/05 10:59:01 deleted deployment: test/mydep2.
-	//2022/09/05 10:59:06 added deployment: test/mydep.
-	//2022/09/05 10:59:06 modified deployment: test/mydep2.
-	//2022/09/05 10:59:06 modified deployment: test/mydep.
-	//2022/09/05 10:59:06 modified deployment: test/mydep2.
-	//2022/09/05 10:59:06 modified deployment: test/mydep.
-	//2022/09/05 10:59:06 modified deployment: test/mydep.
-	//2022/09/05 10:59:06 modified deployment: test/mydep2.
-	//2022/09/05 10:59:11 modified deployment: test/mydep2.
-	//2022/09/05 10:59:14 modified deployment: test/mydep.
-	//2022/09/05 10:59:17 modified deployment: test/mydep2.
-	//2022/09/05 10:59:20 modified deployment: test/mydep.
-	//2022/09/05 10:59:21 deleted deployment: test/mydep.
+
+	//2022/09/05 17:11:14 added deployment: "test/mydep".
+	//2022/09/05 17:11:14 added deployment: "test/mydep2".
+	//2022/09/05 17:11:15 modified deployment: "test/mydep".
+	//2022/09/05 17:11:19 modified deployment: "test/mydep".
+	//2022/09/05 17:11:22 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:25 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:29 deleted deployment: "test/mydep".
+	//2022/09/05 17:11:29 deleted deployment: "test/mydep2".
+	//2022/09/05 17:11:29 added deployment: "test/mydep".
+	//2022/09/05 17:11:29 added deployment: "test/mydep2".
+	//2022/09/05 17:11:29 modified deployment: "test/mydep".
+	//2022/09/05 17:11:29 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:29 modified deployment: "test/mydep".
+	//2022/09/05 17:11:29 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:29 modified deployment: "test/mydep".
+	//2022/09/05 17:11:29 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:29 modified deployment: "test/mydep".
+	//2022/09/05 17:11:29 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:37 modified deployment: "test/mydep".
+	//2022/09/05 17:11:37 modified deployment: "test/mydep".
+	//2022/09/05 17:11:40 modified deployment: "test/mydep".
+	//2022/09/05 17:11:43 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:47 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:49 deleted deployment: "test/mydep".
+	//2022/09/05 17:11:49 deleted deployment: "test/mydep2".
+	//2022/09/05 17:11:49 added deployment: "test/mydep".
+	//2022/09/05 17:11:49 added deployment: "test/mydep2".
+	//2022/09/05 17:11:49 modified deployment: "test/mydep".
+	//2022/09/05 17:11:49 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:49 modified deployment: "test/mydep".
+	//2022/09/05 17:11:49 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:49 modified deployment: "test/mydep2".
+	//2022/09/05 17:11:49 modified deployment: "test/mydep".
+	//2022/09/05 17:11:57 modified deployment: "test/mydep".
+	//2022/09/05 17:11:58 modified deployment: "test/mydep".
+	//2022/09/05 17:12:01 modified deployment: "test/mydep".
+	//2022/09/05 17:12:09 deleted deployment: "test/mydep".
+	//2022/09/05 17:12:09 deleted deployment: "test/mydep2".
 }
