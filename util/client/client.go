@@ -13,20 +13,20 @@ import (
 // RESTConfig creates a *rest.Config for the given kubeconfig.
 // create rest config, and config precedence.
 // * kubeconfig variable passed.
-// * KUBECONFIG environment variable pointing at a file
+// * KUBECONFIG environment variable pointing at a file.
 // * $HOME/.kube/config if exists.
-// * In-cluster config if running in cluster
+// * In-cluster config if running in cluster.
 func RESTConfig(kubeconfig string) (*rest.Config, error) {
 	var config *rest.Config
 	var err error
 
 	// create rest config, and config precedence.
 	// * kubeconfig variable passed.
-	// * KUBECONFIG environment variable pointing at a file
+	// * KUBECONFIG environment variable pointing at a file.
 	// * $HOME/.kube/config if exists.
-	// * In-cluster config if running in cluster
+	// * In-cluster config if running in cluster.
 	//
-	// create the outside-cluster config
+	// create the outside-cluster config.
 	if len(kubeconfig) != 0 {
 		if config, err = clientcmd.BuildConfigFromFlags("", kubeconfig); err != nil {
 			return nil, err
