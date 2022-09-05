@@ -33,6 +33,7 @@ Namespace precedence:
 
 3. namespace specified in `New()` or `NewOrDie()` funciton.
 4. namespace will be ignored if k8s resource is cluster scope.
+5. if namespace is empty, default to "default" namespace.
 
 ## Installation
 
