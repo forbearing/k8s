@@ -89,7 +89,7 @@ Namespace precedence:
 
 - [How to execute command within pod.](./examples/pod/pod_execute.go)
 - [How to port-forward a local port to pod.](./examples/port-forward/portforward_pod.go)
-- [How to get pod logs](./examples/pods/pod_logs.go)
+- [How to get pod logs](./examples/pod/pod_logs.go)
 
 ### more usage.
 
