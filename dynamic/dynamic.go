@@ -53,7 +53,7 @@ type Handler struct {
 	l sync.RWMutex
 }
 
-// NewOrDie creates a dynamic client.
+// NewOrDie creates a Handler object.
 // Panic if there is any error.
 func NewOrDie(ctx context.Context, kubeconfig string, namespace string) *Handler {
 	handler, err := New(ctx, kubeconfig, namespace)
@@ -63,9 +63,7 @@ func NewOrDie(ctx context.Context, kubeconfig string, namespace string) *Handler
 	return handler
 }
 
-// New creates a dynamic client from kubeconfig or in-cluster config.
-// If provided namespace is empty, it means the k8s resources created/updated/deleted
-// by dynamic client is cluster scope. or it's namespaced scope.
+// New creates a Handler object from kubeconfig or in-cluster config.
 //
 // The kubeconfig precedence is:
 // * kubeconfig variable passed.
