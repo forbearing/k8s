@@ -10,17 +10,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-//func (h *Handler) Apply(obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
-//    _, err := h.Create(obj)
-//    if errors.IsNotFound(err) {
-//        return h.Update(obj)
-//    }
-//    return obj, err
-//}
-
 // Apply applies unstructured k8s resource from type string, []byte,
 // runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
+//
+// It's not necessary to explicitly specify the GVK or GVR, Apply() will find
+// the GVK and GVR by RESTMapper and apply the k8s resource that defined in
+// yaml file, json file, bytes data, map[string]interface{} or runtime.Object.
 func (h *Handler) Apply(obj interface{}) (*unstructured.Unstructured, error) {
 	switch val := obj.(type) {
 	case string:
