@@ -10,8 +10,7 @@ There are three kind handler:
 - dynamic handler. Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
 - typed handler such as deployment/pod handler. Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such like deployments, pods, etc.).
 
-To create a handler for outside cluster just call `deployment.New(ctx, kubeconfig, namespace)`.
-To create a handler for the inside cluster just call `deployment.New(ctx, "", namespace)` and the `New()` function will find the kubeconfig file or the file pointed to by the variable `KUBECONFIG`. If neither is found, it will use the default kubeconfig filepath `$HOME/.kube/config`. if no kubeconfig file is found, `New()` will create an in-cluster rest.Config to create the deployment handler.
+To create a handler for outside or inside cluster just call `deployment.New(ctx, "", namespace)`. The `New()` function will find the kubeconfig file or the file pointed to by the variable `KUBECONFIG`. If neither is found, it will use the default kubeconfig filepath `$HOME/.kube/config`. `New()` will create a deployment handler for the outside cluster if kubeconfig is found . If no kubeconfig file is found, `New()` will create an in-cluster rest.Config to create the deployment handler.
 
 The kubeconfig precedence is:
 * kubeconfig variable passed.
