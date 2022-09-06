@@ -29,17 +29,9 @@ func (h *Handler) ListByLabel(labels string) ([]*unstructured.Unstructured, erro
 		return nil, err
 	}
 	if isNamespaced {
-		unstructList, err := h.dynamicClient.Resource(gvr).Namespace(h.namespace).List(h.ctx, *listOptions)
-		if err != nil {
-			return nil, err
-		}
-		return extractList(unstructList), nil
+		return extractList(h.dynamicClient.Resource(gvr).Namespace(h.namespace).List(h.ctx, *listOptions))
 	}
-	unstructList, err := h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions)
-	if err != nil {
-		return nil, err
-	}
-	return extractList(unstructList), nil
+	return extractList(h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions))
 }
 
 // ListByField list k8s objects by field, work like `kubectl get xxx --field-selector=xxx`.
@@ -57,17 +49,9 @@ func (h *Handler) ListByField(field string) ([]*unstructured.Unstructured, error
 		return nil, err
 	}
 	if isNamespaced {
-		unstructList, err := h.dynamicClient.Resource(gvr).Namespace(h.namespace).List(h.ctx, *listOptions)
-		if err != nil {
-			return nil, err
-		}
-		return extractList(unstructList), nil
+		return extractList(h.dynamicClient.Resource(gvr).Namespace(h.namespace).List(h.ctx, *listOptions))
 	}
-	unstructList, err := h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions)
-	if err != nil {
-		return nil, err
-	}
-	return extractList(unstructList), nil
+	return extractList(h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions))
 }
 
 // ListByNamespace list all k8s objects in the specified namespace.
@@ -82,11 +66,7 @@ func (h *Handler) ListByNamespace(namespace string) ([]*unstructured.Unstructure
 		return nil, err
 	}
 	if isNamespaced {
-		unstructList, err := h.dynamicClient.Resource(gvr).Namespace(namespace).List(h.ctx, *listOptions)
-		if err != nil {
-			return nil, err
-		}
-		return extractList(unstructList), nil
+		return extractList(h.dynamicClient.Resource(gvr).Namespace(namespace).List(h.ctx, *listOptions))
 	}
 	return nil, fmt.Errorf("%s is not namespace-scoped k8s resource", gvr)
 }
@@ -102,26 +82,21 @@ func (h *Handler) ListAll() ([]*unstructured.Unstructured, error) {
 		return nil, err
 	}
 	if isNamespaced {
-		unstructList, err := h.dynamicClient.Resource(gvr).Namespace(metav1.NamespaceAll).List(h.ctx, *listOptions)
-		if err != nil {
-			return nil, err
-		}
-		return extractList(unstructList), nil
+		return extractList(h.dynamicClient.Resource(gvr).Namespace(metav1.NamespaceAll).List(h.ctx, *listOptions))
 	}
-	unstructList, err := h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions)
-	if err != nil {
-		return nil, err
-	}
-	return extractList(unstructList), nil
+	return extractList(h.dynamicClient.Resource(gvr).List(h.ctx, *listOptions))
 }
 
 // extractList
-func extractList(unstructList *unstructured.UnstructuredList) []*unstructured.Unstructured {
+func extractList(unstructList *unstructured.UnstructuredList, err error) ([]*unstructured.Unstructured, error) {
+	if err != nil {
+		return nil, err
+	}
 	var objList []*unstructured.Unstructured
 	for i := range unstructList.Items {
 		objList = append(objList, &unstructList.Items[i])
 	}
-	return objList
+	return objList, nil
 }
 
 func (h *Handler) getGVRAndNamespaceScope() (schema.GroupVersionResource, bool, error) {
