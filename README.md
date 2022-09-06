@@ -150,6 +150,6 @@ Its a typed handler that use typed client(clientset) to create/update/patch/dele
 - [ ] proxy
 - [ ] operators refer to https://sdk.operatorframework.io/docs/building-operators/golang/references/client/
 - [x] Add/Set/Remove/Has Labels and Annotations
-- [ ] Add MultiNamespace() method to create/update/delete k8s resource in multi namespaces.
+- [ ] Add MultiNamespace() method to create/update/delete k8s resource in multi namespaces at once.
 - [ ] k8s handler create/update/delete/apply k8s resource by the underling dynamic but get/list from listers.
-- [ ] create/update/delete/apply muitlple k8s resource.
+- [ ] create/update/delete/apply muitlple k8s resource at once.
