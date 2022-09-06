@@ -16,6 +16,10 @@ import (
 // Create creates unstructured k8s resource from type string, []byte,
 // runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
+//
+// It's not necessary to explicitly specify the GVK or GVR, Create() will find
+// the GVK and GVR by RESTMapper and create the k8s resource that defined in
+// yaml file, json file, bytes data, map[string]interface{} or runtime.Object.
 func (h *Handler) Create(obj interface{}) (*unstructured.Unstructured, error) {
 	switch val := obj.(type) {
 	case string:
@@ -99,10 +103,6 @@ func (h *Handler) createUnstructured(obj *unstructured.Unstructured) (*unstructu
 		h.SetPropagationPolicy("background")
 	}
 
-	//logrus.Info(gvk)
-	//logrus.Info(gvr)
-	//logrus.Info("IsNamespaced: ", isNamespaced)
-	//logrus.Info()
 	obj.SetUID("")
 	obj.SetResourceVersion("")
 	if isNamespaced {
