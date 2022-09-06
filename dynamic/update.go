@@ -16,9 +16,10 @@ import (
 // runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
 //
-// It's not necessary to explicitly specify the GVK or GVR, Update() will find
-// the GVK and GVR by RESTMapper and update the k8s resource that defined in
-// yaml file, json file, bytes data, map[string]interface{} or runtime.Object.
+// It's not necessary to explicitly specify the GVK or GVR by calling WithGVK(),
+// Update() will find the GVK and GVR by RESTMapper and update the k8s resource
+// that defined in yaml file, json file, bytes data, map[string]interface{}
+// or runtime.Object.
 func (h *Handler) Update(obj interface{}) (*unstructured.Unstructured, error) {
 	switch val := obj.(type) {
 	case string:
