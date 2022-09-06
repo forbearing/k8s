@@ -21,7 +21,7 @@ import (
 
 // Handler is a handler that have Create()/Update()/Apply()/Path()/Delete()/Get()/List() method
 // to create/update/apply/patch/delete/get/list any kinds of k8s resources registered
-// in k8s cluster.
+// in kubernetes API server.
 //
 // when you create/update/apply/patch/delete/get/list k8s resources, you don't
 // need to consider GroupVersionKind and GroupVersionResource of k8s resources.
@@ -115,6 +115,8 @@ func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, er
 		namespace = metav1.NamespaceDefault
 	}
 	// New a dynamicSharedInformerFactory default for all namespace and resync period to 0.
+	// You can call SetInformerFactoryNamespace() method to change the namespace scope,
+	// SetInformerFactoryResyncPeriod() method to chang the resync period.
 	informerFactory = dynamicinformer.NewDynamicSharedInformerFactory(dynamicClient, 0)
 
 	return &Handler{
