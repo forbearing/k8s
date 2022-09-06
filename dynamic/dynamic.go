@@ -62,12 +62,13 @@ func NewOrDie(ctx context.Context, kubeconfig string, namespace string) *Handler
 // * In-cluster config if running in cluster.
 func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, error) {
 	var (
-		err           error
-		config        *rest.Config
-		httpClient    *http.Client
-		restClient    *rest.RESTClient
-		dynamicClient dynamic.Interface
-		restMapper    meta.RESTMapper
+		err             error
+		config          *rest.Config
+		httpClient      *http.Client
+		restClient      *rest.RESTClient
+		dynamicClient   dynamic.Interface
+		informerFactory dynamicinformer.DynamicSharedInformerFactory
+		restMapper      meta.RESTMapper
 	)
 
 	// create rest config, and config precedence.
@@ -101,17 +102,19 @@ func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, er
 	if len(namespace) == 0 {
 		namespace = metav1.NamespaceDefault
 	}
+	informerFactory = dynamicinformer.NewDynamicSharedInformerFactory(dynamicClient, 0)
 
 	return &Handler{
-		ctx:           ctx,
-		kubeconfig:    kubeconfig,
-		namespace:     namespace,
-		config:        config,
-		httpClient:    httpClient,
-		restClient:    restClient,
-		dynamicClient: dynamicClient,
-		restMapper:    restMapper,
-		Options:       &types.HandlerOptions{},
+		ctx:             ctx,
+		kubeconfig:      kubeconfig,
+		namespace:       namespace,
+		config:          config,
+		httpClient:      httpClient,
+		restClient:      restClient,
+		dynamicClient:   dynamicClient,
+		informerFactory: informerFactory,
+		restMapper:      restMapper,
+		Options:         &types.HandlerOptions{},
 	}, nil
 }
 
