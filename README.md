@@ -8,7 +8,7 @@ There are three kind handler:
 
 - k8s handler. Its a universal handler that simply invoke dynamic handler to create/update/patch/delete k8s resources and get/list k8s resources from listers instead of accessing the API server directly.
 - dynamic handler. Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
-- typed handler such as deployment/pod handler. Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such like deployments, pods, etc.).
+- typed handler such as deployment/pod handler. Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such as deployments, pods, etc.).
 
 To create a handler for outside or inside cluster just call `deployment.New(ctx, "", namespace)`. The `New()` function will find the kubeconfig file or the file pointed to by the variable `KUBECONFIG`. If neither is found, it will use the default kubeconfig filepath `$HOME/.kube/config`. `New()` will create a deployment handler for the outside cluster if kubeconfig is found . If no kubeconfig file is found, `New()` will create an in-cluster rest.Config to create the deployment handler.
 
@@ -55,7 +55,7 @@ For more examples of how to use this library, see [examples](./examples).
 
 ## Documents
 
-### k8s handler examples.
+### k8s handler examples:
 
 Its a universal handler that simply invoke dynamic handler to create/update/patch/delete k8s resources and get/list k8s resources from listers instead of accessing the API server directly.
 
@@ -68,7 +68,7 @@ Its a universal handler that simply invoke dynamic handler to create/update/patc
 - Howt to watch k8s resources.
 - informer usage.
 
-### dynamic handler examples.
+### dynamic handler examples:
 
 Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
 
@@ -81,9 +81,9 @@ Its a universal handler that create/update/delete/patch/get/list k8s resources b
 - How to watch k8s resources.
 - dynamic informer usage.
 
-### deployment handler examples.
+### deployment handler examples:
 
-Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such like deployments, pods, etc.).
+Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such ass deployments, pods, etc.).
 
 - [How to create deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_create.go)
 - [How to update deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_update.go)
@@ -105,13 +105,13 @@ Its a typed handler that use typed client(clientset) to create/update/patch/dele
     - IsReady(): check if a deployment is ready/available/rollout update finished.
     - WaitReady(): block here until a deployment is ready/available/rollout update finished.
 
-### pod handler examples
+### pod handler examples:
 
 - [How to execute command within pod.](./examples/pod/pod_execute.go)
 - [How to port-forward a local port to pod.](./examples/port-forward/portforward_pod.go)
 - [How to get pod logs](./examples/pod/pod_logs.go)
 
-### more usage.
+### more examples:
 
 - [ApplyF()/DeleteF() apply/delete various k8s resource from a yaml file.](./k8s_test.go)
 - util/labels: [Check whether the k8s resources has the specifed label, Get/Set/Remove labels of k8s resources](./examples/labels/main.go)
