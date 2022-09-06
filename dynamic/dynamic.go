@@ -19,6 +19,18 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// Handler is a handler that have Create()/Update()/Apply()/Path()/Delete()/Get()/List() method
+// to create/update/apply/patch/delete/get/list any kinds of k8s resources registered
+// in k8s cluster.
+//
+// when you create/update/apply/patch/delete/get/list k8s resources, you don't
+// need to consider GroupVersionKind and GroupVersionResource of k8s resources.
+// Provide a yaml file or map[string]interface{} data or runtime.Object to Handler,
+// Handler will do anything that you want to do.
+
+// Note: when you delete/get/list k8s resource and the parameter passed to
+// Delete()/Get()/List() is a k8s resource name, you should always call WithGVK()
+// to specify the GVK explicitly.
 type Handler struct {
 	ctx        context.Context
 	gvk        schema.GroupVersionKind
@@ -79,7 +91,6 @@ func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, er
 	if config, err = client.RESTConfig(kubeconfig); err != nil {
 		return nil, err
 	}
-
 	config.APIPath = "api"
 	config.GroupVersion = &schema.GroupVersion{}
 	config.NegotiatedSerializer = scheme.Codecs
@@ -99,9 +110,11 @@ func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, er
 	if restMapper, err = utilrestmapper.NewRESTMapper(kubeconfig); err != nil {
 		return nil, err
 	}
+	// if the namespace is empty, default to "default" namespace.
 	if len(namespace) == 0 {
 		namespace = metav1.NamespaceDefault
 	}
+	// New a dynamicSharedInformerFactory default for all namespace and resync period to 0.
 	informerFactory = dynamicinformer.NewDynamicSharedInformerFactory(dynamicClient, 0)
 
 	return &Handler{
