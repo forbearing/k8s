@@ -4,6 +4,12 @@
 
 The library implements various handlers to more easy manipulate k8s resources such as pods, deployments, etc, inside or outside k8s cluster. A program that uses the library and runs in a k8s pod meant to be inside k8s cluster. If you simply run [examples](./examples) in your pc/mac or server, it meant outside k8s cluster. Both of inside and outside k8s cluster is supported by the library.
 
+There are three kind handler:
+
+- k8s handler. Its a universal handler that simply invoke dynamic handler to create/update/patch/delete k8s resources and get/list k8s resources from listers instead of accessing the API server directly.
+- dynamic handler. Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
+- typed handler such as deployment/pod handler. Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such like deployments, pods, etc.).
+
 To create a handler for outside cluster just call `deployment.New(ctx, kubeconfig, namespace)`.
 To create a handler for the inside cluster just call `deployment.New(ctx, "", namespace)` and the `New()` function will find the kubeconfig file or the file pointed to by the variable `KUBECONFIG`. If neither is found, it will use the default kubeconfig filepath `$HOME/.kube/config`. if no kubeconfig file is found, `New()` will create an in-cluster rest.Config to create the deployment handler.
 
@@ -50,7 +56,9 @@ For more examples of how to use this library, see [examples](./examples).
 
 ## Documents
 
-### k8s handler examples. Its a universal handler that simply invoke dynamic handler to create/update/patch/delete k8s resources and get/list k8s resources from listers instead of accessing the API server directly.
+### k8s handler examples.
+
+Its a universal handler that simply invoke dynamic handler to create/update/patch/delete k8s resources and get/list k8s resources from listers instead of accessing the API server directly.
 
 - [How to create k8s resources.](./examples/k8s/k8s_create.go)
 - [How to update k8s resources.](./examples/k8s/k8s_update.go)
@@ -61,7 +69,9 @@ For more examples of how to use this library, see [examples](./examples).
 - Howt to watch k8s resources.
 - informer usage.
 
-### dynamic handler examples. Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
+### dynamic handler examples.
+
+Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
 
 - [How to create k8s resources inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
 - [How to update k8s resources.](./examples/dynamic/dynamic_update.go)
@@ -72,7 +82,9 @@ For more examples of how to use this library, see [examples](./examples).
 - How to watch k8s resources.
 - dynamic informer usage.
 
-### deployment handler examples. Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such like deployments, pods, etc.).
+### deployment handler examples.
+
+Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such like deployments, pods, etc.).
 
 - [How to create deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_create.go)
 - [How to update deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_update.go)
