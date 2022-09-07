@@ -88,6 +88,7 @@ Its a typed handler that use typed client(clientset) to create/update/patch/dele
 - [How to create deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_create.go)
 - [How to update deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_update.go)
 - [How to apply deployment resources.](./examples/deployment/deployment_apply.go)
+- [How to patch deployment resources.](./examples/deployment/deployment_patch.go)
 - [How to delete deployment resources.](./examples/deployment/deployment_delete.go)
 - [How to get deployment resources.](./examples/deployment/deployment_get.go)
 - [How to list deployment resources.](./examples/deployment/deployment_list.go)
