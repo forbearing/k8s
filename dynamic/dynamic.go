@@ -19,9 +19,9 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// Handler is a handler that have Create()/Update()/Apply()/Path()/Delete()/Get()/List() method
-// to create/update/apply/patch/delete/get/list any kinds of k8s resources registered
-// in kubernetes API server.
+// Handler is a handler that have Create()/Update()/Apply()/Path()/Delete()/Get()/
+// List()/Watch() method to create/update/apply/patch/delete/get/list/watch
+// any kinds of k8s resources already registered in kubernetes API server.
 //
 // when you create/update/apply/patch/delete/get/list k8s resources, you don't
 // need to consider GroupVersionKind and GroupVersionResource of k8s resources.
@@ -29,8 +29,8 @@ import (
 // Handler will do anything that you want to do.
 
 // Note: when you delete/get/list k8s resource and the parameter passed to
-// Delete()/Get()/List() is a k8s resource name, you should always call WithGVK()
-// to specify the GVK explicitly.
+// Delete()/Get()/List()/Watch() is a k8s resource name, you should always call
+// WithGVK() to specify the GVK explicitly.
 type Handler struct {
 	ctx        context.Context
 	gvk        schema.GroupVersionKind
