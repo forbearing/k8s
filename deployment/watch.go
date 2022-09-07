@@ -9,6 +9,39 @@ import (
 
 // TODO: use k8s.io/client-go/tools/watch to retry watch or use informers to watch.
 
+// Watch watch all deployment resources.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) Watch(addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	return h.WithNamespace(metav1.NamespaceAll).WatchByLabel("", addFunc, deleteFunc, modifyFunc)
+}
+
+// WatchByNamespace watch all deployment resources in the specified namespace.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByNamespace(namespace string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	if len(namespace) == 0 {
+		namespace = metav1.NamespaceDefault
+	}
+	return h.WithNamespace(namespace).WatchByLabel("", addFunc, deleteFunc, modifyFunc)
+}
+
 // WatchByName watch a single deployment reseource.
 //
 // Object as the parameter of addFunc, modifyFunc, deleteFunc:
@@ -159,19 +192,4 @@ func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc fun
 		log.Debug("watch deployment: reconnect to kubernetes")
 		watcher.Stop()
 	}
-}
-
-// Watch watch all deployment resources.
-//
-// Object as the parameter of addFunc, modifyFunc, deleteFunc:
-//  * If Event.Type is Added or Modified: the new state of the object.
-//  * If Event.Type is Deleted: the state of the object immediately before deletion.
-//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
-//    only ResourceVersion field is set. On successful restart of watch from a
-//    bookmark resourceVersion, client is guaranteed to not get repeat event
-//    nor miss any events.
-//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
-//    depending on context.
-func (h *Handler) Watch(addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
-	return h.WithNamespace(metav1.NamespaceAll).WatchByLabel("", addFunc, deleteFunc, modifyFunc)
 }
