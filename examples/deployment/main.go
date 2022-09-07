@@ -20,7 +20,7 @@ func main() {
 	//Deployment_Watch_Single()
 	//Deployment_Watch_Label()
 	//Deployment_Watch_Field()
-	Deployment_Watch_All()
+	//Deployment_Watch_All()
 	//Deployment_Informer()
 	//Deployment_Tools()
 	//Deployment_Others()

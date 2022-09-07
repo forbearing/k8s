@@ -31,7 +31,7 @@ func Deployment_Informer() {
 		updateQueue <- uo
 	}
 	deleteFunc := func(obj interface{}) { deleteQueue <- obj }
-	stopCh := signals.SetupSignalChannel()
+	stopCh := signals.NewSignalChannel()
 
 	go func() {
 		handler.RunInformer(stopCh, addFunc, updateFunc, deleteFunc)

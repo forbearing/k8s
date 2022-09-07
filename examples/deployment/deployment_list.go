@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/forbearing/k8s"
 	"github.com/forbearing/k8s/deployment"
 	appsv1 "k8s.io/api/apps/v1"
@@ -16,23 +18,27 @@ func Deployment_List() {
 
 	k8s.ApplyF(ctx, kubeconfig, filename2, namespace, k8s.IgnoreInvalid)
 
-	// ListByLabel list deployment by label.
-	deployList, err := handler.WithNamespace("kube-system").ListByLabel("k8s-app=kube-dns")
-	checkErr("ListByLabel", outputDeploy(deployList), err)
+	label := "type=deployment"
+	field := fmt.Sprintf("metadata.namespace=%s", namespace)
 
-	// ListByNamespace list all deployments in the namespace where the deployment is running.
-	deployList3, err := handler.ListByNamespace("kube-system")
-	checkErr("ListByNamespace", outputDeploy(deployList3), err)
-
-	// ListAll list all deployments in the k8s cluster.
-	deployList4, err := handler.ListAll()
-	checkErr("ListAll", outputDeploy(deployList4), err)
+	dl, err := handler.List()
+	checkErr("List()", outputDeploy(dl), err)
+	dl2, err := handler.ListAll()
+	checkErr("ListAll()", outputDeploy(dl2), err)
+	dl3, err := handler.ListByLabel(label)
+	checkErr("ListByLabel()", outputDeploy(dl3), err)
+	dl4, err := handler.ListByField(field)
+	checkErr("ListByField()", outputDeploy(dl4), err)
+	dl5, err := handler.ListByNamespace("kube-system")
+	checkErr("ListByNamespace()", outputDeploy(dl5), err)
 
 	// Output:
 
-	//2022/09/05 16:58:09 ListByLabel success: [coredns]
-	//2022/09/05 16:58:09 ListByNamespace success: [coredns]
-	//2022/09/05 16:58:09 ListAll success: [nginx coredns local-path-provisioner nginx-deploy]
+	//2022/09/07 18:29:35 List() success: [nginx coredns local-path-provisioner nginx-deploy]
+	//2022/09/07 18:29:35 ListAll() success: [nginx coredns local-path-provisioner nginx-deploy]
+	//2022/09/07 18:29:35 ListByLabel() success: [nginx-deploy]
+	//2022/09/07 18:29:35 ListByField() success: [nginx-deploy]
+	//2022/09/07 18:29:35 ListByNamespace() success: [coredns]
 }
 
 func outputDeploy(deployList []*appsv1.Deployment) []string {
