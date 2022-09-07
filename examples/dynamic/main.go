@@ -15,8 +15,9 @@ func main() {
 	//Dynamic_Create()
 	//Dynamic_Update()
 	//Dynamic_Apply()
-	Dynamic_Delete()
+	//Dynamic_Delete()
 	//Dynamic_Get()
+	//Dynamic_List()
 }
 
 func cleanup(handler *dynamic.Handler) {
