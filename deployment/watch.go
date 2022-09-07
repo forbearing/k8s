@@ -54,18 +54,16 @@ func (h *Handler) WatchByNamespace(namespace string, addFunc, modifyFunc, delete
 //  * If Event.Type is Error: *api.Status is recommended; other types may make sense
 //    depending on context.
 func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
-	var (
-		err     error
-		watcher watch.Interface
-	)
+	var err error
+	var watcher watch.Interface
 
+	listOptions := metav1.SingleObject(metav1.ObjectMeta{Name: name, Namespace: h.namespace})
+	listOptions.TimeoutSeconds = new(int64)
 	// if event channel is closed, it means the server has closed the connection,
 	// reconnect to kubernetes.
 	for {
 		//watcher, err := clientset.AppsV1().Deployments(namespace).Watch(ctx,
 		//    metav1.SingleObject(metav1.ObjectMeta{Name: "dep", Namespace: namespace}))
-		listOptions := metav1.SingleObject(metav1.ObjectMeta{Name: name, Namespace: h.namespace})
-		listOptions.TimeoutSeconds = new(int64)
 		if watcher, err = h.clientset.AppsV1().Deployments(h.namespace).Watch(h.ctx, listOptions); err != nil {
 			return err
 		}
@@ -107,10 +105,9 @@ func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(
 //
 // Multiple labels are separated by ",", label key and value conjunctaed by "=".
 func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
-	var (
-		err     error
-		watcher watch.Interface
-	)
+	var err error
+	var watcher watch.Interface
+
 	// if event channel is closed, it means the server has closed the connection,
 	// reconnect to kubernetes.
 	for {
@@ -154,11 +151,10 @@ func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc fu
 //  * If Event.Type is Error: *api.Status is recommended; other types may make sense
 //    depending on context.
 func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
-	var (
-		err           error
-		watcher       watch.Interface
-		fieldSelector fields.Selector
-	)
+	var err error
+	var watcher watch.Interface
+	var fieldSelector fields.Selector
+
 	if fieldSelector, err = fields.ParseSelector(field); err != nil {
 		return err
 	}
