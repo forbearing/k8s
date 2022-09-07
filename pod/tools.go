@@ -535,7 +535,7 @@ func (h *Handler) getReadyContainers(pod *corev1.Pod) []Container {
 // It will returns error, If the pod not ready. It's your responsibility to ensure
 // the pod Is running and ready.
 //
-// The remote processes default stdin, stdou, stderr are os.Stdin, os.Stdout, os.Stderr.
+// The remote processes default stdin, stdout, stderr are os.Stdin, os.Stdout, os.Stderr.
 func (h *Handler) Execute(podName, containerName string, command []string) error {
 	// if pod not found, returns error.
 	pod, err := h.Get(podName)
