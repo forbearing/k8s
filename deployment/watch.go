@@ -54,7 +54,6 @@ func (h *Handler) WatchByNamespace(namespace string, addFunc, modifyFunc, delete
 //  * If Event.Type is Error: *api.Status is recommended; other types may make sense
 //    depending on context.
 func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
-
 	var (
 		err     error
 		watcher watch.Interface
