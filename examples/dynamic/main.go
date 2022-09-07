@@ -18,6 +18,7 @@ func main() {
 	//Dynamic_Delete()
 	//Dynamic_Get()
 	//Dynamic_List()
+	//Dynamic_Watch_Single()
 }
 
 func cleanup(handler *dynamic.Handler) {
