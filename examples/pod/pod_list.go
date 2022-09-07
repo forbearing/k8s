@@ -27,13 +27,34 @@ func Pod_List() {
 	podList5, err := handler.WithNamespace("").ListByField("spec.nodeName=d11-k8s-master1")
 	checkErr("ListByField", outputPods(podList5), err)
 
+	podList6, err := handler.ListRunning()
+	checkErr("ListRunning", outputPods(podList6), err)
+
+	podList7, err := handler.ListSucceeded()
+	checkErr("ListSucceeded", outputPods(podList7), err)
+
+	podList8, err := handler.ListFailed()
+	checkErr("ListFailed", outputPods(podList8), err)
+
+	podList9, err := handler.ListPending()
+	checkErr("ListPending", outputPods(podList9), err)
+
+	podList10, err := handler.ListUnknow()
+	checkErr("ListUnknow", outputPods(podList10), err)
+
 	// Ouptut:
 
-	//2022/08/08 22:51:24 ListByLabel success: [coredns-6fbf8b5fd4-wslqx].
-	//2022/08/08 22:51:24 ListByNamespace success: [calico-kube-controllers-bfdd697d7-87fmm calico-node-8wzlg calico-node-hnxbd calico-node-w8qsn ......]
-	//2022/08/08 22:51:24 ListAll success: [cert-manager-6544c44c6b-dzkrl cert-manager-cainjector-5687864d5f-vqr82 cert-manager-webhook-785bb86798-fk6lf ......]
-	//2022/08/08 22:51:24 ListByNode success: [calico-node-x6b89 metrics-server-74bdd7786d-h67rw].
-	//2022/08/08 22:51:24 ListByField success: [calico-node-x6b89 metrics-server-74bdd7786d-h67rw].
+	//022/09/07 18:37:59 ListByLabel success: [coredns-64897985d-467q7 coredns-64897985d-tgjph].
+	//2022/09/07 18:37:59 ListByNamespace success: [coredns-64897985d-467q7 coredns-64897985d-tgjph ...]
+	//2022/09/07 18:37:59 ListAll success: [nginx-85b98978db-tf4w7 coredns-64897985d-467q7 coredns-64897985d-tgjph ...]
+	//2022/09/07 18:37:59 ListByNode success: [].
+	//2022/09/07 18:37:59 ListByField success: [].
+	//2022/09/07 18:37:59 ListRunning success: [nginx-85b98978db-tf4w7 coredns-64897985d-467q7 coredns-64897985d-tgjph ...]
+	//2022/09/07 18:37:59 ListSucceeded success: [].
+	//2022/09/07 18:37:59 ListFailed success: [].
+	//2022/09/07 18:37:59 ListPending success: [].
+	//2022/09/07 18:37:59 ListUnknow success: [].
+
 }
 
 func outputPods(podList []*corev1.Pod) []string {

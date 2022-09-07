@@ -60,7 +60,7 @@ var (
 func main() {
 	defer cancel()
 
-	Pod_Create()
+	//Pod_Create()
 	//Pod_List()
 	//Pod_Watch()
 	//Pod_Tools()
@@ -73,7 +73,7 @@ func main() {
 func cleanup(handler *pod.Handler) {
 	handler.Delete(name)
 	handler.Delete(LogPodData)
-	k8s.DeleteF(ctx, kubeconfig, filename2)
+	k8s.DeleteF(ctx, kubeconfig, filename2, namespace, k8s.IgnoreNotFound)
 }
 func checkErr(name string, val interface{}, err error) {
 	if err != nil {

@@ -36,7 +36,7 @@ func Pod_Informer() {
 		updateQueue <- uo
 	}
 	deleteFunc := func(obj interface{}) { deleteQueue <- obj }
-	stopCh := signals.SetupSignalChannel()
+	stopCh := signals.NewSignalChannel()
 
 	// RunInformer 必须开启一个新的 goroutine 来执行
 	go func() {

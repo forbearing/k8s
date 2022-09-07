@@ -16,7 +16,7 @@ func Pod_Tools() {
 	defer cleanup(handler)
 
 	handler.Apply(filename)
-	k8s.ApplyF(ctx, kubeconfig, filename2)
+	k8s.ApplyF(ctx, kubeconfig, filename2, namespace, k8s.IgnoreInvalid)
 
 	log.Println(handler.IsReady(name))  // false
 	log.Println(handler.IsReady(name2)) // false
