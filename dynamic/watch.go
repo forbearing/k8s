@@ -104,7 +104,7 @@ func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc fun
 	return h.watchUnstructuredObj(listOptions, addFunc, modifyFunc, deleteFunc)
 }
 
-// watchUnstructuredObj watch k8s object according the listOptions.
+// watchUnstructuredObj watch k8s object according to the listOptions.
 func (h *Handler) watchUnstructuredObj(listOptions metav1.ListOptions,
 	addFunc, modifyFunc, deleteFunc func(obj interface{})) (err error) {
 
