@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mydep-nolabel
+spec:
+  replicas: 3
+  selector: 
+    matchLabels:
+      app: mydep-nolabel
+      type: deployment
+  template:
+    metadata:
+      labels:
+        app: mydep-nolabel
+        type: deployment
+    spec:
+      #terminationGracePeriodSeconds: 1
+      containers:
+      - name: nginx
+        image: nginx
+        resources:
+          limits:
+            cpu: 100m
