@@ -19,6 +19,10 @@ func main() {
 	//Dynamic_Get()
 	//Dynamic_List()
 	//Dynamic_Watch_Single()
+	//Dynamic_Watch_Label()
+	//Dynamic_Watch_Field()
+	//Dynamic_Watch_Namespace()
+	Dynamic_Watch_All()
 }
 
 func cleanup(handler *dynamic.Handler) {
