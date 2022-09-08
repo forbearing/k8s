@@ -10,8 +10,8 @@ import (
 
 /*
 reference:
-	https://ymmt2005.hatenablog.com/entry/2020/04/14/An_example_of_using_dynamic_client_of_k8s.io/client-go#Mapping-between-GVK-and-GVR
-		types.ApplyPatchType
+	https://github.com/openshift/kubernetes-kubectl/blob/master/pkg/cmd/patch/patch.go
+	https://github.com/kubernetes/kubectl/blob/master/pkg/cmd/patch/patch.go
 	https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/
 	https://stackoverflow.com/questions/61653702/scale-deployment-replicas-with-kubernetes-go-client
 	https://stackoverflow.com/questions/53891862/patching-deployments-via-kubernetes-client-go
