@@ -10,7 +10,6 @@ import (
 
 /*
 reference:
-	https://github.com/openshift/kubernetes-kubectl/blob/master/pkg/cmd/patch/patch.go
 	https://github.com/kubernetes/kubectl/blob/master/pkg/cmd/patch/patch.go
 	https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/
 	https://erosb.github.io/post/json-patch-vs-merge-patch/
