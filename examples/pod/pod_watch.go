@@ -2,97 +2,118 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
 	"time"
 
+	"github.com/forbearing/k8s/deployment"
 	"github.com/forbearing/k8s/pod"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func Pod_Watch() {
-	// New returns a handler used to multiples pod.
-	handler, err := pod.New(ctx, kubeconfig, namespace)
-	if err != nil {
-		panic(err)
-	}
-	defer cleanup(handler)
-	handler.Apply(filename)
+	var (
+		addFunc = func(obj interface{}) {
+			pod := obj.(*corev1.Pod)
+			log.Printf(`added pod: "%s/%s".`, pod.Namespace, pod.Name)
+		}
+		modifyFunc = func(obj interface{}) {
+			pod := obj.(*corev1.Pod)
+			log.Printf(`modified pod: "%s/%s".`, pod.Namespace, pod.Name)
+		}
+		deleteFunc = func(obj interface{}) {
+			pod := obj.(*corev1.Pod)
+			log.Printf(`deleted pod: "%s/%s".`, pod.Namespace, pod.Name)
+		}
+	)
 
-	addFunc := func(x interface{}) { log.Println("added pod.") }
-	modifyFunc := func(x interface{}) { log.Println("modified pod.") }
-	deleteFunc := func(x interface{}) { log.Println("deleted pod.") }
+	filename := "../../testdata/examples/deployment.yaml"
+	name := "mydep"
 
-	// WatchByLabel watchs a set of pods by labels.
-	{
-		ctx, cancel := context.WithCancel(ctx)
+	podHandler := pod.NewOrDie(ctx, "", namespace)
+	deployHandler := deployment.NewOrDie(ctx, "", namespace)
+	ctx, cancel := context.WithCancel(ctx)
 
-		go func(ctx context.Context) {
-			handler.WatchByLabel(label, addFunc, modifyFunc, deleteFunc, nil)
-		}(ctx)
-		go func(ctx context.Context) {
-			for {
-				handler.Apply(filename)
-				time.Sleep(time.Second * 5)
-				handler.Delete(name)
-			}
-		}(ctx)
+	go func(ctx context.Context) {
+		time.Sleep(time.Second * 5)
+		podHandler.Watch(addFunc, modifyFunc, deleteFunc)
+	}(ctx)
+	go func(ctx context.Context) {
+		for {
+			deployHandler.Apply(filename)
+			time.Sleep(time.Second * 20)
+			deployHandler.Delete(name)
+		}
+	}(ctx)
 
-		timer := time.NewTimer(time.Second * 30)
-		<-timer.C
-		cancel()
-	}
-
-	// WatchByName watchs a pod by label.
-	ioutil.ReadFile(filename)
-	{
-		ctx, cancel := context.WithCancel(ctx)
-
-		go func(ctx context.Context) {
-			handler.WatchByName(name, addFunc, modifyFunc, deleteFunc, nil)
-		}(ctx)
-		go func(ctx context.Context) {
-			for {
-				handler.Apply(filename)
-				time.Sleep(time.Second * 5)
-				handler.Delete(name)
-			}
-		}(ctx)
-
-		timer := time.NewTimer(time.Second * 30)
-		<-timer.C
-		cancel()
-	}
+	timer := time.NewTimer(time.Second * 60)
+	<-timer.C
+	cancel()
+	deployHandler.Delete(name)
 
 	// Output:
 
-	//2022/08/09 19:10:47 modified pod.
-	//2022/08/09 19:10:47 modified pod.
-	//2022/08/09 19:10:52 modified pod.
-	//2022/08/09 19:11:04 modified pod.
-	//2022/08/09 19:11:05 modified pod.
-	//2022/08/09 19:11:05 deleted pod.
-	//2022/08/09 19:11:07 added pod.
-	//2022/08/09 19:11:07 modified pod.
-	//2022/08/09 19:11:07 modified pod.
-	//2022/08/09 19:11:12 modified pod.
-	//2022/08/09 19:11:24 modified pod.
-	//2022/08/09 19:11:24 modified pod.
-	//2022/08/09 19:11:25 modified pod.
-	//2022/08/09 19:11:25 modified pod.
-	//2022/08/09 19:11:25 deleted pod.
-	//2022/08/09 19:11:25 deleted pod.
-	//2022/08/09 19:11:27 added pod.
-	//2022/08/09 19:11:27 added pod.
-	//2022/08/09 19:11:27 modified pod.
-	//2022/08/09 19:11:27 modified pod.
-	//2022/08/09 19:11:27 modified pod.
-	//2022/08/09 19:11:27 modified pod.
-	//2022/08/09 19:11:27 modified pod.
-	//2022/08/09 19:11:27 modified pod.
-	//2022/08/09 19:11:43 modified pod.
-	//2022/08/09 19:11:43 modified pod.
-	//2022/08/09 19:11:44 modified pod.
-	//2022/08/09 19:11:44 modified pod.
-	//2022/08/09 19:11:44 deleted pod.
-	//2022/08/09 19:11:44 deleted pod.
+	//2022/09/08 22:47:01 added pod: "kube-system/etcd-operator-control-plane".
+	//2022/09/08 22:47:01 added pod: "kube-system/kube-apiserver-operator-control-plane".
+	//2022/09/08 22:47:01 added pod: "kube-system/kube-controller-manager-operator-control-plane".
+	//2022/09/08 22:47:01 added pod: "kube-system/kube-scheduler-operator-control-plane".
+	//2022/09/08 22:47:01 added pod: "test/mydep-859646944d-72nqr".
+	//2022/09/08 22:47:01 added pod: "local-path-storage/local-path-provisioner-66b445c94-k8frj".
+	//2022/09/08 22:47:01 added pod: "test/mydep-859646944d-ls4mk".
+	//2022/09/08 22:47:01 added pod: "test/mydep-859646944d-scr5v".
+	//2022/09/08 22:47:01 added pod: "default/nginx-85b98978db-tf4w7".
+	//2022/09/08 22:47:01 added pod: "kube-system/coredns-64897985d-467q7".
+	//2022/09/08 22:47:01 added pod: "kube-system/coredns-64897985d-tgjph".
+	//2022/09/08 22:47:01 added pod: "kube-system/kindnet-pg7xh".
+	//2022/09/08 22:47:01 added pod: "kube-system/kube-proxy-p6k42".
+	//2022/09/08 22:47:04 deleted pod: "test/mydep-859646944d-ls4mk".
+	//2022/09/08 22:47:09 deleted pod: "test/mydep-859646944d-72nqr".
+	//2022/09/08 22:47:11 deleted pod: "test/mydep-859646944d-scr5v".
+	//2022/09/08 22:47:16 added pod: "test/mydep-67fcc784fc-hfjhx".
+	//2022/09/08 22:47:16 added pod: "test/mydep-67fcc784fc-r6b5g".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-67fcc784fc-hfjhx".
+	//2022/09/08 22:47:16 added pod: "test/mydep-67fcc784fc-jlccm".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-859646944d-72nqr".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-859646944d-scr5v".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-859646944d-ls4mk".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-67fcc784fc-r6b5g".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-67fcc784fc-jlccm".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-67fcc784fc-hfjhx".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-859646944d-scr5v".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-67fcc784fc-r6b5g".
+	//2022/09/08 22:47:16 deleted pod: "test/mydep-67fcc784fc-jlccm".
+	//2022/09/08 22:47:17 deleted pod: "test/mydep-859646944d-ls4mk".
+	//2022/09/08 22:47:17 deleted pod: "test/mydep-859646944d-ls4mk".
+	//2022/09/08 22:47:17 modified pod: "test/mydep-859646944d-ls4mk".
+	//2022/09/08 22:47:18 deleted pod: "test/mydep-859646944d-72nqr".
+	//2022/09/08 22:47:18 deleted pod: "test/mydep-859646944d-72nqr".
+	//2022/09/08 22:47:18 modified pod: "test/mydep-859646944d-72nqr".
+	//2022/09/08 22:47:19 deleted pod: "test/mydep-859646944d-scr5v".
+	//2022/09/08 22:47:19 modified pod: "test/mydep-859646944d-scr5v".
+	//2022/09/08 22:47:22 deleted pod: "test/mydep-67fcc784fc-hfjhx".
+	//2022/09/08 22:47:27 deleted pod: "test/mydep-67fcc784fc-jlccm".
+	//2022/09/08 22:47:30 deleted pod: "test/mydep-67fcc784fc-r6b5g".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-67fcc784fc-hfjhx".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-67fcc784fc-r6b5g".
+	//2022/09/08 22:47:36 added pod: "test/mydep-859646944d-xl7rb".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-67fcc784fc-jlccm".
+	//2022/09/08 22:47:36 added pod: "test/mydep-859646944d-glwh6".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-859646944d-xl7rb".
+	//2022/09/08 22:47:36 added pod: "test/mydep-859646944d-z55cl".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-859646944d-glwh6".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-859646944d-z55cl".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-859646944d-xl7rb".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-859646944d-z55cl".
+	//2022/09/08 22:47:36 deleted pod: "test/mydep-859646944d-glwh6".
+	//2022/09/08 22:47:37 deleted pod: "test/mydep-67fcc784fc-jlccm".
+	//2022/09/08 22:47:37 deleted pod: "test/mydep-67fcc784fc-jlccm".
+	//2022/09/08 22:47:37 modified pod: "test/mydep-67fcc784fc-jlccm".
+	//2022/09/08 22:47:38 deleted pod: "test/mydep-67fcc784fc-hfjhx".
+	//2022/09/08 22:47:38 deleted pod: "test/mydep-67fcc784fc-hfjhx".
+	//2022/09/08 22:47:38 modified pod: "test/mydep-67fcc784fc-hfjhx".
+	//2022/09/08 22:47:39 deleted pod: "test/mydep-67fcc784fc-r6b5g".
+	//2022/09/08 22:47:39 deleted pod: "test/mydep-67fcc784fc-r6b5g".
+	//2022/09/08 22:47:39 modified pod: "test/mydep-67fcc784fc-r6b5g".
+	//2022/09/08 22:47:41 deleted pod: "test/mydep-859646944d-xl7rb".
+	//2022/09/08 22:47:45 deleted pod: "test/mydep-859646944d-glwh6".
+	//2022/09/08 22:47:48 deleted pod: "test/mydep-859646944d-z55cl".
 }
