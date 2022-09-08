@@ -90,17 +90,14 @@ func (h *Handler) StrategicMergePatch(original, modified *appsv1.Deployment) (*a
 		types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
 }
 
-// JsonMergePath use JSON merge patch to patch deployment.
-// A JSON merge patch is different from strategic merge patch, With a JSON merge patch,
-// If you want to update a list, you have to specify the entire new list.
-// And the new list completely replicas the existing list.
+// JsonPath use JSON Patch to patch deployment.
 //
 // For a comparison of JSON patch and JSON merge patch, see:
 //     https://erosb.github.io/post/json-patch-vs-merge-patch/
 // For further more Json Merge Patch see:
 //     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
 //     https://tools.ietf.org/html/rfc7386
-func (h *Handler) JsonMergePath(deploy *appsv1.Deployment, patchData []byte) (*appsv1.Deployment, error) {
+func (h *Handler) JsonPath(deploy *appsv1.Deployment, patchData []byte) (*appsv1.Deployment, error) {
 	var namespace string
 	if len(deploy.Namespace) != 0 {
 		namespace = deploy.Namespace
@@ -112,15 +109,16 @@ func (h *Handler) JsonMergePath(deploy *appsv1.Deployment, patchData []byte) (*a
 		deploy.Name, types.JSONPatchType, patchData, h.Options.PatchOptions)
 }
 
-// JsonPath
+// MergePatch use the JSON Merge Patch to patch deployment.
+// A JSON merge patch is different from strategic merge patch, With a JSON merge patch,
+// If you want to update a list, you have to specify the entire new list.
+// And the new list completely replicas the existing list.
+//
 // For a comparison of JSON patch and JSON merge patch, see:
 //     https://erosb.github.io/post/json-patch-vs-merge-patch/
 // For further more Json Patch see:
 //     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
 //     https://tools.ietf.org/html/rfc6902
-func (h *Handler) JsonPath() {}
-
-// MergePatch
 func (h *Handler) MergePatch(original, modified *appsv1.Deployment) (*appsv1.Deployment, error) {
 	var (
 		err          error
