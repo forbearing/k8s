@@ -19,6 +19,8 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// TODO: use k8s.io/client-go/tools/watch to retry watch or use informers to watch.
+
 // Handler is a handler that have Create()/Update()/Apply()/Path()/Delete()/Get()/
 // List()/Watch() method to create/update/apply/patch/delete/get/list/watch
 // any kinds of k8s resources already registered in kubernetes API server.
