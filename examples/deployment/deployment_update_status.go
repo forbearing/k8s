@@ -8,7 +8,7 @@ import (
 
 func Deployment_Update_Status() {
 	handler := deployment.NewOrDie(ctx, "", namespace)
-	defer cleanup(handler)
+	//defer cleanup(handler)
 
 	deploy, err := handler.Apply(filename)
 	if err != nil {
@@ -18,14 +18,14 @@ func Deployment_Update_Status() {
 	log.Println("Wait Ready")
 	handler.WaitReady(name)
 
-	copiedDeploy := deploy.DeepCopy()
-	copiedDeploy.Status.Replicas = 10
-	deploy2, err := handler.UpdateStatus(copiedDeploy)
-	//deploy.Status.Replicas = 10
-	//deploy2, err := handler.UpdateStatus(deploy)
+	deploy.Status.AvailableReplicas = 1
+	deploy.Status.ObservedGeneration = 100
+	deploy2, err := handler.UpdateStatus(deploy)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(*deploy2.Spec.Replicas)
-	log.Println(deploy2.Status.Replicas)
+
+	if _, err := handler.Update(deploy2); err != nil {
+		log.Fatal(err)
+	}
 }
