@@ -13,6 +13,7 @@ reference:
 	https://github.com/openshift/kubernetes-kubectl/blob/master/pkg/cmd/patch/patch.go
 	https://github.com/kubernetes/kubectl/blob/master/pkg/cmd/patch/patch.go
 	https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/
+	https://erosb.github.io/post/json-patch-vs-merge-patch/
 	https://stackoverflow.com/questions/61653702/scale-deployment-replicas-with-kubernetes-go-client
 	https://stackoverflow.com/questions/53891862/patching-deployments-via-kubernetes-client-go
 	https://github.com/kubernetes/client-go/issues/236
