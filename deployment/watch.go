@@ -54,16 +54,56 @@ func (h *Handler) WatchByNamespace(namespace string, addFunc, modifyFunc, delete
 //  * If Event.Type is Error: *api.Status is recommended; other types may make sense
 //    depending on context.
 func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
-	var err error
-	var watcher watch.Interface
-
 	listOptions := metav1.SingleObject(metav1.ObjectMeta{Name: name, Namespace: h.namespace})
 	listOptions.TimeoutSeconds = new(int64)
+	return h.watchDeployment(listOptions, addFunc, modifyFunc, deleteFunc)
+}
+
+// WatchByLabel watch multiple Deployment resources selected by the label.
+// Multiple labels are separated by ",", label key and value conjunctaed by "=".
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	return h.watchDeployment(metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: new(int64)},
+		addFunc, modifyFunc, deleteFunc)
+}
+
+// WatchByField watch multiple Deployment resources selected by the field.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	fieldSelector, err := fields.ParseSelector(field)
+	if err != nil {
+		return err
+	}
+	listOptions := metav1.ListOptions{FieldSelector: fieldSelector.String(), TimeoutSeconds: new(int64)}
+	return h.watchDeployment(listOptions, addFunc, modifyFunc, deleteFunc)
+}
+
+// watchDeployment watch deployment resources according to listOptions.
+func (h *Handler) watchDeployment(listOptions metav1.ListOptions,
+	addFunc, modifyFunc, deleteFunc func(obj interface{})) (err error) {
+
+	var watcher watch.Interface
 	// if event channel is closed, it means the server has closed the connection,
-	// reconnect to kubernetes.
+	// reconnect to kubernetes API server.
 	for {
-		//watcher, err := clientset.AppsV1().Deployments(namespace).Watch(ctx,
-		//    metav1.SingleObject(metav1.ObjectMeta{Name: "dep", Namespace: namespace}))
 		if watcher, err = h.clientset.AppsV1().Deployments(h.namespace).Watch(h.ctx, listOptions); err != nil {
 			return err
 		}
@@ -80,105 +120,7 @@ func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(
 			case watch.Deleted:
 				deleteFunc(event.Object)
 			case watch.Bookmark:
-				log.Debug("watch deployment: bookmark.")
-			case watch.Error:
-				log.Debug("watch deployment: error")
-			}
-		}
-		// If event channel is closed, it means the server has closed the connection
-		log.Debug("watch deployment: reconnect to kubernetes")
-		watcher.Stop()
-	}
-}
-
-// WatchByLabel watch multiple Deployment resources selected by the label.
-//
-// Object as the parameter of addFunc, modifyFunc, deleteFunc:
-//  * If Event.Type is Added or Modified: the new state of the object.
-//  * If Event.Type is Deleted: the state of the object immediately before deletion.
-//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
-//    only ResourceVersion field is set. On successful restart of watch from a
-//    bookmark resourceVersion, client is guaranteed to not get repeat event
-//    nor miss any events.
-//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
-//    depending on context.
-//
-// Multiple labels are separated by ",", label key and value conjunctaed by "=".
-func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
-	var err error
-	var watcher watch.Interface
-
-	// if event channel is closed, it means the server has closed the connection,
-	// reconnect to kubernetes.
-	for {
-		if watcher, err = h.clientset.AppsV1().Deployments(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: new(int64)}); err != nil {
-			return err
-		}
-		// kubernetes retains the resource event history, which includes this
-		// initial event, so that when our program first start, we are automatically
-		// notified of the deployment existence and current state.
-		// There we will not ignore the first resource added event.
-		for event := range watcher.ResultChan() {
-			switch event.Type {
-			case watch.Added:
-				addFunc(event.Object)
-			case watch.Modified:
-				modifyFunc(event.Object)
-			case watch.Deleted:
-				deleteFunc(event.Object)
-			case watch.Bookmark:
-				log.Debug("watch deployment: bookmark.")
-			case watch.Error:
-				log.Debug("watch deployment: error")
-			}
-		}
-		// If event channel is closed, it means the server has closed the connection
-		log.Debug("watch deployment: reconnect to kubernetes")
-		watcher.Stop()
-	}
-}
-
-// WatchByField watch multiple Deployment resources selected by the label.
-//
-// Object as the parameter of addFunc, modifyFunc, deleteFunc:
-//  * If Event.Type is Added or Modified: the new state of the object.
-//  * If Event.Type is Deleted: the state of the object immediately before deletion.
-//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
-//    only ResourceVersion field is set. On successful restart of watch from a
-//    bookmark resourceVersion, client is guaranteed to not get repeat event
-//    nor miss any events.
-//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
-//    depending on context.
-func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
-	var err error
-	var watcher watch.Interface
-	var fieldSelector fields.Selector
-
-	if fieldSelector, err = fields.ParseSelector(field); err != nil {
-		return err
-	}
-	// if event channel is closed, it means the server has closed the connection,
-	// reconnect to kubernetes.
-	for {
-		if watcher, err = h.clientset.AppsV1().Deployments(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{FieldSelector: fieldSelector.String(), TimeoutSeconds: new(int64)}); err != nil {
-			return err
-		}
-		// kubernetes retains the resource event history, which includes this
-		// initial event, so that when our program first start, we are automatically
-		// notified of the deployment existence and current state.
-		// There we will not ignore the first resource added event.
-		for event := range watcher.ResultChan() {
-			switch event.Type {
-			case watch.Added:
-				addFunc(event.Object)
-			case watch.Modified:
-				modifyFunc(event.Object)
-			case watch.Deleted:
-				deleteFunc(event.Object)
-			case watch.Bookmark:
-				log.Debug("watch deployment: bookmark.")
+				log.Debug("watch deployment: bookmark")
 			case watch.Error:
 				log.Debug("watch deployment: error")
 			}
