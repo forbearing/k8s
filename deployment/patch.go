@@ -42,9 +42,6 @@ const (
 	ApplyPatchType          PatchType = PatchType(types.ApplyPatchType)
 )
 
-// Path default use the Strategic Merge Path, its simply call StrategicMergePatch().
-func (h *Handler) Path() {}
-
 // StrategicMergePatch use the strategic merge patch to patch deployment.
 //
 // Notice that the patch did not replace the containers list. Instead it added
