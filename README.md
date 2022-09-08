@@ -78,7 +78,11 @@ Its a universal handler that create/update/delete/patch/get/list k8s resources b
 - [How to delete k8s resources.](./examples/dynamic/dynamic_delete.go)
 - [How to get k8s resources.](./examples/dynamic/dynamic_get.go)
 - [How to list k8s resources.](./examples/dynamic/dynamic_list.go)
-- [How to watch a single k8s resources.](./examples/dynamic/dynamic_watch_single.go)
+- [How to watch a single k8s resources with specified kind.](./examples/dynamic/dynamic_watch_single.go)
+- [How to watch a single or multiple k8s resource with specified kind and selected by label.](./examples/dynamic/dynamic_watch_label.go)
+- [How to watch a single or multiple k8s resource with specified kind and selected by field.](./examples/dynamic/dynamic_watch_field.go)
+- [How to watch all k8s resources in the specified namespace.](./examples/dynamic/dynamic_watch_namespace.go)
+- [How to watch all k8s resources.](./examples/dynamic/dynamic_watch_all.go)
 - dynamic informer usage.
 
 ### deployment handler examples:
@@ -93,8 +97,8 @@ Its a typed handler that use typed client(clientset) to create/update/patch/dele
 - [How to get deployment resources.](./examples/deployment/deployment_get.go)
 - [How to list deployment resources.](./examples/deployment/deployment_list.go)
 - [How to watch a single deployment resources.](./examples/deployment/deployment_watch_single.go)
-- [How to watch multiple deployment resources selected by label.](./examples/deployment/deployment_watch_label.go)
-- [How to watch multiple deployment resources selected by field.](./examples/deployment/deployment_watch_field.go)
+- [How to watch a single or multiple deployment resources selected by label.](./examples/deployment/deployment_watch_label.go)
+- [How to watch a single or multiple deployment resources selected by field.](./examples/deployment/deployment_watch_field.go)
 - [How to watch all deployment resources in the specified namespace.](./examples/deployment/deployment_watch_namespace.go)
 - [How to watch all deployment resources.](./examples/deployment/deployment_watch_all.go)
 - [How to change the number of deployment replicas.](./examples/deployment/deployment_scale.go)
