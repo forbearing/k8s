@@ -42,18 +42,64 @@ const (
 	ApplyPatchType          PatchType = PatchType(types.ApplyPatchType)
 )
 
-//func (h *Handler) Patch(original, modified *appsv1.Deployment, patchType PatchType) (*appsv1.Deployment, error) {
-//    switch patchType {
-//    case StrategicMergePatchType:
-//        return h.strategicMergePatchDeployment(original, modified)
-//    default:
-//        return nil, ErrInvalidPathType
-//    }
+// Path default use the Strategic Merge Path, its simply call StrategicMergePatch().
+func (h *Handler) Path() {}
 
-//}
+// StrategicMergePatch use the strategic merge patch to patch deployment.
+//
+// Notice that the patch did not replace the containers list. Instead it added
+// a new Container to the list. In other words, the list in the patch was merged
+// with the existing list.
+//
+// This is not always what happens when you use a strategic merge patch on a list.
+// In some cases, the list is replaced, not merged.
+//
+// Note: Strategic merge patch is not supported for custom resources.
+// For further more Strategic Merge patch, see:
+//     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
+func (h *Handler) StrategicMergePatch(original, modified *appsv1.Deployment) (*appsv1.Deployment, error) {
+	var (
+		err          error
+		originalJson []byte
+		modifiedJson []byte
+		patchData    []byte
+		namespace    string
+	)
 
-// jsonPathDeployment
-func (h *Handler) JsonPath(deploy *appsv1.Deployment, patchData []byte) (*appsv1.Deployment, error) {
+	if originalJson, err = json.Marshal(original); err != nil {
+		return nil, err
+	}
+	if modifiedJson, err = json.Marshal(modified); err != nil {
+		return nil, err
+	}
+	if patchData, err = strategicpatch.CreateTwoWayMergePatch(originalJson, modifiedJson, appsv1.Deployment{}); err != nil {
+		return nil, err
+	}
+	if len(patchData) == 0 || string(patchData) == "{}" {
+		return original, nil
+	}
+
+	if len(original.Namespace) != 0 {
+		namespace = original.Namespace
+	} else {
+		namespace = h.namespace
+	}
+
+	return h.clientset.AppsV1().Deployments(namespace).Patch(h.ctx, original.Name,
+		types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+}
+
+// JsonMergePath use JSON merge patch to patch deployment.
+// A JSON merge patch is different from strategic merge patch, With a JSON merge patch,
+// If you want to update a list, you have to specify the entire new list.
+// And the new list completely replicas the existing list.
+//
+// For a comparison of JSON patch and JSON merge patch, see:
+//     https://erosb.github.io/post/json-patch-vs-merge-patch/
+// For further more Json Merge Patch see:
+//     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
+//     https://tools.ietf.org/html/rfc7386
+func (h *Handler) JsonMergePath(deploy *appsv1.Deployment, patchData []byte) (*appsv1.Deployment, error) {
 	var namespace string
 	if len(deploy.Namespace) != 0 {
 		namespace = deploy.Namespace
@@ -64,6 +110,14 @@ func (h *Handler) JsonPath(deploy *appsv1.Deployment, patchData []byte) (*appsv1
 	return h.clientset.AppsV1().Deployments(namespace).Patch(h.ctx,
 		deploy.Name, types.JSONPatchType, patchData, h.Options.PatchOptions)
 }
+
+// JsonPath
+// For a comparison of JSON patch and JSON merge patch, see:
+//     https://erosb.github.io/post/json-patch-vs-merge-patch/
+// For further more Json Patch see:
+//     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
+//     https://tools.ietf.org/html/rfc6902
+func (h *Handler) JsonPath() {}
 
 // MergePatch
 func (h *Handler) MergePatch(original, modified *appsv1.Deployment) (*appsv1.Deployment, error) {
@@ -97,50 +151,3 @@ func (h *Handler) MergePatch(original, modified *appsv1.Deployment) (*appsv1.Dep
 	return h.clientset.AppsV1().Deployments(namespace).Patch(h.ctx, original.Name,
 		types.MergePatchType, patchData, h.Options.PatchOptions)
 }
-
-// StrategicMergePatch
-func (h *Handler) StrategicMergePatch(original, modified *appsv1.Deployment) (*appsv1.Deployment, error) {
-	var (
-		err          error
-		originalJson []byte
-		modifiedJson []byte
-		patchData    []byte
-		namespace    string
-	)
-
-	if originalJson, err = json.Marshal(original); err != nil {
-		return nil, err
-	}
-	if modifiedJson, err = json.Marshal(modified); err != nil {
-		return nil, err
-	}
-	if patchData, err = strategicpatch.CreateTwoWayMergePatch(originalJson, modifiedJson, appsv1.Deployment{}); err != nil {
-		return nil, err
-	}
-	if len(patchData) == 0 || string(patchData) == "{}" {
-		return original, nil
-	}
-
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
-		namespace = h.namespace
-	}
-
-	return h.clientset.AppsV1().Deployments(namespace).Patch(h.ctx, original.Name,
-		types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
-}
-
-//// pathDeployment
-//func (h *Handler) pathDeployment(patchType PatchType, originalJSON, patchJSON []byte) ([]byte, error) {
-//    switch patchType {
-//    case JSONPatchType:
-//        return nil, nil
-//    case MergePatchType:
-//        return nil, nil
-//    case StrategicMergePatchType:
-//        return nil, nil
-//    default:
-//        return nil, ErrInvalidPathType
-//    }
-//}
