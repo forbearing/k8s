@@ -125,9 +125,10 @@ func (h *Handler) watchUnstructuredObj(listOptions metav1.ListOptions,
 			if watcher, err = h.dynamicClient.Resource(gvr).Namespace(h.namespace).Watch(h.ctx, listOptions); err != nil {
 				return err
 			}
-		}
-		if watcher, err = h.dynamicClient.Resource(gvr).Watch(h.ctx, listOptions); err != nil {
-			return err
+		} else {
+			if watcher, err = h.dynamicClient.Resource(gvr).Watch(h.ctx, listOptions); err != nil {
+				return err
+			}
 		}
 		// Kubernetes retains the resource event history, which includes this
 		// initial event, so that when our program first start, we are automatically
