@@ -2,102 +2,111 @@ package persistentvolume
 
 import (
 	log "github.com/sirupsen/logrus"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/watch"
 )
 
-// WatchByName watch persistentvolume by name.
-func (h *Handler) WatchByName(name string,
-	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
-	var (
-		watcher watch.Interface
-		timeout = int64(0)
-		isExist bool
-	)
+// Watch watch all persistentvolume resources.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) Watch(addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	return h.WatchByLabel("", addFunc, deleteFunc, modifyFunc)
+}
+
+// WatchByName watch a single persistentvolume reseource.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	listOptions := metav1.SingleObject(metav1.ObjectMeta{Name: name})
+	listOptions.TimeoutSeconds = new(int64)
+	return h.watchPersistentVolume(listOptions, addFunc, modifyFunc, deleteFunc)
+}
+
+// WatchByLabel watch a single or multiple PersistentVolume resources selected by the label.
+// Multiple labels are separated by ",", label key and value conjunctaed by "=".
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	return h.watchPersistentVolume(metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: new(int64)},
+		addFunc, modifyFunc, deleteFunc)
+}
+
+// WatchByField watch a single or multiple PersistentVolume resources selected by the field.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	fieldSelector, err := fields.ParseSelector(field)
+	if err != nil {
+		return err
+	}
+	listOptions := metav1.ListOptions{FieldSelector: fieldSelector.String(), TimeoutSeconds: new(int64)}
+	return h.watchPersistentVolume(listOptions, addFunc, modifyFunc, deleteFunc)
+}
+
+// watchPersistentVolume watch persistentvolume resources according to listOptions.
+func (h *Handler) watchPersistentVolume(listOptions metav1.ListOptions,
+	addFunc, modifyFunc, deleteFunc func(obj interface{})) (err error) {
+
+	var watcher watch.Interface
+	// if event channel is closed, it means the server has closed the connection,
+	// reconnect to kubernetes API server.
 	for {
-		listOptions := metav1.SingleObject(metav1.ObjectMeta{Name: name})
-		listOptions.TimeoutSeconds = &timeout
 		if watcher, err = h.clientset.CoreV1().PersistentVolumes().Watch(h.ctx, listOptions); err != nil {
-			return
+			return err
 		}
-		if _, err = h.Get(name); err != nil {
-			isExist = false // pv not exist
-		} else {
-			isExist = true // pv exist
-		}
+		// kubernetes retains the resource event history, which includes this
+		// initial event, so that when our program first start, we are automatically
+		// notified of the persistentvolume existence and current state.
+		// There we will not ignore the first resource added event.
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
-				if !isExist {
-					addFunc(x)
-				}
-				isExist = true
+				addFunc(event.Object)
 			case watch.Modified:
-				modifyFunc(x)
-				isExist = true
+				modifyFunc(event.Object)
 			case watch.Deleted:
-				deleteFunc(x)
-				isExist = false
+				deleteFunc(event.Object)
 			case watch.Bookmark:
-				log.Debug("watch persistentvolume: bookmark.")
+				log.Debug("watch persistentvolume: bookmark")
 			case watch.Error:
 				log.Debug("watch persistentvolume: error")
 			}
 		}
 		// If event channel is closed, it means the server has closed the connection
 		log.Debug("watch persistentvolume: reconnect to kubernetes")
+		watcher.Stop()
 	}
-}
-
-// WatchByLabel watch persistentvolume by labels.
-func (h *Handler) WatchByLabel(labels string,
-	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
-	var (
-		watcher watch.Interface
-		pvList  []*corev1.PersistentVolume
-		timeout = int64(0)
-		isExist bool
-	)
-	for {
-		if watcher, err = h.clientset.CoreV1().PersistentVolumes().Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
-			return
-		}
-		if pvList, err = h.ListByLabel(labels); err != nil {
-			return
-		}
-		if len(pvList) == 0 {
-			isExist = false // pv not exist
-		} else {
-			isExist = true // pv exist
-		}
-		for event := range watcher.ResultChan() {
-			switch event.Type {
-			case watch.Added:
-				if !isExist {
-					addFunc(x)
-				}
-				isExist = true
-			case watch.Modified:
-				modifyFunc(x)
-				isExist = true
-			case watch.Deleted:
-				deleteFunc(x)
-				isExist = false
-			case watch.Bookmark:
-				log.Debug("watch persistentvolume: bookmark.")
-			case watch.Error:
-				log.Debug("watch persistentvolume: error")
-			}
-		}
-		// If event channel is closed, it means the server has closed the connection
-		log.Debug("watch persistentvolume: reconnect to kubernetes")
-	}
-}
-
-// Watch watch persistentvolume by name, alias to "WatchByName".
-func (h *Handler) Watch(name string,
-	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
-	return h.WatchByName(name, addFunc, modifyFunc, deleteFunc, x)
 }

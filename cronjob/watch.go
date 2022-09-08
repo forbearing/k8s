@@ -2,102 +2,129 @@ package cronjob
 
 import (
 	log "github.com/sirupsen/logrus"
-	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/watch"
 )
 
-// WatchByName watch cronjobs by name.
-func (h *Handler) WatchByName(name string,
-	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
-	var (
-		watcher watch.Interface
-		timeout = int64(0)
-		isExist bool
-	)
+// Watch watch all cronjob resources.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) Watch(addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	return h.WithNamespace(metav1.NamespaceAll).WatchByLabel("", addFunc, deleteFunc, modifyFunc)
+}
+
+// WatchByNamespace watch all cronjob resources in the specified namespace.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByNamespace(namespace string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	if len(namespace) == 0 {
+		namespace = metav1.NamespaceDefault
+	}
+	return h.WithNamespace(namespace).WatchByLabel("", addFunc, deleteFunc, modifyFunc)
+}
+
+// WatchByName watch a single cronjob reseource.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	listOptions := metav1.SingleObject(metav1.ObjectMeta{Name: name, Namespace: h.namespace})
+	listOptions.TimeoutSeconds = new(int64)
+	return h.watchCronJob(listOptions, addFunc, modifyFunc, deleteFunc)
+}
+
+// WatchByLabel watch a single or multiple CronJob resources selected by the label.
+// Multiple labels are separated by ",", label key and value conjunctaed by "=".
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	return h.watchCronJob(metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: new(int64)},
+		addFunc, modifyFunc, deleteFunc)
+}
+
+// WatchByField watch a single or multiple CronJob resources selected by the field.
+//
+// Object as the parameter of addFunc, modifyFunc, deleteFunc:
+//  * If Event.Type is Added or Modified: the new state of the object.
+//  * If Event.Type is Deleted: the state of the object immediately before deletion.
+//  * If Event.Type is Bookmark: the object (instance of a type being watched) where
+//    only ResourceVersion field is set. On successful restart of watch from a
+//    bookmark resourceVersion, client is guaranteed to not get repeat event
+//    nor miss any events.
+//  * If Event.Type is Error: *api.Status is recommended; other types may make sense
+//    depending on context.
+func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc func(obj interface{})) error {
+	fieldSelector, err := fields.ParseSelector(field)
+	if err != nil {
+		return err
+	}
+	listOptions := metav1.ListOptions{FieldSelector: fieldSelector.String(), TimeoutSeconds: new(int64)}
+	return h.watchCronJob(listOptions, addFunc, modifyFunc, deleteFunc)
+}
+
+// watchCronJob watch cronjob resources according to listOptions.
+func (h *Handler) watchCronJob(listOptions metav1.ListOptions,
+	addFunc, modifyFunc, deleteFunc func(obj interface{})) (err error) {
+
+	var watcher watch.Interface
+	// if event channel is closed, it means the server has closed the connection,
+	// reconnect to kubernetes API server.
 	for {
-		listOption := metav1.SingleObject(metav1.ObjectMeta{Name: name, Namespace: h.namespace})
-		listOption.TimeoutSeconds = &timeout
-		if watcher, err = h.clientset.BatchV1().CronJobs(h.namespace).Watch(h.ctx, listOption); err != nil {
-			return
+		if watcher, err = h.clientset.BatchV1().CronJobs(h.namespace).Watch(h.ctx, listOptions); err != nil {
+			return err
 		}
-		if _, err = h.Get(name); err != nil {
-			isExist = false // cronjob not exist
-		} else {
-			isExist = true // cronjob exist
-		}
+		// kubernetes retains the resource event history, which includes this
+		// initial event, so that when our program first start, we are automatically
+		// notified of the cronjob existence and current state.
+		// There we will not ignore the first resource added event.
 		for event := range watcher.ResultChan() {
 			switch event.Type {
 			case watch.Added:
-				if !isExist {
-					addFunc(x)
-				}
-				isExist = true
+				addFunc(event.Object)
 			case watch.Modified:
-				modifyFunc(x)
-				isExist = true
+				modifyFunc(event.Object)
 			case watch.Deleted:
-				deleteFunc(x)
-				isExist = false
+				deleteFunc(event.Object)
 			case watch.Bookmark:
-				log.Debug("watch cronjob: bookmark.")
+				log.Debug("watch cronjob: bookmark")
 			case watch.Error:
 				log.Debug("watch cronjob: error")
 			}
 		}
 		// If event channel is closed, it means the server has closed the connection
 		log.Debug("watch cronjob: reconnect to kubernetes")
+		watcher.Stop()
 	}
-}
-
-// WatchByLabel watch cronjobs by labels.
-func (h *Handler) WatchByLabel(labels string,
-	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
-	var (
-		watcher watch.Interface
-		cjList  []*batchv1.CronJob
-		timeout = int64(0)
-		isExist bool
-	)
-	for {
-		if watcher, err = h.clientset.BatchV1().CronJobs(h.namespace).Watch(h.ctx,
-			metav1.ListOptions{LabelSelector: labels, TimeoutSeconds: &timeout}); err != nil {
-			return
-		}
-		if cjList, err = h.ListByLabel(labels); err != nil {
-			return
-		}
-		if len(cjList) == 0 {
-			isExist = false // cronjob not exist
-		} else {
-			isExist = true // cronjob exist
-		}
-		for event := range watcher.ResultChan() {
-			switch event.Type {
-			case watch.Added:
-				if !isExist {
-					addFunc(x)
-				}
-				isExist = true
-			case watch.Modified:
-				modifyFunc(x)
-				isExist = true
-			case watch.Deleted:
-				deleteFunc(x)
-				isExist = false
-			case watch.Bookmark:
-				log.Debug("watch cronjob: bookmark.")
-			case watch.Error:
-				log.Debug("watch cronjob: error")
-			}
-		}
-		// If event channel is closed, it means the server has closed the connection
-		log.Debug("watch cronjob: reconnect to kubernetes")
-	}
-}
-
-// Watch watch cronjobs by name, alias to "WatchByName".
-func (h *Handler) Watch(name string,
-	addFunc, modifyFunc, deleteFunc func(x interface{}), x interface{}) (err error) {
-	return h.WatchByName(name, addFunc, modifyFunc, deleteFunc, x)
 }
