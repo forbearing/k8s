@@ -18,9 +18,7 @@ reference:
 	https://stackoverflow.com/questions/61653702/scale-deployment-replicas-with-kubernetes-go-client
 	https://stackoverflow.com/questions/53891862/patching-deployments-via-kubernetes-client-go
 	https://github.com/kubernetes/client-go/issues/236
-	https://github.com/tamalsaha/patch-demo
 	https://dwmkerr.com/patching-kubernetes-resources-in-golang/
-	https://golang.hotexamples.com/examples/k8s.io.client-go.pkg.labels/-/Everything/golang-everything-function-examples.html
 	https://caiorcferreira.github.io/post/the-kubernetes-dynamic-client/
 
 Merge-patch: With a JSON merge patch, if you want to update a list, you have to
