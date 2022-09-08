@@ -59,7 +59,7 @@ func (h *Handler) WatchByName(name string, addFunc, modifyFunc, deleteFunc func(
 	return h.watchDeployment(listOptions, addFunc, modifyFunc, deleteFunc)
 }
 
-// WatchByLabel watch multiple Deployment resources selected by the label.
+// WatchByLabel watch a single or multiple Deployment resources selected by the label.
 // Multiple labels are separated by ",", label key and value conjunctaed by "=".
 //
 // Object as the parameter of addFunc, modifyFunc, deleteFunc:
@@ -76,7 +76,7 @@ func (h *Handler) WatchByLabel(labels string, addFunc, modifyFunc, deleteFunc fu
 		addFunc, modifyFunc, deleteFunc)
 }
 
-// WatchByField watch multiple Deployment resources selected by the field.
+// WatchByField watch a single or multiple Deployment resources selected by the field.
 //
 // Object as the parameter of addFunc, modifyFunc, deleteFunc:
 //  * If Event.Type is Added or Modified: the new state of the object.
