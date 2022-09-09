@@ -49,13 +49,14 @@ type PodSpec struct {
 func (h *Handler) Patch(original *appsv1.Deployment, patch interface{}, patchOptions ...types.PatchType) (*appsv1.Deployment, error) {
 	switch val := patch.(type) {
 	case string:
-		patchData, err := os.ReadFile(val)
-		if err != nil {
+		var err error
+		var patchData []byte
+		var jsonData []byte
+
+		if patchData, err = os.ReadFile(val); err != nil {
 			return nil, err
 		}
-		// convert a single YAML document to JSON document.
-		jsonData, err := yaml.ToJSON(patchData)
-		if err != nil {
+		if jsonData, err = yaml.ToJSON(patchData); err != nil {
 			return nil, err
 		}
 		if len(patchOptions) != 0 && patchOptions[0] == types.JSONPatchType {
@@ -67,9 +68,10 @@ func (h *Handler) Patch(original *appsv1.Deployment, patch interface{}, patchOpt
 		return h.strategicMergePatch(original, jsonData)
 
 	case []byte:
-		// convert a single YAML document to JSON document.
-		jsonData, err := yaml.ToJSON(val)
-		if err != nil {
+		var err error
+		var jsonData []byte
+
+		if jsonData, err = yaml.ToJSON(val); err != nil {
 			return nil, err
 		}
 		if len(patchOptions) != 0 && patchOptions[0] == types.JSONPatchType {
