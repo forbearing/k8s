@@ -87,7 +87,7 @@ Its a universal handler that create/update/apply/patch/delete/get/list/watch k8s
 
 ### Deployment handler examples:
 
-Its a typed handler that use typed client(clientset) to create/update/apply/patch/delete/get/list/watch typed resources(such ass deployments, pods, etc.).
+Its a typed handler that use typed client(clientset) to create/update/apply/patch/delete/get/list/watch typed resources(such as deployments, pods, etc.).
 
 - [How to create deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_create.go)
 - [How to update deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_update.go)
