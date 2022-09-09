@@ -180,15 +180,15 @@ func (h *Handler) jsonMergePatch(original *appsv1.Deployment, patchData []byte) 
 // For further more Json Merge Patch see:
 //     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
 //     https://tools.ietf.org/html/rfc7386
-func (h *Handler) jsonPatch(deploy *appsv1.Deployment, patchData []byte) (*appsv1.Deployment, error) {
+func (h *Handler) jsonPatch(original *appsv1.Deployment, patchData []byte) (*appsv1.Deployment, error) {
 	var namespace string
-	if len(deploy.Namespace) != 0 {
-		namespace = deploy.Namespace
+	if len(original.Namespace) != 0 {
+		namespace = original.Namespace
 	} else {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().Deployments(namespace).Patch(h.ctx,
-		deploy.Name, types.JSONPatchType, patchData, h.Options.PatchOptions)
+		original.Name, types.JSONPatchType, patchData, h.Options.PatchOptions)
 }
 
 // diffMergePatch will tak the difference data between original and modified deployment object,
