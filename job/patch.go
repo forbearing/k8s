@@ -144,7 +144,7 @@ func (h *Handler) jsonMergePatch(original *batchv1.Job, patchData []byte) (*batc
 		namespace = h.namespace
 	}
 	return h.clientset.BatchV1().Jobs(namespace).
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch job.

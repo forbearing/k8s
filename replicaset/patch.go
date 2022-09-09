@@ -144,7 +144,7 @@ func (h *Handler) jsonMergePatch(original *appsv1.ReplicaSet, patchData []byte) 
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().ReplicaSets(namespace).
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch replicaset.

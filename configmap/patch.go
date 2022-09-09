@@ -144,7 +144,7 @@ func (h *Handler) jsonMergePatch(original *corev1.ConfigMap, patchData []byte) (
 		namespace = h.namespace
 	}
 	return h.clientset.CoreV1().ConfigMaps(namespace).
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch configmap.

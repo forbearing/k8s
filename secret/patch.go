@@ -144,7 +144,7 @@ func (h *Handler) jsonMergePatch(original *corev1.Secret, patchData []byte) (*co
 		namespace = h.namespace
 	}
 	return h.clientset.CoreV1().Secrets(namespace).
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch secret.

@@ -130,7 +130,7 @@ func (h *Handler) jsonMergePatch(original *rbacv1.ClusterRoleBinding, patchData 
 		return original, nil
 	}
 	return h.clientset.RbacV1().ClusterRoleBindings().
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch clusterrolebinding.

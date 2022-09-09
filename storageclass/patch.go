@@ -130,7 +130,7 @@ func (h *Handler) jsonMergePatch(original *storagev1.StorageClass, patchData []b
 		return original, nil
 	}
 	return h.clientset.StorageV1().StorageClasses().
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch storageclass.

@@ -130,7 +130,7 @@ func (h *Handler) jsonMergePatch(original *corev1.Node, patchData []byte) (*core
 		return original, nil
 	}
 	return h.clientset.CoreV1().Nodes().
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch node.

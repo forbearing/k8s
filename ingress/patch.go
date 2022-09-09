@@ -143,8 +143,8 @@ func (h *Handler) jsonMergePatch(original *networkingv1.Ingress, patchData []byt
 	} else {
 		namespace = h.namespace
 	}
-	return h.clientset.NetworkingV1().Ingresss(namespace).
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+	return h.clientset.NetworkingV1().Ingresses(namespace).
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch ingress.
@@ -161,7 +161,7 @@ func (h *Handler) jsonPatch(original *networkingv1.Ingress, patchData []byte) (*
 	} else {
 		namespace = h.namespace
 	}
-	return h.clientset.NetworkingV1().Ingresss(namespace).Patch(h.ctx,
+	return h.clientset.NetworkingV1().Ingresses(namespace).Patch(h.ctx,
 		original.Name, types.JSONPatchType, patchData, h.Options.PatchOptions)
 }
 
@@ -197,9 +197,9 @@ func (h *Handler) diffMergePatch(original, modified *networkingv1.Ingress, patch
 		namespace = h.namespace
 	}
 	if len(patchOptions) != 0 && patchOptions[0] == types.MergePatchType {
-		return h.clientset.NetworkingV1().Ingresss(namespace).
+		return h.clientset.NetworkingV1().Ingresses(namespace).
 			Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 	}
-	return h.clientset.NetworkingV1().Ingresss(namespace).
+	return h.clientset.NetworkingV1().Ingresses(namespace).
 		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
 }

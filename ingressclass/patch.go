@@ -130,7 +130,7 @@ func (h *Handler) jsonMergePatch(original *networkingv1.IngressClass, patchData 
 		return original, nil
 	}
 	return h.clientset.NetworkingV1().IngressClasses().
-		Patch(h.ctx, original.Name, types.StrategicMergePatchType, patchData, h.Options.PatchOptions)
+		Patch(h.ctx, original.Name, types.MergePatchType, patchData, h.Options.PatchOptions)
 }
 
 // jsonPatch use "JSON Patch" patch type to patch ingressclass.
