@@ -190,7 +190,9 @@ func (h *Handler) jsonPatch(deploy *appsv1.Deployment, patchData []byte) (*appsv
 }
 
 // diffMergePatch will tak the difference data between original and modified deployment object,
-// and use the "Strategic Merge Patch" patch type to patch the differen deployment.
+// and use the default patch type(Strategic Merge Patch) patch the differen deployment.
+// You can set patchOptions to MergePatchType to use the "JSON Merge Patch" to
+// patch deployment.
 func (h *Handler) diffMergePatch(original, modified *appsv1.Deployment, patchOptions ...types.PatchType) (*appsv1.Deployment, error) {
 	var (
 		err          error
