@@ -154,6 +154,7 @@ Its a typed handler that use typed client(clientset) to create/update/patch/dele
 - [ ] metrics
 - [x] port-forward for pod, deployment and service
 - [ ] proxy
+- [x] all handler support Patch() method to patch k8s resource.
 - [ ] operators refer to https://sdk.operatorframework.io/docs/building-operators/golang/references/client/
 - [x] Has/Get/GetAll/Set/Remove/RemoveAll Labels and Annotations
 - [ ] Add MultiNamespace() method to create/update/delete k8s resource in multi namespaces at once.
