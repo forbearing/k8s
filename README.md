@@ -68,7 +68,7 @@ Its a universal handler that simply invoke dynamic handler to create/update/patc
 - Howt to watch k8s resources.
 - informer usage.
 
-### dynamic handler examples:
+### Dynamic handler examples:
 
 Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
 
@@ -85,7 +85,7 @@ Its a universal handler that create/update/delete/patch/get/list k8s resources b
 - [How to watch all k8s resources.](./examples/dynamic/dynamic_watch_all.go)
 - dynamic informer usage.
 
-### deployment handler examples:
+### Deployment handler examples:
 
 Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such ass deployments, pods, etc.).
 
@@ -111,13 +111,13 @@ Its a typed handler that use typed client(clientset) to create/update/patch/dele
     - IsReady(): check if a deployment is ready/available/rollout update finished.
     - WaitReady(): block here until a deployment is ready/available/rollout update finished.
 
-### pod handler examples:
+### Pod handler examples:
 
 - [How to execute command within pod.](./examples/pod/pod_execute.go)
 - [How to port-forward a local port to pod.](./examples/port-forward/portforward_pod.go)
 - [How to get pod logs](./examples/pod/pod_logs.go)
 
-### more examples:
+### More examples:
 
 - [ApplyF()/DeleteF() apply/delete various k8s resource from a yaml file.](./k8s_test.go)
 - [Check whether the k8s resources has the specifed label, Get/Set/Remove labels of k8s resources](./examples/labels/main.go)
