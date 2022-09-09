@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mydep-patch
+  labels:
+    type: deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: patch-demo-ctr
+        image: nginx
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        value: test-team
