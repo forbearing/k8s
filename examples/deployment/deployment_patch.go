@@ -145,4 +145,19 @@ func Deployment_Patch() {
 
 	// Output
 
+	//2022/09/09 14:06:28 1.1 **JSON Patch** patch data is a filename and the file content is yaml document
+	//2022/09/09 14:06:31 1.2 **JSON Patch** patch data is a filename and the file content is json document
+	//2022/09/09 14:06:34 1.3 **Strategic Merge Patch** patch data is a filename and the file content is yaml document
+	//2022/09/09 14:06:40 1.4 **Strategic Merge Patch** patch data is a filename and the json content is json document
+	//2022/09/09 14:06:40 1.5 **JSON Merge Patch** patch data is a filename and the file content is yaml document
+	//2022/09/09 14:06:48 1.6 **JSON Merge Patch** patch data is a filename and the json content is json document
+	//2022/09/09 14:06:48 2.1 **Default to Strategic Merge Patch** patch data is []byte and the content is yaml document
+	//2022/09/09 14:06:48 2.2 **Default to Strategic Merge Patch** patch data is []byte and the content is json document
+	//2022/09/09 14:06:48 3. **Default to Strategic Merge Patch** patch data is *appsv1.Deployment
+	//2022/09/09 14:06:56 4. **Default to Strategic Merge Patch** patch data is appsv1.Deployment
+	//2022/09/09 14:07:04 5. **Default To Strategic Merge Patch** patch data is map[string]interface{}
+	//2022/09/09 14:07:13 6. **Default to Strategic Merge Patch** patch data is *unstructObj.Unstructured
+	//2022/09/09 14:07:13 7. **Default to Strategic Merge Patch** patch data is unstructObj.Unstructured
+	//2022/09/09 14:07:19 8.1 **Default to Strategic Merge Patch** patch data is runtime.Object(convert from *appsv1.Deployment)
+	//2022/09/09 14:07:19 8.2 **Default to Strategic Merge Patch** patch data is runtime.Object(convert from *unstructured.Unstructured)
 }
