@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/forbearing/k8s/deployment"
 	"github.com/forbearing/k8s/util/signals"
@@ -141,6 +142,9 @@ func Deployment_Patch() {
 			log.Fatal(err)
 		}
 		handler.WaitReady(deployName)
+
+		time.Sleep(time.Second * 5)
+		handler.Delete(deployName)
 	}
 
 	// Output
