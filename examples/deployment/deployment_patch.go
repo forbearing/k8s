@@ -2,42 +2,54 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/forbearing/k8s/deployment"
 )
 
 func Deployment_Patch() {
-	handler := deployment.NewOrDie(ctx, "", namespace)
-	defer cleanup(handler)
+	deployFile := "../../testdata/examples/deployment-patch.yaml"
+	patchFile := "../../testdata/examples/deployment-patch-file.yaml"
+	deployName := "mydep-patch"
+	_, _, _ = deployFile, deployName, patchFile
 
-	deploy, err := handler.Apply(unstructData)
+	handler := deployment.NewOrDie(ctx, "", namespace)
+	deploy, err := handler.Apply(deployFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	handler.WaitReady(unstructName)
-
+	handler.WaitReady(deployName)
 	modifiedDeploy := deploy.DeepCopy()
-	replicas := *deploy.Spec.Replicas
 
-	replicas += 1
-	modifiedDeploy.Spec.Replicas = &replicas
+	// Strategic Merge Patch
+	*modifiedDeploy.Spec.Replicas += 1
 	deploy2, err := handler.StrategicMergePatch(deploy, modifiedDeploy)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(*deploy.Spec.Replicas, *deploy2.Spec.Replicas) //1  2
+	log.Println(*deploy.Spec.Replicas, *deploy2.Spec.Replicas) //2  3
 	handler.WaitReady(unstructName)
 
-	replicas += 1
-	modifiedDeploy.Spec.Replicas = &replicas
+	// Json Merge Patch
+	*modifiedDeploy.Spec.Replicas += 1
 	deploy3, err := handler.MergePatch(deploy, modifiedDeploy)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(*deploy.Spec.Replicas, *deploy3.Spec.Replicas) //1  3
+	log.Println(*deploy.Spec.Replicas, *deploy3.Spec.Replicas) //2  4
 	handler.WaitReady(unstructName)
-	time.Sleep(time.Second * 3)
+
+	// Json Patch
+	var patchData []byte
+	if patchData, err = os.ReadFile(patchFile); err != nil {
+		log.Fatal(err)
+	}
+	if _, err := handler.JsonPath(deploy, patchData); err != nil {
+		log.Fatal(err)
+	}
+
+	time.Sleep(time.Second * 5)
 
 	// Output:
 
