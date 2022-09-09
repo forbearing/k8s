@@ -10,9 +10,9 @@ import (
 func main() {
 	//Deployment_Create()
 	//Deployment_Update()
-	Deployment_Update_Status()
-	//Deployment_Patch()
+	//Deployment_Update_Status()
 	//Deployment_Apply()
+	//Deployment_Patch()
 	//Deployment_Delete()
 	//Deployment_Get()
 	//Deployment_List()
