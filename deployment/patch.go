@@ -39,11 +39,13 @@ type PodSpec struct {
     Containers []Container `json:"containers" patchStrategy:"merge" patchMergeKey:"name" ...`
 */
 
-// Patch 自动判断三种 Patch: Strategic Merge Patch, JSON Merge Patch, JSON Patch
+// Patch use the default patch type(Strategic Merge Patch) to patch deployment.
+// Supported patch types are: "StrategicMergePatchType", "MergePatchType", "JSONPatchType".
 //
-// If the "patch" type is []byte, string, *appsv1.Deployment, appsv1.Deployment
-// or  runtime.Object call strategicMergePatch to patch Deployment resource.
-// Default to Strategic Merge Patch
+// For further more Strategic Merge patch, see:
+//     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
+// For a comparison of JSON patch and JSON merge patch, see:
+//     https://erosb.github.io/post/json-patch-vs-merge-patch/
 func (h *Handler) Patch(original *appsv1.Deployment, patch interface{}, patchOptions ...types.PatchType) (*appsv1.Deployment, error) {
 	switch val := patch.(type) {
 	case string:
