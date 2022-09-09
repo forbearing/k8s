@@ -47,7 +47,7 @@ The namespace precedence is:
 
 The library is used by another open source project that used to backup pv/pvc data attached by deployments/statefulsets/daemosnets/pods running in k8s cluster.
 
-For more examples of how to use this library, see [examples](./examples).
+For furthermore examples of how to use this library, see [examples](./examples).
 
 ## Installation
 
@@ -57,7 +57,7 @@ For more examples of how to use this library, see [examples](./examples).
 
 ### k8s handler examples:
 
-Its a universal handler that simply invoke dynamic handler to create/update/patch/delete k8s resources and get/list k8s resources from listers instead of accessing the API server directly.
+Its a universal handler that simply invoke dynamic handler to create/update/apply/patch/delete/watch k8s resources and get/list k8s resources from listers instead of accessing the API server directly.
 
 - [How to create k8s resources.](./examples/k8s/k8s_create.go)
 - [How to update k8s resources.](./examples/k8s/k8s_update.go)
@@ -70,7 +70,7 @@ Its a universal handler that simply invoke dynamic handler to create/update/patc
 
 ### Dynamic handler examples:
 
-Its a universal handler that create/update/delete/patch/get/list k8s resources by the underlying dynamic client.
+Its a universal handler that create/update/apply/patch/delete/get/list/watch k8s resources by the underlying dynamic client.
 
 - [How to create k8s resources inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
 - [How to update k8s resources.](./examples/dynamic/dynamic_update.go)
@@ -87,7 +87,7 @@ Its a universal handler that create/update/delete/patch/get/list k8s resources b
 
 ### Deployment handler examples:
 
-Its a typed handler that use typed client(clientset) to create/update/patch/delete/get/list typed resources(such ass deployments, pods, etc.).
+Its a typed handler that use typed client(clientset) to create/update/apply/patch/delete/get/list/watch typed resources(such ass deployments, pods, etc.).
 
 - [How to create deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_create.go)
 - [How to update deployment resources inside cluster or outside cluster.](./examples/deployment/deployment_update.go)
