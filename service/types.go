@@ -9,4 +9,5 @@ var (
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType
 	ErrInvalidGetType    = ErrInvalidCreateType
+	ErrInvalidPathType   = errors.New("path data type must be string, []byte, *corev1.Service, corev1.Service, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 )

@@ -9,4 +9,5 @@ var (
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType
 	ErrInvalidGetType    = ErrInvalidCreateType
+	ErrInvalidPathType   = errors.New("path data type must be string, []byte, *batchv1.CronJob, batchv1.CronJob, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 )

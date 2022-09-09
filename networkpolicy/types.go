@@ -9,4 +9,5 @@ var (
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType
 	ErrInvalidGetType    = ErrInvalidCreateType
+	ErrInvalidPathType   = errors.New("path data type must be string, []byte, *networkingv1.NetworkPolicy, networkingv1.NetworkPolicy, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 )

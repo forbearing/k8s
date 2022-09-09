@@ -17,6 +17,7 @@ var (
 	ErrInvalidDeleteType = ErrInvalidCreateType
 	ErrInvalidGetType    = ErrInvalidCreateType
 	ErrInvalidLogType    = ErrInvalidCreateType
+	ErrInvalidPathType   = errors.New("path data type must be string, []byte, *corev1.Pod, corev1.Pod, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 )
 
 type PtyHandler interface {
