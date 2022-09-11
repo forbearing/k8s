@@ -93,6 +93,9 @@ func Set(obj runtime.Object, label ...string) error {
 			return err
 		}
 		labels := accessor.GetLabels()
+		if labels == nil {
+			labels = make(map[string]string)
+		}
 		labels[key] = val
 		accessor.SetLabels(labels)
 	}
