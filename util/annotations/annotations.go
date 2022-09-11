@@ -91,6 +91,9 @@ func Set(obj runtime.Object, annotation ...string) error {
 			return err
 		}
 		annotations := accessor.GetAnnotations()
+		if annotations == nil {
+			annotations = make(map[string]string)
+		}
 		annotations[key] = val
 		accessor.SetAnnotations(annotations)
 	}
