@@ -1,12 +1,10 @@
 package annotations
 
 import (
-	"fmt"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 /*
@@ -152,10 +150,6 @@ func parseAnnotations(annotation string) (key, val string, err error) {
 	if len(parts) == 1 {
 		// return the annotation key
 		return parts[0], "", nil
-	}
-	// the annotation contains the key and value, and validate annotation value.
-	if errs := validation.IsValidLabelValue(parts[1]); len(errs) != 0 {
-		return "", "", fmt.Errorf("invalid annotation value: %q: %v", annotation, strings.Join(errs, ";"))
 	}
 	// return the annotation key and value
 	return parts[0], parts[1], nil
