@@ -27,17 +27,14 @@ func (h *Handler) Create(obj interface{}) (*unstructured.Unstructured, error) {
 		return h.CreateFromFile(val)
 	case []byte:
 		return h.CreateFromBytes(val)
-	//case runtime.Object:
-	//    if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-	//        return h.createUnstructured(val.(*unstructured.Unstructured))
-	//    }
-	//    return h.CreateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.createUnstructured(val)
 	case unstructured.Unstructured:
 		return h.createUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidType
 	}

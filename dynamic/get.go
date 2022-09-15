@@ -29,17 +29,14 @@ func (h *Handler) Get(obj interface{}) (*unstructured.Unstructured, error) {
 		return h.GetByName(val)
 	case []byte:
 		return h.GetFromBytes(val)
-	//case runtime.Object:
-	//    if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-	//        return h.createUnstructured(val.(*unstructured.Unstructured))
-	//    }
-	//    return h.GetFromObject(val)
 	case *unstructured.Unstructured:
 		return h.getUnstructured(val)
 	case unstructured.Unstructured:
 		return h.getUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
+	case runtime.Object:
+		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidType
 	}

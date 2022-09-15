@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -28,17 +27,14 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromObject(val)
 	case storagev1.StorageClass:
 		return h.DeleteFromObject(&val)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.DeleteFromUnstructured(val.(*unstructured.Unstructured))
-		}
-		return h.DeleteFromObject(val)
 	case *unstructured.Unstructured:
 		return h.DeleteFromUnstructured(val)
 	case unstructured.Unstructured:
 		return h.DeleteFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
+	case runtime.Object:
+		return h.DeleteFromObject(val)
 	default:
 		return ErrInvalidDeleteType
 	}

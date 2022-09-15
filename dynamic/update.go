@@ -26,17 +26,14 @@ func (h *Handler) Update(obj interface{}) (*unstructured.Unstructured, error) {
 		return h.UpdateFromFile(val)
 	case []byte:
 		return h.UpdateFromBytes(val)
-	//case runtime.Object:
-	//    if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-	//        return h.updateUnstructured(val.(*unstructured.Unstructured))
-	//    }
-	//    return h.UpdateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.updateUnstructured(val)
 	case unstructured.Unstructured:
 		return h.updateUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidType
 	}

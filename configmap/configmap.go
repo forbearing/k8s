@@ -128,7 +128,7 @@ func New(ctx context.Context, kubeconfig, namespace string) (*Handler, error) {
 // the provided namespace.
 func (h *Handler) WithNamespace(namespace string) *Handler {
 	cm := h.DeepCopy()
-	cm.resetNamespace(namespace)
+	cm.ResetNamespace(namespace)
 	return cm
 }
 
@@ -172,7 +172,7 @@ func (in *Handler) DeepCopy() *Handler {
 		},
 	}
 }
-func (h *Handler) resetNamespace(namespace string) {
+func (h *Handler) ResetNamespace(namespace string) {
 	h.l.Lock()
 	defer h.l.Unlock()
 	h.namespace = namespace

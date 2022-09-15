@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 
 	storagev1 "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -25,17 +24,14 @@ func (h *Handler) Update(obj interface{}) (*storagev1.StorageClass, error) {
 		return h.UpdateFromObject(val)
 	case storagev1.StorageClass:
 		return h.UpdateFromObject(&val)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.UpdateFromUnstructured(val.(*unstructured.Unstructured))
-		}
-		return h.UpdateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.UpdateFromUnstructured(val)
 	case unstructured.Unstructured:
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
+	case runtime.Object:
+		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}

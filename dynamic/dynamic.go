@@ -150,7 +150,7 @@ func New(ctx context.Context, kubeconfig string, namespace string) (*Handler, er
 // * namespace will be ignored if k8s resource is cluster scope.
 func (h *Handler) WithNamespace(namespace string) *Handler {
 	handler := h.DeepCopy()
-	handler.resetNamespace(namespace)
+	handler.ResetNamespace(namespace)
 	return handler
 }
 
@@ -204,8 +204,8 @@ func (in *Handler) DeepCopy() *Handler {
 	}
 }
 
-// resetNamespace
-func (h *Handler) resetNamespace(namespace string) {
+// ResetNamespace
+func (h *Handler) ResetNamespace(namespace string) {
 	h.l.Lock()
 	defer h.l.Unlock()
 	h.namespace = namespace

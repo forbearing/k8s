@@ -24,17 +24,14 @@ func (h *Handler) UpdateStatus(obj interface{}) (*appsv1.Deployment, error) {
 		return h.UpdateStatusFromObject(val)
 	case appsv1.Deployment:
 		return h.UpdateStatusFromObject(&val)
-	//case runtime.Object:
-	//    if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-	//        return h.UpdateStatusFromUnstructured(val.(*unstructured.Unstructured))
-	//    }
-	//    return h.UpdateStatusFromObject(val)
 	case *unstructured.Unstructured:
 		return h.UpdateStatusFromUnstructured(val)
 	case unstructured.Unstructured:
 		return h.UpdateStatusFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateStatusFromMap(val)
+	case runtime.Object:
+		return h.UpdateStatusFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}

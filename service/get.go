@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -27,17 +26,14 @@ func (h *Handler) Get(obj interface{}) (*corev1.Service, error) {
 		return h.GetFromObject(val)
 	case corev1.Service:
 		return h.GetFromObject(&val)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.GetFromUnstructured(val.(*unstructured.Unstructured))
-		}
-		return h.GetFromObject(val)
 	case *unstructured.Unstructured:
 		return h.GetFromUnstructured(val)
 	case unstructured.Unstructured:
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
+	case runtime.Object:
+		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
 	}

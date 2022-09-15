@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 
 	log "github.com/sirupsen/logrus"
 	appsv1 "k8s.io/api/apps/v1"
@@ -35,17 +34,14 @@ func (h *Handler) Apply(obj interface{}) (*appsv1.Deployment, error) {
 		return h.ApplyFromObject(val)
 	case appsv1.Deployment:
 		return h.ApplyFromObject(&val)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.ApplyFromUnstructured(val.(*unstructured.Unstructured))
-		}
-		return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
 	case unstructured.Unstructured:
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}

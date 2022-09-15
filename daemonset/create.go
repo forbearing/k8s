@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -25,17 +24,14 @@ func (h *Handler) Create(obj interface{}) (*appsv1.DaemonSet, error) {
 		return h.CreateFromObject(val)
 	case appsv1.DaemonSet:
 		return h.CreateFromObject(&val)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.CreateFromUnstructured(val.(*unstructured.Unstructured))
-		}
-		return h.CreateFromObject(val)
 	case *unstructured.Unstructured:
 		return h.CreateFromUnstructured(val)
 	case unstructured.Unstructured:
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
+	case runtime.Object:
+		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}

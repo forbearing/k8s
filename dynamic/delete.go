@@ -29,17 +29,14 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteByName(val)
 	case []byte:
 		return h.DeleteFromBytes(val)
-	//case runtime.Object:
-	//    if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-	//        return h.deleteUnstructured(val.(*unstructured.Unstructured))
-	//    }
-	//    return h.DeleteFromObject(val)
 	case *unstructured.Unstructured:
 		return h.deleteUnstructured(val)
 	case unstructured.Unstructured:
 		return h.deleteUnstructured(&val)
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
+	case runtime.Object:
+		return h.DeleteFromObject(val)
 	default:
 		return ErrInvalidType
 	}

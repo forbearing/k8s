@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -28,17 +27,14 @@ func (h *Handler) Scale(obj interface{}, replicas int32) (*appsv1.StatefulSet, e
 		return h.ScaleFromObject(val, replicas)
 	case appsv1.StatefulSet:
 		return h.ScaleFromObject(&val, replicas)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.ScaleFromUnstructured(val.(*unstructured.Unstructured), replicas)
-		}
-		return h.ScaleFromObject(val, replicas)
 	case *unstructured.Unstructured:
 		return h.ScaleFromUnstructured(val, replicas)
 	case unstructured.Unstructured:
 		return h.ScaleFromUnstructured(&val, replicas)
 	case map[string]interface{}:
 		return h.ScaleFromMap(val, replicas)
+	case runtime.Object:
+		return h.ScaleFromObject(val, replicas)
 	default:
 		return nil, ErrInvalidScaleType
 	}

@@ -2,7 +2,6 @@ package role
 
 import (
 	"fmt"
-	"reflect"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -23,17 +22,14 @@ func (h *Handler) Apply(obj interface{}) (*rbacv1.Role, error) {
 		return h.ApplyFromObject(val)
 	case rbacv1.Role:
 		return h.ApplyFromObject(&val)
-	case runtime.Object:
-		if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-			return h.ApplyFromUnstructured(val.(*unstructured.Unstructured))
-		}
-		return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.ApplyFromUnstructured(val)
 	case unstructured.Unstructured:
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}

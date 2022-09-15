@@ -24,17 +24,14 @@ func (h *Handler) Apply(obj interface{}) (*unstructured.Unstructured, error) {
 		return h.ApplyFromFile(val)
 	case []byte:
 		return h.ApplyFromBytes(val)
-	//case runtime.Object:
-	//    if reflect.TypeOf(val).String() == "*unstructured.Unstructured" {
-	//        return h.applyUnstructured(val.(*unstructured.Unstructured))
-	//    }
-	//    return h.ApplyFromObject(val)
 	case *unstructured.Unstructured:
 		return h.applyUnstructured(val)
 	case unstructured.Unstructured:
 		return h.applyUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
+	case runtime.Object:
+		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidType
 	}
