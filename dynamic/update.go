@@ -35,7 +35,7 @@ func (h *Handler) Update(obj interface{}) (*unstructured.Unstructured, error) {
 	case runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
-		return nil, ErrInvalidType
+		return nil, ErrInvalidUpdateType
 	}
 }
 
