@@ -15,6 +15,7 @@ func main() {
 	//Dynamic_Create()
 	//Dynamic_Update()
 	//Dynamic_Apply()
+	//Dynamic_Patch()
 	//Dynamic_Delete()
 	//Dynamic_Get()
 	//Dynamic_List()
@@ -22,7 +23,7 @@ func main() {
 	//Dynamic_Watch_Label()
 	//Dynamic_Watch_Field()
 	//Dynamic_Watch_Namespace()
-	Dynamic_Watch_All()
+	//Dynamic_Watch_All()
 }
 
 func cleanup(handler *dynamic.Handler) {
