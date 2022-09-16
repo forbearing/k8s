@@ -75,6 +75,7 @@ Its a universal handler that create/update/apply/patch/delete/get/list/watch k8s
 - [How to create k8s resources inside cluster or outside cluster.](./examples/dynamic/dynamic_create.go)
 - [How to update k8s resources.](./examples/dynamic/dynamic_update.go)
 - [How to apply k8s resources.](./examples/dynamic/dynamic_apply.go)
+- [How to patch k8s resource.](./examples/dynamic/dynamic_patch.go)
 - [How to delete k8s resources.](./examples/dynamic/dynamic_delete.go)
 - [How to get k8s resources.](./examples/dynamic/dynamic_get.go)
 - [How to list k8s resources.](./examples/dynamic/dynamic_list.go)
