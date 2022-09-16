@@ -38,7 +38,7 @@ func (h *Handler) Get(obj interface{}) (*unstructured.Unstructured, error) {
 	case runtime.Object:
 		return h.GetFromObject(val)
 	default:
-		return nil, ErrInvalidType
+		return nil, ErrInvalidGetType
 	}
 }
 
