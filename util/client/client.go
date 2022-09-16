@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 // RESTConfig creates a *rest.Config for the given kubeconfig.
@@ -148,4 +149,16 @@ func DiscoveryClientOrDie(kubeconfig string) *discovery.DiscoveryClient {
 		panic(err)
 	}
 	return discoveryClient
+}
+
+// RawConfig holds the information needed to build connect to remote kubernetes
+// clusters as a given user
+//
+// ref: https://stackoverflow.com/questions/70885022/how-to-get-current-k8s-context-name-using-client-go
+func RawConfig(kubeconfig string) (clientcmdapi.Config, error) {
+	return clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{
+			CurrentContext: "",
+		}).RawConfig()
 }
