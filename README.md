@@ -21,15 +21,18 @@ The kubeconfig precedence is:
 The variable `namespace` is used to limit the scope of the handler. If `namespace=test`, the handler is only allowed to create/update/delete deployments in namespace/test. Of course, handler.WithNamespace(newNamespace) returns a new temporary handler that allowed to create/update/delete deployments in the new namespace, for examples:
 
 ```go
-namespace1 := "test"
-namespace2 := "test2"
+namespace := "test"
+newNamespace := "test-new"
 // Inside cluster. the program run within k8s pod.
-handler, _ := deployment.New(ctx, "", namespace1)
+handler, _ := deployment.New(ctx, "", namespace)
 // handler is only allowed to create/update/delete deployment in namespace/test.
 handler.Create(filename)
-// handler is only allowed to create/update/delete deployment in namespace/test2.
-handler.WithNamespace(namespace2).Create(filename)
-// handler is only allowed to create/update/delete deployment in namespace/test (not namespace/test2).
+// handler is only allowed to create/update/delete deployment in namespace/test-new.
+handler.WithNamespace(newNamespace).Create(filename)
+// handler is only allowed to create/update/delete deployment in namespace/test (not namespace/test-new).
+handler.Create(filename)
+handler.ResetNamespace(newNamespace)
+// handler is only allowed to create/update/delete deployment in namespace/test-new (not namespace/test).
 handler.Create(filename)
 ```
 
