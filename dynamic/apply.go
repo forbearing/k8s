@@ -33,7 +33,7 @@ func (h *Handler) Apply(obj interface{}) (*unstructured.Unstructured, error) {
 	case runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
-		return nil, ErrInvalidType
+		return nil, ErrInvalidApplyType
 	}
 }
 
