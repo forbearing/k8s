@@ -91,7 +91,7 @@ func (h *Handler) Patch(original *storagev1.StorageClass, patch interface{}, pat
 		return h.diffMergePatch(original, modified, patchOptions...)
 
 	default:
-		return nil, ErrInvalidPathType
+		return nil, ErrInvalidPatchType
 	}
 }
 

@@ -11,5 +11,5 @@ var (
 	ErrInvalidApplyType  = ErrInvalidCreateType
 	ErrInvalidDeleteType = ErrInvalidCreateType
 	ErrInvalidGetType    = ErrInvalidCreateType
-	ErrInvalidPathType   = errors.New("path data type must be string, []byte, *rbacv1.ClusterRole, rbacv1.ClusterRole, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
+	ErrInvalidPatchType  = errors.New("patch data type must be string, []byte, *rbacv1.ClusterRole, rbacv1.ClusterRole, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}")
 )

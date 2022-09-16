@@ -91,7 +91,7 @@ func (h *Handler) Patch(original *corev1.Node, patch interface{}, patchOptions .
 		return h.diffMergePatch(original, modified, patchOptions...)
 
 	default:
-		return nil, ErrInvalidPathType
+		return nil, ErrInvalidPatchType
 	}
 }
 

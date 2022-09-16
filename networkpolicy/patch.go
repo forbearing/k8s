@@ -91,7 +91,7 @@ func (h *Handler) Patch(original *networkingv1.NetworkPolicy, patch interface{},
 		return h.diffMergePatch(original, modified, patchOptions...)
 
 	default:
-		return nil, ErrInvalidPathType
+		return nil, ErrInvalidPatchType
 	}
 }
 

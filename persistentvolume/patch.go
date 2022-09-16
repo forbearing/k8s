@@ -91,7 +91,7 @@ func (h *Handler) Patch(original *corev1.PersistentVolume, patch interface{}, pa
 		return h.diffMergePatch(original, modified, patchOptions...)
 
 	default:
-		return nil, ErrInvalidPathType
+		return nil, ErrInvalidPatchType
 	}
 }
 

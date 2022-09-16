@@ -91,7 +91,7 @@ func (h *Handler) Patch(original *rbacv1.Role, patch interface{}, patchOptions .
 		return h.diffMergePatch(original, modified, patchOptions...)
 
 	default:
-		return nil, ErrInvalidPathType
+		return nil, ErrInvalidPatchType
 	}
 }
 

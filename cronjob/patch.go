@@ -91,7 +91,7 @@ func (h *Handler) Patch(original *batchv1.CronJob, patch interface{}, patchOptio
 		return h.diffMergePatch(original, modified, patchOptions...)
 
 	default:
-		return nil, ErrInvalidPathType
+		return nil, ErrInvalidPatchType
 	}
 }
 

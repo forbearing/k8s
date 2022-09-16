@@ -91,7 +91,7 @@ func (h *Handler) Patch(original *appsv1.DaemonSet, patch interface{}, patchOpti
 		return h.diffMergePatch(original, modified, patchOptions...)
 
 	default:
-		return nil, ErrInvalidPathType
+		return nil, ErrInvalidPatchType
 	}
 }
 
