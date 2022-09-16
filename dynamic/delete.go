@@ -38,7 +38,7 @@ func (h *Handler) Delete(obj interface{}) error {
 	case runtime.Object:
 		return h.DeleteFromObject(val)
 	default:
-		return ErrInvalidType
+		return ErrInvalidDeleteType
 	}
 }
 
