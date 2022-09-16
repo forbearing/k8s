@@ -36,7 +36,7 @@ func (h *Handler) Create(obj interface{}) (*unstructured.Unstructured, error) {
 	case runtime.Object:
 		return h.CreateFromObject(val)
 	default:
-		return nil, ErrInvalidType
+		return nil, ErrInvalidCreateType
 	}
 }
 
