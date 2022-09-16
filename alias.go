@@ -43,3 +43,9 @@ var DiscoveryClient = client.DiscoveryClient
 // DiscoveryClientOrDie creates a *discovery.DiscoveryClient for the given kubeconfig.
 // panic if there is any error occurs.
 var DiscoveryClientOrDie = client.DiscoveryClientOrDie
+
+// RawConfig holds the information needed to build connect to remote kubernetes
+// clusters as a given user
+//
+// ref: https://stackoverflow.com/questions/70885022/how-to-get-current-k8s-context-name-using-client-go
+var RawConfig = client.RawConfig
