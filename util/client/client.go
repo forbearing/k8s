@@ -36,7 +36,7 @@ func RESTConfig(kubeconfig string) (*rest.Config, error) {
 		if config, err = clientcmd.BuildConfigFromFlags("", os.Getenv(clientcmd.RecommendedConfigPathEnvVar)); err != nil {
 			return nil, err
 		}
-	} else if len(clientcmd.RecommendedHomeFile) != 0 {
+	} else if fi, err := os.Stat(clientcmd.RecommendedHomeFile); err == nil && !fi.IsDir() {
 		if config, err = clientcmd.BuildConfigFromFlags("", clientcmd.RecommendedHomeFile); err != nil {
 			return nil, err
 		}
