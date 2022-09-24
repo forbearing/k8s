@@ -561,7 +561,7 @@ func (h *Handler) Execute(podName, containerName string, command []string) error
 			Stdin:     true,
 			Stdout:    true,
 			Stderr:    true,
-			TTY:       true,
+			TTY:       false,
 		}, scheme.ParameterCodec)
 
 	exec, err := remotecommand.NewSPDYExecutor(h.config, "POST", req.URL())
@@ -585,7 +585,7 @@ func (h *Handler) Execute(podName, containerName string, command []string) error
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
-		Tty:    true,
+		Tty:    false,
 	})
 }
 
@@ -680,7 +680,7 @@ func (h *Handler) ExecuteWithStream(podName, containerName string, command []str
 			Stdin:     true,
 			Stdout:    true,
 			Stderr:    true,
-			TTY:       true,
+			TTY:       false,
 		}, scheme.ParameterCodec)
 
 	executor, err := remotecommand.NewSPDYExecutor(h.config, "POST", req.URL())
@@ -693,7 +693,7 @@ func (h *Handler) ExecuteWithStream(podName, containerName string, command []str
 		Stdin:  stdin,
 		Stdout: stdout,
 		Stderr: stderr,
-		Tty:    true,
+		Tty:    false,
 	})
 }
 
