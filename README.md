@@ -165,3 +165,4 @@ Its a typed handler that use typed client(clientset) to create/update/apply/patc
 - [ ] k8s handler create/update/delete/apply k8s resource by the underling dynamic but get/list from listers.
 - [ ] create/update/delete/apply muitlple k8s resource at once.
 - [ ] Admission Webhook: validating admission webhook, mutating admission webhook.
+- [ ] AutoVersion() and ForVersion()
