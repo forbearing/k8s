@@ -14,7 +14,7 @@ var (
 func main() {
 	//Dynamic_Create()
 	//Dynamic_Update()
-	Dynamic_Apply()
+	//Dynamic_Apply()
 	//Dynamic_Patch()
 	//Dynamic_Delete()
 	//Dynamic_Get()

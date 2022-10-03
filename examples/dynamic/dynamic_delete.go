@@ -42,4 +42,14 @@ func Dynamic_Delete() {
 	checkErr("delete persistentvolume", "", err)
 	handler.Delete(crUnstructData)
 	checkErr("delete clusterrole", "", err)
+
+	// Output:
+
+	//2022/10/04 00:15:26 apply deployment from map[string]interface{} success: mydep-unstruct
+	//2022/10/04 00:15:26 apply deployment from yaml file success: mydep
+	//2022/10/04 00:15:26 apply deployment from json file success: mydep-json
+	//2022/10/04 00:15:26 apply pod success: pod-unstruct
+	//2022/10/04 00:15:26 apply namespace success: ns-unstruct
+	//2022/10/04 00:15:26 apply persistentvolume success: pv-unstruct
+	//2022/10/04 00:15:26 apply clusterrole success: cr-unstruct
 }
