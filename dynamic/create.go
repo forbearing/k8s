@@ -6,7 +6,6 @@ import (
 
 	"github.com/forbearing/k8s/types"
 	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
-	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -86,15 +85,12 @@ func (h *Handler) createUnstructured(obj *unstructured.Unstructured) (*unstructu
 		isNamespaced bool
 	)
 	if gvr, err = utilrestmapper.FindGVR(h.restMapper, obj); err != nil {
-		logrus.Error("get gvr failed", err)
 		return nil, err
 	}
 	if gvk, err = utilrestmapper.FindGVK(h.restMapper, obj); err != nil {
-		logrus.Error("get gvk failed", err)
 		return nil, err
 	}
 	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, gvk); err != nil {
-		logrus.Error("get isNamespaced failed", err)
 		return nil, err
 	}
 	if gvk.Kind == types.KindJob || gvk.Kind == types.KindCronJob {
