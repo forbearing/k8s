@@ -14,35 +14,34 @@ func Dynamic_Update() {
 	if _, err := handler.Create(deployUnstructData); err != nil {
 		panic(err)
 	}
-	_, err := handler.Update(deployUnstructData)
-	checkErr("update deployment", "", err)
+	deployObj, err := handler.Update(deployUnstructData)
+	checkErr("update deployment", deployObj.GetName(), err)
 
 	// update namespace
 	if _, err := handler.Create(nsUnstructData); err != nil {
 		panic(err)
 	}
-	_, err = handler.Update(nsUnstructData)
-	checkErr("update namespace", "", err)
+	nsObj, err := handler.Update(nsUnstructData)
+	checkErr("update namespace", nsObj.GetName(), err)
 
 	// update persistentvolume
 	if _, err := handler.Create(pvUnstructData); err != nil {
 		panic(err)
 	}
-	_, err = handler.Update(pvUnstructData)
-	checkErr("update persistentvolume", "", err)
+	pvObj, err := handler.Update(pvUnstructData)
+	checkErr("update persistentvolume", pvObj.GetName(), err)
 
 	// update clusterrole
 	if _, err := handler.Create(crUnstructData); err != nil {
 		panic(err)
 	}
-	_, err = handler.Update(crUnstructData)
-	checkErr("update clusterrole", "", err)
+	crObj, err := handler.Update(crUnstructData)
+	checkErr("update clusterrole", crObj.GetName(), err)
 
 	// Output:
 
-	//2022/09/03 22:00:38 update deployment success:
-	//2022/09/03 22:00:38 update namespace success:
-	//2022/09/03 22:00:38 update persistentvolume success:
-	//2022/09/03 22:00:38 update clusterrole success:
-
+	//2022/10/04 00:12:10 update deployment success: mydep-unstruct
+	//2022/10/04 00:12:10 update namespace success: ns-unstruct
+	//2022/10/04 00:12:10 update persistentvolume success: pv-unstruct
+	//2022/10/04 00:12:10 update clusterrole success: cr-unstruct
 }

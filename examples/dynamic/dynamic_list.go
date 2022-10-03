@@ -22,7 +22,7 @@ func Dynamic_List() {
 		log.Fatal(err)
 	}
 
-	gvk := deployment.GVK()
+	gvk := deployment.GVK
 	label := "type=deployment"
 	field := fmt.Sprintf("metadata.namespace=%s", namespace)
 	_ = label

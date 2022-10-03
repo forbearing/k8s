@@ -17,7 +17,7 @@ func Dynamic_Watch_Single() {
 	name1 := "mydep"
 	name2 := "mydep2"
 	name3 := "mydep-nolabel"
-	gvk := deployment.GVK()
+	gvk := deployment.GVK
 
 	var (
 		addFunc = func(obj interface{}) {

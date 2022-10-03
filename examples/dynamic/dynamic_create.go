@@ -11,31 +11,30 @@ func Dynamic_Create() {
 	defer cleanup(handler)
 
 	// create deployment
-	_, err := handler.Create(deployUnstructData)
-	checkErr("create deployment", "", err)
+	deployObj, err := handler.Create(deployUnstructData)
+	checkErr("create deployment", deployObj.GetName(), err)
 
 	// create pod
-	_, err = handler.Create(podUnstructData)
-	checkErr("create pod", "", err)
+	podObj, err := handler.Create(podUnstructData)
+	checkErr("create pod", podObj.GetName(), err)
 
 	// create namespace
-	_, err = handler.Create(nsUnstructData)
-	checkErr("create namespace", "", err)
+	nsObj, err := handler.Create(nsUnstructData)
+	checkErr("create namespace", nsObj.GetName(), err)
 
 	// create persistentvolume
-	_, err = handler.Create(pvUnstructData)
-	checkErr("create persistentvolume", "", err)
+	pvObj, err := handler.Create(pvUnstructData)
+	checkErr("create persistentvolume", pvObj.GetName(), err)
 
 	// create clusterrole
-	_, err = handler.Create(crUnstructData)
-	checkErr("create clusterrole", "", err)
+	crObj, err := handler.Create(crUnstructData)
+	checkErr("create clusterrole", crObj.GetName(), err)
 
 	// Output:
 
-	//2022/09/03 21:58:35 create deployment success:
-	//2022/09/03 21:58:35 create pod success:
-	//2022/09/03 21:58:35 create namespace success:
-	//2022/09/03 21:58:35 create persistentvolume success:
-	//2022/09/03 21:58:35 create clusterrole success:
-
+	//2022/10/04 00:10:15 create deployment success: mydep-unstruct
+	//2022/10/04 00:10:15 create pod success: pod-unstruct
+	//2022/10/04 00:10:15 create namespace success: ns-unstruct
+	//2022/10/04 00:10:15 create persistentvolume success: pv-unstruct
+	//2022/10/04 00:10:15 create clusterrole success: cr-unstruct
 }

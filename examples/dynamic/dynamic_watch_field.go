@@ -18,7 +18,7 @@ func Dynamic_Watch_Field() {
 	name1 := "mydep"
 	name2 := "mydep2"
 	name3 := "mydep-nolabel"
-	gvk := deployment.GVK()
+	gvk := deployment.GVK
 	field := fmt.Sprintf("metadata.namespace=%s", namespace)
 
 	var (

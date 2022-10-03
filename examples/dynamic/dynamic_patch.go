@@ -144,7 +144,7 @@ func Dynamic_Patch() {
 		deployHandler.WaitReady(deployName)
 
 		time.Sleep(time.Second * 5)
-		handler.WithGVK(deployment.GVK()).Delete(deployName)
+		handler.WithGVK(deployment.GVK).Delete(deployName)
 	}
 
 	// Output

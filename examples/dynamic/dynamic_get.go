@@ -26,7 +26,7 @@ func Dynamic_Get() {
 	}
 	// if the Get() parameter is resource name, you should call WithGVK()
 	// to provides the GroupVersionkind of this resource.
-	u2, err := handler.WithGVK(pod.GVK()).Get(podUnstructName)
+	u2, err := handler.WithGVK(pod.GVK).Get(podUnstructName)
 	checkErr("get pod", u2.GetName(), err)
 
 	// get namespace

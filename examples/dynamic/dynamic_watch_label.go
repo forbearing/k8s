@@ -18,7 +18,7 @@ func Dynamic_Watch_Label() {
 	name2 := "mydep2"
 	name3 := "mydep-nolabel"
 	label := "type=deployment"
-	gvk := deployment.GVK()
+	gvk := deployment.GVK
 
 	var (
 		addFunc = func(obj interface{}) {

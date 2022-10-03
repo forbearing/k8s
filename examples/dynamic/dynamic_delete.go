@@ -32,7 +32,7 @@ func Dynamic_Delete() {
 
 	// if call Delete() to delete a k8s resource and the passed parameter type is string,
 	// you should always to explicitly specify the GroupVersionKind by WithGVK() method to delete it.
-	err := handler.WithGVK(deployment.GVK()).Delete(deployUnstructName)
+	err := handler.WithGVK(deployment.GVK).Delete(deployUnstructName)
 	checkErr("delete deployment", "", err)
 	handler.Delete(podUnstructData)
 	checkErr("delete pod", "", err)

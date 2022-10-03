@@ -14,7 +14,7 @@ var (
 func main() {
 	//Dynamic_Create()
 	//Dynamic_Update()
-	//Dynamic_Apply()
+	Dynamic_Apply()
 	//Dynamic_Patch()
 	//Dynamic_Delete()
 	//Dynamic_Get()
@@ -29,7 +29,7 @@ func main() {
 func cleanup(handler *dynamic.Handler) {
 	// if call Delete() to delete a k8s resource and the passed parameter type is string,
 	// you should always to explicitly specify the GroupVersionKind by WithGVK() method to delete it.
-	handler.WithGVK(deployment.GVK()).Delete(deployUnstructName)
+	handler.WithGVK(deployment.GVK).Delete(deployUnstructName)
 	handler.DeleteFromFile("../../testdata/examples/deployment.yaml")
 	handler.DeleteFromFile("../../testdata/examples/deployment.json")
 	handler.Delete(podUnstructData)

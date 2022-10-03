@@ -11,34 +11,36 @@ func Dynamic_Apply() {
 	defer cleanup(handler)
 
 	// apply deployment
-	_, err := handler.Apply(deployUnstructData)
-	checkErr("apply deployment from map[string]interface{}", "", err)
-	_, err = handler.Apply("../../testdata/examples/deployment.yaml")
-	checkErr("apply deployment from yaml file", "", err)
-	_, err = handler.Apply(("../../testdata/examples/deployment.json"))
-	checkErr("apply deployment from json file", "", err)
+	deployObj, err := handler.Apply(deployUnstructData)
+	checkErr("apply deployment from map[string]interface{}", deployObj.GetName(), err)
+	deployObj2, err := handler.Apply("../../testdata/examples/deployment.yaml")
+	checkErr("apply deployment from yaml file", deployObj2.GetName(), err)
+	deployObj3, err := handler.Apply(("../../testdata/examples/deployment.json"))
+	checkErr("apply deployment from json file", deployObj3.GetName(), err)
 
 	// apply pod
-	_, err = handler.Apply(podUnstructData)
-	checkErr("apply pod", "", err)
+	podObj, err := handler.Apply(podUnstructData)
+	checkErr("apply pod", podObj.GetName(), err)
 
 	// apply namespace
-	_, err = handler.Apply(nsUnstructData)
-	checkErr("apply namespace", "", err)
+	nsObj, err := handler.Apply(nsUnstructData)
+	checkErr("apply namespace", nsObj.GetName(), err)
 
 	// apply persistentvolume
-	_, err = handler.Apply(pvUnstructData)
-	checkErr("apply persistentvolume", "", err)
+	pvObj, err := handler.Apply(pvUnstructData)
+	checkErr("apply persistentvolume", pvObj.GetName(), err)
 
 	// apply clusterrole
-	_, err = handler.Apply(crUnstructData)
-	checkErr("apply clusterrole", "", err)
+	crObj, err := handler.Apply(crUnstructData)
+	checkErr("apply clusterrole", crObj.GetName(), err)
 
 	// Output:
 
-	//2022/09/03 22:03:30 apply deployment success:
-	//2022/09/03 22:03:30 apply pod success:
-	//2022/09/03 22:03:30 apply namespace success:
-	//2022/09/03 22:03:30 apply persistentvolume success:
-	//2022/09/03 22:03:30 apply clusterrole success:
+	//2022/10/04 00:15:26 apply deployment from map[string]interface{} success: mydep-unstruct
+	//2022/10/04 00:15:26 apply deployment from yaml file success: mydep
+	//2022/10/04 00:15:26 apply deployment from json file success: mydep-json
+	//2022/10/04 00:15:26 apply pod success: pod-unstruct
+	//2022/10/04 00:15:26 apply namespace success: ns-unstruct
+	//2022/10/04 00:15:26 apply persistentvolume success: pv-unstruct
+	//2022/10/04 00:15:26 apply clusterrole success: cr-unstruct
 }
