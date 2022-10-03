@@ -37,28 +37,28 @@ func Is_Namespaced() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, clusterrole.GVK()))           // false
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, clusterrolebinding.GVK()))    // false
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, configmap.GVK()))             // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, cronjob.GVK()))               // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, daemonset.GVK()))             // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, deployment.GVK()))            // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, ingress.GVK()))               // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, ingressclass.GVK()))          // false
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, job.GVK()))                   // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, namespace.GVK()))             // false
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, networkpolicy.GVK()))         // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, node.GVK()))                  // false
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, persistentvolume.GVK()))      // false
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, persistentvolumeclaim.GVK())) // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, pod.GVK()))                   // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, replicaset.GVK()))            // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, replicationcontroller.GVK())) // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, role.GVK()))                  // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, rolebinding.GVK()))           // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, secret.GVK()))                // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, service.GVK()))               // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, serviceaccount.GVK()))        // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, statefulset.GVK()))           // true
-	fmt.Println(utilrestmapper.IsNamespaced(restMapper, storageclass.GVK()))          // false
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, clusterrole.GVK))           // false
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, clusterrolebinding.GVK))    // false
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, configmap.GVK))             // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, cronjob.GVK))               // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, daemonset.GVK))             // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, deployment.GVK))            // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, ingress.GVK))               // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, ingressclass.GVK))          // false
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, job.GVK))                   // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, namespace.GVK))             // false
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, networkpolicy.GVK))         // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, node.GVK))                  // false
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, persistentvolume.GVK))      // false
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, persistentvolumeclaim.GVK)) // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, pod.GVK))                   // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, replicaset.GVK))            // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, replicationcontroller.GVK)) // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, role.GVK))                  // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, rolebinding.GVK))           // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, secret.GVK))                // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, service.GVK))               // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, serviceaccount.GVK))        // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, statefulset.GVK))           // true
+	fmt.Println(utilrestmapper.IsNamespaced(restMapper, storageclass.GVK))          // false
 }

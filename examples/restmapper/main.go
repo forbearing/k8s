@@ -6,7 +6,7 @@ import (
 
 func main() {
 	//FindGVK()
-	FindGVR()
+	//FindGVR()
 	//Is_Namespaced()
 }
 
