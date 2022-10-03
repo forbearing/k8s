@@ -26,23 +26,23 @@ func ServerGroupsAndResources() {
 	}
 
 	var gv string
-	if gv, err = GroupVersionForResource(resourceLists, cronjob.Resource()); err != nil {
+	if gv, err = GroupVersionForResource(resourceLists, cronjob.Resource); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("CronJob Group And Version: ", gv)
-	if gv, err = GroupVersionForResource(resourceLists, clusterrole.Resource()); err != nil {
+	if gv, err = GroupVersionForResource(resourceLists, clusterrole.Resource); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("ClusterRole Group And Version: ", gv)
-	if gv, err = GroupVersionForResource(resourceLists, clusterrolebinding.Resource()); err != nil {
+	if gv, err = GroupVersionForResource(resourceLists, clusterrolebinding.Resource); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("ClusterRoleBinding Group And Version: ", gv)
-	if gv, err = GroupVersionForResource(resourceLists, role.Resource()); err != nil {
+	if gv, err = GroupVersionForResource(resourceLists, role.Resource); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("Role Group And Version: ", gv)
-	if gv, err = GroupVersionForResource(resourceLists, rolebinding.Resource()); err != nil {
+	if gv, err = GroupVersionForResource(resourceLists, rolebinding.Resource); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("RoleBinding Group And Version: ", gv)

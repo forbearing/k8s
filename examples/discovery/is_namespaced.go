@@ -41,30 +41,30 @@ func Is_Namespaced() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(isNamespaced(allAPIResourceList, clusterrole.GVR()))           // false
-	fmt.Println(isNamespaced(allAPIResourceList, clusterrolebinding.GVR()))    // false
-	fmt.Println(isNamespaced(allAPIResourceList, configmap.GVR()))             // true
-	fmt.Println(isNamespaced(allAPIResourceList, cronjob.GVR()))               // true
-	fmt.Println(isNamespaced(allAPIResourceList, daemonset.GVR()))             // true
-	fmt.Println(isNamespaced(allAPIResourceList, deployment.GVR()))            // true
-	fmt.Println(isNamespaced(allAPIResourceList, ingress.GVR()))               // true
-	fmt.Println(isNamespaced(allAPIResourceList, ingressclass.GVR()))          // false
-	fmt.Println(isNamespaced(allAPIResourceList, job.GVR()))                   // true
-	fmt.Println(isNamespaced(allAPIResourceList, namespace.GVR()))             // false
-	fmt.Println(isNamespaced(allAPIResourceList, networkpolicy.GVR()))         // true
-	fmt.Println(isNamespaced(allAPIResourceList, node.GVR()))                  // false
-	fmt.Println(isNamespaced(allAPIResourceList, persistentvolume.GVR()))      // false
-	fmt.Println(isNamespaced(allAPIResourceList, persistentvolumeclaim.GVR())) // true
-	fmt.Println(isNamespaced(allAPIResourceList, pod.GVR()))                   // true
-	fmt.Println(isNamespaced(allAPIResourceList, replicaset.GVR()))            // true
-	fmt.Println(isNamespaced(allAPIResourceList, replicationcontroller.GVR())) // true
-	fmt.Println(isNamespaced(allAPIResourceList, role.GVR()))                  // true
-	fmt.Println(isNamespaced(allAPIResourceList, rolebinding.GVR()))           // true
-	fmt.Println(isNamespaced(allAPIResourceList, secret.GVR()))                // true
-	fmt.Println(isNamespaced(allAPIResourceList, service.GVR()))               // true
-	fmt.Println(isNamespaced(allAPIResourceList, serviceaccount.GVR()))        // true
-	fmt.Println(isNamespaced(allAPIResourceList, statefulset.GVR()))           // true
-	fmt.Println(isNamespaced(allAPIResourceList, storageclass.GVR()))          // false
+	fmt.Println(isNamespaced(allAPIResourceList, clusterrole.GVR))           // false
+	fmt.Println(isNamespaced(allAPIResourceList, clusterrolebinding.GVR))    // false
+	fmt.Println(isNamespaced(allAPIResourceList, configmap.GVR))             // true
+	fmt.Println(isNamespaced(allAPIResourceList, cronjob.GVR))               // true
+	fmt.Println(isNamespaced(allAPIResourceList, daemonset.GVR))             // true
+	fmt.Println(isNamespaced(allAPIResourceList, deployment.GVR))            // true
+	fmt.Println(isNamespaced(allAPIResourceList, ingress.GVR))               // true
+	fmt.Println(isNamespaced(allAPIResourceList, ingressclass.GVR))          // false
+	fmt.Println(isNamespaced(allAPIResourceList, job.GVR))                   // true
+	fmt.Println(isNamespaced(allAPIResourceList, namespace.GVR))             // false
+	fmt.Println(isNamespaced(allAPIResourceList, networkpolicy.GVR))         // true
+	fmt.Println(isNamespaced(allAPIResourceList, node.GVR))                  // false
+	fmt.Println(isNamespaced(allAPIResourceList, persistentvolume.GVR))      // false
+	fmt.Println(isNamespaced(allAPIResourceList, persistentvolumeclaim.GVR)) // true
+	fmt.Println(isNamespaced(allAPIResourceList, pod.GVR))                   // true
+	fmt.Println(isNamespaced(allAPIResourceList, replicaset.GVR))            // true
+	fmt.Println(isNamespaced(allAPIResourceList, replicationcontroller.GVR)) // true
+	fmt.Println(isNamespaced(allAPIResourceList, role.GVR))                  // true
+	fmt.Println(isNamespaced(allAPIResourceList, rolebinding.GVR))           // true
+	fmt.Println(isNamespaced(allAPIResourceList, secret.GVR))                // true
+	fmt.Println(isNamespaced(allAPIResourceList, service.GVR))               // true
+	fmt.Println(isNamespaced(allAPIResourceList, serviceaccount.GVR))        // true
+	fmt.Println(isNamespaced(allAPIResourceList, statefulset.GVR))           // true
+	fmt.Println(isNamespaced(allAPIResourceList, storageclass.GVR))          // false
 
 }
 

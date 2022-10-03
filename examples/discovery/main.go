@@ -2,7 +2,7 @@ package main
 
 func main() {
 	//All()
-	//Is_Namespaced()
+	Is_Namespaced()
 	//ServerGroups()
-	ServerGroupsAndResources()
+	//ServerGroupsAndResources()
 }
