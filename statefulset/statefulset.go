@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of statefulset resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   appsv1.SchemeGroupVersion.Group,
-		Version: appsv1.SchemeGroupVersion.Version,
-		Kind:    types.KindStatefulSet,
-	}
+// GVK contains the Group, Version, Kind name of statefulset.
+var GVK = schema.GroupVersionKind{
+	Group:   appsv1.SchemeGroupVersion.Group,
+	Version: appsv1.SchemeGroupVersion.Version,
+	Kind:    types.KindStatefulSet,
 }
 
-// GVR returns the name of Group, Version, Resource of statefulset resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    appsv1.SchemeGroupVersion.Group,
-		Version:  appsv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceStatefulSet,
-	}
+// GVR contains the Group, Version and Resource name of statefulset.
+var GVR = schema.GroupVersionResource{
+	Group:    appsv1.SchemeGroupVersion.Group,
+	Version:  appsv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceStatefulSet,
 }
 
-// Kind returns the Kind name of statefulset resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the statefulset Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of statefulset resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the statefulset Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of statefulset resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the statefulset Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of statefulset resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the statefulset Resource name.
+var Resource = GVR.Resource

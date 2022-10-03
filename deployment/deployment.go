@@ -229,40 +229,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of deployment resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   appsv1.SchemeGroupVersion.Group,
-		Version: appsv1.SchemeGroupVersion.Version,
-		Kind:    types.KindDeployment,
-	}
+// GVK contains the Group, Version, Kind name of deployment.
+var GVK = schema.GroupVersionKind{
+	Group:   appsv1.SchemeGroupVersion.Group,
+	Version: appsv1.SchemeGroupVersion.Version,
+	Kind:    types.KindDeployment,
 }
 
-// GVR returns the name of Group, Version, Resource of deployment resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    appsv1.SchemeGroupVersion.Group,
-		Version:  appsv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceDeployment,
-	}
+// GVR contains the Group, Version and Resource name of deployment.
+var GVR = schema.GroupVersionResource{
+	Group:    appsv1.SchemeGroupVersion.Group,
+	Version:  appsv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceDeployment,
 }
 
-// Kind returns the Kind name of deployment resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the deployment Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of deployment resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the deployment Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of deployment resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the deployment Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of deployment resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the deployment Resource name.
+var Resource = GVR.Resource

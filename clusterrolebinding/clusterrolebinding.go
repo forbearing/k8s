@@ -202,40 +202,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of clusterrolebinding resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   rbacv1.SchemeGroupVersion.Group,
-		Version: rbacv1.SchemeGroupVersion.Version,
-		Kind:    types.KindClusterRoleBinding,
-	}
+// GVK contains the Group, Version, Kind name of clusterrolebinding.
+var GVK = schema.GroupVersionKind{
+	Group:   rbacv1.SchemeGroupVersion.Group,
+	Version: rbacv1.SchemeGroupVersion.Version,
+	Kind:    types.KindClusterRoleBinding,
 }
 
-// GVR returns the name of Group, Version, Resource of clusterrolebinding resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    rbacv1.SchemeGroupVersion.Group,
-		Version:  rbacv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceClusterRoleBinding,
-	}
+// GVR contains the Group, Version and Resource name of clusterrolebinding.
+var GVR = schema.GroupVersionResource{
+	Group:    rbacv1.SchemeGroupVersion.Group,
+	Version:  rbacv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceClusterRoleBinding,
 }
 
-// Kind returns the Kind name of clusterrolebinding resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the clusterrolebinding Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of clusterrolebinding resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the clusterrolebinding Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of clusterrolebinding resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the clusterrolebinding Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of clusterrolebinding resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the clusterrolebinding Resource name.
+var Resource = GVR.Resource

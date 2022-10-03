@@ -254,40 +254,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of cronjob resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   batchv1.SchemeGroupVersion.Group,
-		Version: batchv1.SchemeGroupVersion.Version,
-		Kind:    types.KindCronJob,
-	}
+// GVK contains the Group, Version, Kind name of cronjob.
+var GVK = schema.GroupVersionKind{
+	Group:   batchv1.SchemeGroupVersion.Group,
+	Version: batchv1.SchemeGroupVersion.Version,
+	Kind:    types.KindCronJob,
 }
 
-// GVR returns the name of Group, Version, Resource of cronjob resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    batchv1.SchemeGroupVersion.Group,
-		Version:  batchv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceCronJob,
-	}
+// GVR contains the Group, Version and Resource name of cronjob.
+var GVR = schema.GroupVersionResource{
+	Group:    batchv1.SchemeGroupVersion.Group,
+	Version:  batchv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceCronJob,
 }
 
-// Kind returns the Kind name of cronjob resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the cronjob Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of cronjob resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the cronjob Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of cronjob resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the cronjob Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of cronjob resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the cronjob Resource name.
+var Resource = GVR.Resource

@@ -202,40 +202,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of storageclass resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   storagev1.SchemeGroupVersion.Group,
-		Version: storagev1.SchemeGroupVersion.Version,
-		Kind:    types.KindStorageClass,
-	}
+// GVK contains the Group, Version, Kind name of storageclass.
+var GVK = schema.GroupVersionKind{
+	Group:   storagev1.SchemeGroupVersion.Group,
+	Version: storagev1.SchemeGroupVersion.Version,
+	Kind:    types.KindStorageClass,
 }
 
-// GVR returns the name of Group, Version, Resource of storageclass resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    storagev1.SchemeGroupVersion.Group,
-		Version:  storagev1.SchemeGroupVersion.Version,
-		Resource: types.ResourceStorageClass,
-	}
+// GVR contains the Group, Version and Resource name of storageclass.
+var GVR = schema.GroupVersionResource{
+	Group:    storagev1.SchemeGroupVersion.Group,
+	Version:  storagev1.SchemeGroupVersion.Version,
+	Resource: types.ResourceStorageClass,
 }
 
-// Kind returns the Kind name of storageclass resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the storageclass Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of storageclass resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the storageclass Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of storageclass resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the storageclass Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of storageclass resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the storageclass Resource name.
+var Resource = GVR.Resource

@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of configmap resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   corev1.SchemeGroupVersion.Group,
-		Version: corev1.SchemeGroupVersion.Version,
-		Kind:    types.KindConfigMap,
-	}
+// GVK contains the Group, Version, Kind name of configmap.
+var GVK = schema.GroupVersionKind{
+	Group:   corev1.SchemeGroupVersion.Group,
+	Version: corev1.SchemeGroupVersion.Version,
+	Kind:    types.KindConfigMap,
 }
 
-// GVR returns the name of Group, Version, Resource of configmap resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    corev1.SchemeGroupVersion.Group,
-		Version:  corev1.SchemeGroupVersion.Version,
-		Resource: types.ResourceConfigMap,
-	}
+// GVR contains the Group, Version and Resource name of configmap.
+var GVR = schema.GroupVersionResource{
+	Group:    corev1.SchemeGroupVersion.Group,
+	Version:  corev1.SchemeGroupVersion.Version,
+	Resource: types.ResourceConfigMap,
 }
 
-// Group returns the Group name of configmap resource.
-func Group() string {
-	return GVR().Group
-}
+// Kind is the configmap Kind name.
+var Kind = GVK.Kind
 
-// Kind returns the Kind name of configmap resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Group is the configmap Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of configmap resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the configmap Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of configmap resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the configmap Resource name.
+var Resource = GVR.Resource

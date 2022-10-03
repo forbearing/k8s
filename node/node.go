@@ -206,40 +206,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of pod resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   corev1.SchemeGroupVersion.Group,
-		Version: corev1.SchemeGroupVersion.Version,
-		Kind:    types.KindNode,
-	}
+// GVK contains the Group, Version, Kind name of node.
+var GVK = schema.GroupVersionKind{
+	Group:   corev1.SchemeGroupVersion.Group,
+	Version: corev1.SchemeGroupVersion.Version,
+	Kind:    types.KindNode,
 }
 
-// GVR returns the name of Group, Version, Resource of node resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    corev1.SchemeGroupVersion.Group,
-		Version:  corev1.SchemeGroupVersion.Version,
-		Resource: types.ResourceNode,
-	}
+// GVR contains the Group, Version and Resource name of node.
+var GVR = schema.GroupVersionResource{
+	Group:    corev1.SchemeGroupVersion.Group,
+	Version:  corev1.SchemeGroupVersion.Version,
+	Resource: types.ResourceNode,
 }
 
-// Kind returns the Kind name of pod resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the node Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of node resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the node Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of node resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the node Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of node resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the node Resource name.
+var Resource = GVR.Resource

@@ -226,40 +226,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of daemonset resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   appsv1.SchemeGroupVersion.Group,
-		Version: appsv1.SchemeGroupVersion.Version,
-		Kind:    types.KindDaemonSet,
-	}
+// GVK contains the Group, Version, Kind name of daemonset.
+var GVK = schema.GroupVersionKind{
+	Group:   appsv1.SchemeGroupVersion.Group,
+	Version: appsv1.SchemeGroupVersion.Version,
+	Kind:    types.KindDaemonSet,
 }
 
-// GVR returns the name of Group, Version, Resource of daemonset resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    appsv1.SchemeGroupVersion.Group,
-		Version:  appsv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceDaemonSet,
-	}
+// GVR contains the Group, Version and Resource name of daemonset.
+var GVR = schema.GroupVersionResource{
+	Group:    appsv1.SchemeGroupVersion.Group,
+	Version:  appsv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceDaemonSet,
 }
 
-// Kind returns the Kind name of daemonset resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the daemonset Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of daemonset resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the daemonset Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of daemonset resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the daemonset Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of daemonset resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the daemonset Resource name.
+var Resource = GVR.Resource

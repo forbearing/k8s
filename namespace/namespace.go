@@ -202,40 +202,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of namespace resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   corev1.SchemeGroupVersion.Group,
-		Version: corev1.SchemeGroupVersion.Version,
-		Kind:    types.KindNamespace,
-	}
+// GVK contains the Group, Version, Kind name of namespace.
+var GVK = schema.GroupVersionKind{
+	Group:   corev1.SchemeGroupVersion.Group,
+	Version: corev1.SchemeGroupVersion.Version,
+	Kind:    types.KindNamespace,
 }
 
-// GVR returns the name of Group, Version, Resource of namespace resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    corev1.SchemeGroupVersion.Group,
-		Version:  corev1.SchemeGroupVersion.Version,
-		Resource: types.ResourceNamespace,
-	}
+// GVR contains the Group, Version and Resource name of namespace.
+var GVR = schema.GroupVersionResource{
+	Group:    corev1.SchemeGroupVersion.Group,
+	Version:  corev1.SchemeGroupVersion.Version,
+	Resource: types.ResourceNamespace,
 }
 
-// Kind returns the Kind name of namespace resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the namespace Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of namespace resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the namespace Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of namespace resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the namespace Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of namespace resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the namespace Resource name.
+var Resource = GVR.Resource

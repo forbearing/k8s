@@ -248,40 +248,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of job resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   batchv1.SchemeGroupVersion.Group,
-		Version: batchv1.SchemeGroupVersion.Version,
-		Kind:    types.KindJob,
-	}
+// GVK contains the Group, Version, Kind name of job.
+var GVK = schema.GroupVersionKind{
+	Group:   batchv1.SchemeGroupVersion.Group,
+	Version: batchv1.SchemeGroupVersion.Version,
+	Kind:    types.KindJob,
 }
 
-// GVR returns the name of Group, Version, Resource of job resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    batchv1.SchemeGroupVersion.Group,
-		Version:  batchv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceJob,
-	}
+// GVR contains the Group, Version and Resource name of job.
+var GVR = schema.GroupVersionResource{
+	Group:    batchv1.SchemeGroupVersion.Group,
+	Version:  batchv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceJob,
 }
 
-// Kind returns the Kind name of job resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the job Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of job resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the job Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of job resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the job Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of job resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the job Resource name.
+var Resource = GVR.Resource

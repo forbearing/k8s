@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of replicaset resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   appsv1.SchemeGroupVersion.Group,
-		Version: appsv1.SchemeGroupVersion.Version,
-		Kind:    types.KindReplicaSet,
-	}
+// GVK contains the Group, Version, Kind name of replicaset.
+var GVK = schema.GroupVersionKind{
+	Group:   appsv1.SchemeGroupVersion.Group,
+	Version: appsv1.SchemeGroupVersion.Version,
+	Kind:    types.KindReplicaSet,
 }
 
-// GVR returns the name of Group, Version, Resource of replicaset resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    appsv1.SchemeGroupVersion.Group,
-		Version:  appsv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceReplicaSet,
-	}
+// GVR contains the Group, Version and Resource name of replicaset.
+var GVR = schema.GroupVersionResource{
+	Group:    appsv1.SchemeGroupVersion.Group,
+	Version:  appsv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceReplicaSet,
 }
 
-// Kind returns the Kind name of replicaset resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the replicaset Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of replicaset resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the replicaset Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of replicaset resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the replicaset Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of replicaset resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the replicaset Resource name.
+var Resource = GVR.Resource

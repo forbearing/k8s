@@ -202,40 +202,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of ingressclass resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   networkingv1.SchemeGroupVersion.Group,
-		Version: networkingv1.SchemeGroupVersion.Version,
-		Kind:    types.KindIngressClass,
-	}
+// GVK contains the Group, Version, Kind name of ingressclass.
+var GVK = schema.GroupVersionKind{
+	Group:   networkingv1.SchemeGroupVersion.Group,
+	Version: networkingv1.SchemeGroupVersion.Version,
+	Kind:    types.KindIngressClass,
 }
 
-// GVR returns the name of Group, Version, Resource of ingressclass resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    networkingv1.SchemeGroupVersion.Group,
-		Version:  networkingv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceIngressClass,
-	}
+// GVR contains the Group, Version and Resource name of ingressclass.
+var GVR = schema.GroupVersionResource{
+	Group:    networkingv1.SchemeGroupVersion.Group,
+	Version:  networkingv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceIngressClass,
 }
 
-// Kind returns the Kind name of ingressclass resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the ingressclass Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of ingressclass resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the ingressclass Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of ingressclass resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the ingressclass Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of ingressclass resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the ingressclass Resource name.
+var Resource = GVR.Resource

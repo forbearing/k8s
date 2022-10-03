@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of persistentvolumeclaim resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   corev1.SchemeGroupVersion.Group,
-		Version: corev1.SchemeGroupVersion.Version,
-		Kind:    types.KindPersistentVolumeClaim,
-	}
+// GVK contains the Group, Version, Kind name of persistentvolumeclaim.
+var GVK = schema.GroupVersionKind{
+	Group:   corev1.SchemeGroupVersion.Group,
+	Version: corev1.SchemeGroupVersion.Version,
+	Kind:    types.KindPersistentVolumeClaim,
 }
 
-// GVR returns the name of Group, Version, Resource of persistentvolumeclaim resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    corev1.SchemeGroupVersion.Group,
-		Version:  corev1.SchemeGroupVersion.Version,
-		Resource: types.ResourcePersistentVolumeClaim,
-	}
+// GVR contains the Group, Version and Resource name of persistentvolumeclaim.
+var GVR = schema.GroupVersionResource{
+	Group:    corev1.SchemeGroupVersion.Group,
+	Version:  corev1.SchemeGroupVersion.Version,
+	Resource: types.ResourcePersistentVolumeClaim,
 }
 
-// Kind returns the Kind name of persistentvolumeclaim resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the persistentvolumeclaim Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of persistentvolumeclaim resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the persistentvolumeclaim Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of persistentvolumeclaim resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the persistentvolumeclaim Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of persistentvolumeclaim resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the persistentvolumeclaim Resource name.
+var Resource = GVR.Resource

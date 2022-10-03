@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of secret resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   corev1.SchemeGroupVersion.Group,
-		Version: corev1.SchemeGroupVersion.Version,
-		Kind:    types.KindSecret,
-	}
+// GVK contains the Group, Version, Kind name of secret.
+var GVK = schema.GroupVersionKind{
+	Group:   corev1.SchemeGroupVersion.Group,
+	Version: corev1.SchemeGroupVersion.Version,
+	Kind:    types.KindSecret,
 }
 
-// GVR returns the name of Group, Version, Resource of secret resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    corev1.SchemeGroupVersion.Group,
-		Version:  corev1.SchemeGroupVersion.Version,
-		Resource: types.ResourceSecret,
-	}
+// GVR contains the Group, Version and Resource name of secret.
+var GVR = schema.GroupVersionResource{
+	Group:    corev1.SchemeGroupVersion.Group,
+	Version:  corev1.SchemeGroupVersion.Version,
+	Resource: types.ResourceSecret,
 }
 
-// Kind returns the Kind name of secret resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the secret Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of secret resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the secret Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of secret resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the secret Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of secret resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the secret Resource name.
+var Resource = GVR.Resource

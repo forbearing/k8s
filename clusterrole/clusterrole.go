@@ -202,40 +202,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of clusterrole resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   rbacv1.SchemeGroupVersion.Group,
-		Version: rbacv1.SchemeGroupVersion.Version,
-		Kind:    types.KindClusterRole,
-	}
+// GVK contains the Group, Version, Kind name of clusterrole.
+var GVK = schema.GroupVersionKind{
+	Group:   rbacv1.SchemeGroupVersion.Group,
+	Version: rbacv1.SchemeGroupVersion.Version,
+	Kind:    types.KindClusterRole,
 }
 
-// GVR returns the name of Group, Version, Resource of clusterrole resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    rbacv1.SchemeGroupVersion.Group,
-		Version:  rbacv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceClusterRole,
-	}
+// GVR contains the Group, Version and Resource name of clusterrole.
+var GVR = schema.GroupVersionResource{
+	Group:    rbacv1.SchemeGroupVersion.Group,
+	Version:  rbacv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceClusterRole,
 }
 
-// Kind returns the Kind name of clusterrole resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the clusterrole Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of clusterrole resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the clusterrole Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of clusterrole resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the clusterrole Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of clusterrole resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the clusterrole Resource name.
+var Resource = GVR.Resource

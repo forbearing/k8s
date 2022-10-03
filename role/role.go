@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of role resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   rbacv1.SchemeGroupVersion.Group,
-		Version: rbacv1.SchemeGroupVersion.Version,
-		Kind:    types.KindRole,
-	}
+// GVK contains the Group, Version, Kind name of role.
+var GVK = schema.GroupVersionKind{
+	Group:   rbacv1.SchemeGroupVersion.Group,
+	Version: rbacv1.SchemeGroupVersion.Version,
+	Kind:    types.KindRole,
 }
 
-// GVR returns the name of Group, Version, Resource of role resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    rbacv1.SchemeGroupVersion.Group,
-		Version:  rbacv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceRole,
-	}
+// GVR contains the Group, Version and Resource name of role.
+var GVR = schema.GroupVersionResource{
+	Group:    rbacv1.SchemeGroupVersion.Group,
+	Version:  rbacv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceRole,
 }
 
-// Kind returns the Kind name of role resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the role Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of role resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the role Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of role resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the role Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of role resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the role Resource name.
+var Resource = GVR.Resource

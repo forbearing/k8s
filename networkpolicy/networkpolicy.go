@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of networkpolicy resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   networkingv1.SchemeGroupVersion.Group,
-		Version: networkingv1.SchemeGroupVersion.Version,
-		Kind:    types.KindNetworkPolicy,
-	}
+// GVK contains the Group, Version, Kind name of networkpolicy.
+var GVK = schema.GroupVersionKind{
+	Group:   networkingv1.SchemeGroupVersion.Group,
+	Version: networkingv1.SchemeGroupVersion.Version,
+	Kind:    types.KindNetworkPolicy,
 }
 
-// GVR returns the name of Group, Version, Resource of networkpolicy resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    networkingv1.SchemeGroupVersion.Group,
-		Version:  networkingv1.SchemeGroupVersion.Version,
-		Resource: types.ResourceNetworkPolicy,
-	}
+// GVR contains the Group, Version and Resource name of networkpolicy.
+var GVR = schema.GroupVersionResource{
+	Group:    networkingv1.SchemeGroupVersion.Group,
+	Version:  networkingv1.SchemeGroupVersion.Version,
+	Resource: types.ResourceNetworkPolicy,
 }
 
-// Kind returns the Kind name of networkpolicy resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the networkpolicy Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of networkpolicy resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the networkpolicy Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of networkpolicy resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the networkpolicy Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of networkpolicy resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the networkpolicy Resource name.
+var Resource = GVR.Resource

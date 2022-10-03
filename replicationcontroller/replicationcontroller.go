@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of replicationcontroller resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   corev1.SchemeGroupVersion.Group,
-		Version: corev1.SchemeGroupVersion.Version,
-		Kind:    types.KindReplicationController,
-	}
+// GVK contains the Group, Version, Kind name of replicationcontroller.
+var GVK = schema.GroupVersionKind{
+	Group:   corev1.SchemeGroupVersion.Group,
+	Version: corev1.SchemeGroupVersion.Version,
+	Kind:    types.KindReplicationController,
 }
 
-// GVR returns the name of Group, Version, Resource of replicationcontroller resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    corev1.SchemeGroupVersion.Group,
-		Version:  corev1.SchemeGroupVersion.Version,
-		Resource: types.ResourceReplicationController,
-	}
+// GVR contains the Group, Version and Resource name of replicationcontroller.
+var GVR = schema.GroupVersionResource{
+	Group:    corev1.SchemeGroupVersion.Group,
+	Version:  corev1.SchemeGroupVersion.Version,
+	Resource: types.ResourceReplicationController,
 }
 
-// Kind returns the Kind name of replicationcontroller resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the replicationcontroller Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of replicationcontroller resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the replicationcontroller Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of replicationcontroller resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the replicationcontroller Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of replicationcontroller resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the replicationcontroller Resource name.
+var Resource = GVR.Resource

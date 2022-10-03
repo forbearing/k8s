@@ -221,40 +221,28 @@ func (h *Handler) DiscoveryClient() *discovery.DiscoveryClient {
 	return h.discoveryClient
 }
 
-// GVK returns the name of Group, Version, Kind of service resource.
-func GVK() schema.GroupVersionKind {
-	return schema.GroupVersionKind{
-		Group:   corev1.SchemeGroupVersion.Group,
-		Version: corev1.SchemeGroupVersion.Version,
-		Kind:    types.KindService,
-	}
+// GVK contains the Group, Version, Kind name of service.
+var GVK = schema.GroupVersionKind{
+	Group:   corev1.SchemeGroupVersion.Group,
+	Version: corev1.SchemeGroupVersion.Version,
+	Kind:    types.KindService,
 }
 
-// GVR returns the name of Group, Version, Resource of service resource.
-func GVR() schema.GroupVersionResource {
-	return schema.GroupVersionResource{
-		Group:    corev1.SchemeGroupVersion.Group,
-		Version:  corev1.SchemeGroupVersion.Version,
-		Resource: types.ResourceService,
-	}
+// GVR contains the Group, Version and Resource name of service.
+var GVR = schema.GroupVersionResource{
+	Group:    corev1.SchemeGroupVersion.Group,
+	Version:  corev1.SchemeGroupVersion.Version,
+	Resource: types.ResourceService,
 }
 
-// Kind returns the Kind name of service resource.
-func Kind() string {
-	return GVK().Kind
-}
+// Kind is the service Kind name.
+var Kind = GVK.Kind
 
-// Group returns the Group name of service resource.
-func Group() string {
-	return GVR().Group
-}
+// Group is the service Group name.
+var Group = GVK.Group
 
-// Version returns the Version name of service resource.
-func Version() string {
-	return GVR().Version
-}
+// Version is the service Version name.
+var Version = GVK.Version
 
-// Resource returns the Resource name of service resource.
-func Resource() string {
-	return GVR().Resource
-}
+// Resource is the service Resource name.
+var Resource = GVR.Resource
