@@ -54,7 +54,7 @@ For furthermore examples of how to use this library, see [examples](./examples).
 
 ## Installation
 
-`go get github.com/forbearing/k8s@v0.11.8`
+`go get github.com/forbearing/k8s@v0.12.0`
 
 ## Documents
 
@@ -142,7 +142,7 @@ Its a typed handler that use typed client(clientset) to create/update/apply/patc
 - [ ] Support crate/update/delete/get... `PriorityClass` resources
 - [ ] Support crate/update/delete/get... `ResourceQuota` resources
 - [ ] Support crate/update/delete/get... `Lease` resources
-- [x] Add function: GVK(), GVR(), Kind(), Group(), Version(), Resource(), KindToResource(), ResourceToKind()
+- [x] Add variables: GVK, GVR, Kind, Group, Version, Resource.
 - [x] signal handler
 - [x] Finalizers
 - [x] controller and owner
