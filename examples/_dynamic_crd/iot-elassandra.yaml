@@ -1,0 +1,24 @@
+apiVersion: storage.hybfkuf.io/v1alpha1
+kind: Backup
+metadata:
+  name: elassandra
+spec:
+  schedule: "*/1 * * * *"
+  backupFrom:
+    resource: statefulset
+    name: elassandra
+  backupTo:
+    nfs:
+      server: 10.240.1.21
+      path: /srv/nfs/restic
+      credentialName: minio-credential
+    minio:
+      endpoint:
+        scheme: http
+        address: 10.240.1.21
+        port: 9000
+      bucket: restic
+      credentialName: minio-credential
+  timezone: 'Asia/Shanghai'
+  timeout: 10m
+  cluster: mycluster
