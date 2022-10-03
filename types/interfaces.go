@@ -15,27 +15,27 @@ type HandlerInterface interface {
 
 // Creater
 type Creater interface {
-	Create(obj interface{}) (runtime.Object, error)
+	Create(Object) (Object, error)
 }
 
 // Updater
 type Updater interface {
-	Update(obj interface{}) (runtime.Object, error)
+	Update(Object) (Object, error)
 }
 
 // Applyer
 type Applyer interface {
-	Apply(obj interface{}) (runtime.Object, error)
+	Apply(Object) (Object, error)
 }
 
 // Deleter
 type Deleter interface {
-	Delete(obj interface{}) error
+	Delete(Object) error
 }
 
 // Geter
 type Geter interface {
-	Get(obj interface{}) (runtime.Object, error)
+	Get(Object) (Object, error)
 }
 
 // Object is a Kubernetes object, allows functions to work indistinctly with
