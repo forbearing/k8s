@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/forbearing/k8s"
+	"github.com/forbearing/k8s/deployment"
+	"github.com/forbearing/k8s/statefulset"
 )
 
 func K8S_Update() {
@@ -12,21 +14,21 @@ func K8S_Update() {
 	if _, err := handler.Create(deployFile); err != nil {
 		log.Fatal(err)
 	}
-	_, err := handler.Update(deployFile)
-	checkErr("update deployment", "", err)
+	deployObj, err := handler.Update(deployFile)
+	checkErr("update deployment", deployObj.GetName(), err)
 
 	if _, err := handler.Create(stsFile); err != nil {
 		log.Fatal(err)
 	}
-	_, err = handler.Update(stsFile)
-	checkErr("update statefulset", "", err)
+	stsObj, err := handler.Update(stsFile)
+	checkErr("update statefulset", stsObj.GetName(), err)
 
 	handler.DeleteFromFile(deployFile)
 	handler.DeleteFromFile(stsFile)
-	//handler.WithGVK(deployment.GVK()).Delete(deployName)
-	//handler.WithGVK(statefulset.GVK()).Delete(stsName)
+	handler.WithGVK(deployment.GVK).Delete(deployName)
+	handler.WithGVK(statefulset.GVK).Delete(stsName)
 
 	// Output:
-	//2022/09/04 16:09:07 update deployment success:
-	//2022/09/04 16:09:07 update statefulset success:
+	//2022/10/04 00:33:21 update deployment success: mydep
+	//2022/10/04 00:33:21 update statefulset success: mysts
 }

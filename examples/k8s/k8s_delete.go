@@ -28,14 +28,14 @@ func K8S_Delete() {
 	if _, err := handler.Apply(stsFile); err != nil {
 		log.Fatal(err)
 	}
-	err = handler.WithGVK(deployment.GVK()).Delete(deployName)
+	err = handler.WithGVK(deployment.GVK).Delete(deployName)
 	checkErr("delete deployment", "", err)
-	err = handler.WithGVK(statefulset.GVK()).Delete(stsName)
+	err = handler.WithGVK(statefulset.GVK).Delete(stsName)
 	checkErr("delete statefulset", "", err)
 
 	// Output
-	//2022/09/04 16:15:33 delete deployment success:
-	//2022/09/04 16:15:33 delete statefulset success:
-	//2022/09/04 16:15:33 delete deployment success:
-	//2022/09/04 16:15:33 delete statefulset success:
+	//2022/10/04 00:34:08 delete deployment success:
+	//2022/10/04 00:34:08 delete statefulset success:
+	//2022/10/04 00:34:08 delete deployment success:
+	//2022/10/04 00:34:08 delete statefulset success:
 }
