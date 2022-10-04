@@ -8,7 +8,6 @@ import (
 	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -44,25 +43,21 @@ func (h *Handler) Get(obj interface{}) (*unstructured.Unstructured, error) {
 
 // GetByName gets unstructured k8s resource with given name.
 func (h *Handler) GetByName(name string) (*unstructured.Unstructured, error) {
-	var (
-		err          error
-		gvr          schema.GroupVersionResource
-		isNamespaced bool
-	)
-	if gvr, err = utilrestmapper.GVKToGVR(h.restMapper, h.gvk); err != nil {
+	var err error
+	if h.gvr, err = utilrestmapper.GVKToGVR(h.restMapper, h.gvk); err != nil {
 		return nil, err
 	}
-	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, h.gvk); err != nil {
+	if h.isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, h.gvk); err != nil {
 		return nil, err
 	}
 	if h.gvk.Kind == types.KindJob || h.gvk.Kind == types.KindCronJob {
 		h.SetPropagationPolicy("background")
 	}
 
-	if isNamespaced {
-		return h.dynamicClient.Resource(gvr).Namespace(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
+	if h.isNamespaced {
+		return h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 	}
-	return h.dynamicClient.Resource(gvr).Get(h.ctx, name, h.Options.GetOptions)
+	return h.dynamicClient.Resource(h.gvr).Get(h.ctx, name, h.Options.GetOptions)
 }
 
 // GetFromFile gets unstructured k8s resource from yaml file.
@@ -104,33 +99,28 @@ func (h *Handler) GetFromMap(obj map[string]interface{}) (*unstructured.Unstruct
 
 // getUnstructured
 func (h *Handler) getUnstructured(obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
-	var (
-		err          error
-		gvk          schema.GroupVersionKind
-		gvr          schema.GroupVersionResource
-		isNamespaced bool
-	)
-	if gvr, err = utilrestmapper.FindGVR(h.restMapper, obj); err != nil {
+	var err error
+	if h.gvr, err = utilrestmapper.FindGVR(h.restMapper, obj); err != nil {
 		return nil, err
 	}
-	if gvk, err = utilrestmapper.FindGVK(h.restMapper, obj); err != nil {
+	if h.gvk, err = utilrestmapper.FindGVK(h.restMapper, obj); err != nil {
 		return nil, err
 	}
-	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, gvk); err != nil {
+	if h.isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, h.gvk); err != nil {
 		return nil, err
 	}
-	if gvk.Kind == types.KindJob || gvk.Kind == types.KindCronJob {
+	if h.gvk.Kind == types.KindJob || h.gvk.Kind == types.KindCronJob {
 		h.SetPropagationPolicy("background")
 	}
 
-	if isNamespaced {
+	if h.isNamespaced {
 		var namespace string
 		if len(obj.GetNamespace()) != 0 {
 			namespace = obj.GetNamespace()
 		} else {
 			namespace = h.namespace
 		}
-		return h.dynamicClient.Resource(gvr).Namespace(namespace).Get(h.ctx, obj.GetName(), h.Options.GetOptions)
+		return h.dynamicClient.Resource(h.gvr).Namespace(namespace).Get(h.ctx, obj.GetName(), h.Options.GetOptions)
 	}
-	return h.dynamicClient.Resource(gvr).Get(h.ctx, obj.GetName(), h.Options.GetOptions)
+	return h.dynamicClient.Resource(h.gvr).Get(h.ctx, obj.GetName(), h.Options.GetOptions)
 }
