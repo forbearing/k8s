@@ -34,10 +34,12 @@ import (
 // Delete()/Get()/List()/Watch() is a k8s resource name, you should always call
 // WithGVK() to specify the GVK explicitly.
 type Handler struct {
-	ctx        context.Context
-	gvk        schema.GroupVersionKind
-	kubeconfig string
-	namespace  string
+	ctx          context.Context
+	gvk          schema.GroupVersionKind
+	gvr          schema.GroupVersionResource
+	isNamespaced bool
+	kubeconfig   string
+	namespace    string
 
 	config        *rest.Config
 	httpClient    *http.Client
@@ -181,6 +183,8 @@ func (in *Handler) DeepCopy() *Handler {
 	return &Handler{
 		ctx:              in.ctx,
 		gvk:              in.gvk,
+		gvr:              in.gvr,
+		isNamespaced:     in.isNamespaced,
 		kubeconfig:       in.kubeconfig,
 		namespace:        in.namespace,
 		config:           in.config,
@@ -260,4 +264,38 @@ func (h *Handler) SetPropagationPolicy(policy string) {
 // DynamicClient returns the underlying dynamic client used by this dynamic handler.
 func (h *Handler) DynamicClient() dynamic.Interface {
 	return h.dynamicClient
+}
+
+// IsNamespaced() return true if the k8s object is namespace-scoped or return false.
+func (h *Handler) IsNamespaced() bool {
+	return h.isNamespaced
+}
+
+// GVK return the GroupVersionKind of the k8s object.
+func (h *Handler) GVK() schema.GroupVersionKind {
+	return h.gvk
+}
+
+// GVR return the GroupVersionResource of the k8s object.
+func (h *Handler) GVR() schema.GroupVersionResource {
+	if h.gvr.Empty() {
+		gvr, _ := utilrestmapper.GVKToGVR(h.restMapper, h.gvk)
+		return gvr
+	}
+	return h.gvr
+}
+
+// Kind return the k8s object kind name.
+func (h *Handler) Kind() string {
+	return h.GVK().Kind
+}
+
+// Version return the k8s object version.
+func (h *Handler) Version() string {
+	return h.GVK().Version
+}
+
+// Resource return the k8s object resource name.
+func (h *Handler) Resource() string {
+	return h.GVR().Resource
 }
