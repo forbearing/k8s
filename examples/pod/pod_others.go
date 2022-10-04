@@ -7,9 +7,9 @@ import (
 )
 
 func Pod_Others() {
-	fmt.Println("Group: ", pod.GVR().Group)
-	fmt.Println("Version: ", pod.GVR().Version)
-	fmt.Println("Resource: ", pod.GVR().Resource)
+	fmt.Println("Group: ", pod.Group)
+	fmt.Println("Version: ", pod.Version)
+	fmt.Println("Resource: ", pod.Resource)
 	// Output:
 	//Group:
 	//Version:  v1
