@@ -7,9 +7,9 @@ import (
 )
 
 func Deployment_Others() {
-	fmt.Println("Group: ", deployment.GVR().Group)
-	fmt.Println("Version: ", deployment.GVR().Version)
-	fmt.Println("Resource: ", deployment.GVR().Resource)
+	fmt.Println("Group: ", deployment.Group)
+	fmt.Println("Version: ", deployment.Version)
+	fmt.Println("Resource: ", deployment.Resource)
 
 	handler, err := deployment.New(ctx, kubeconfig, namespace)
 	if err != nil {
