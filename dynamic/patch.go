@@ -8,7 +8,6 @@ import (
 	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -171,31 +170,25 @@ func (h *Handler) diffMergePatch(original, modified *unstructured.Unstructured, 
 
 // patchUnstructured
 func (h *Handler) patchUnstructured(obj *unstructured.Unstructured, patchData []byte, patchType types.PatchType) (*unstructured.Unstructured, error) {
-	var (
-		err          error
-		gvk          schema.GroupVersionKind
-		gvr          schema.GroupVersionResource
-		isNamespaced bool
-	)
-
-	if gvr, err = utilrestmapper.FindGVR(h.restMapper, obj); err != nil {
+	var err error
+	if h.gvr, err = utilrestmapper.FindGVR(h.restMapper, obj); err != nil {
 		return nil, err
 	}
-	if gvk, err = utilrestmapper.FindGVK(h.restMapper, obj); err != nil {
+	if h.gvk, err = utilrestmapper.FindGVK(h.restMapper, obj); err != nil {
 		return nil, err
 	}
-	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, gvk); err != nil {
+	if h.isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, h.gvk); err != nil {
 		return nil, err
 	}
 
 	var namespace string
-	if isNamespaced {
+	if h.isNamespaced {
 		if len(obj.GetNamespace()) != 0 {
 			namespace = obj.GetNamespace()
 		} else {
 			namespace = h.namespace
 		}
-		return h.dynamicClient.Resource(gvr).Namespace(namespace).Patch(h.ctx, obj.GetName(), patchType, patchData, h.Options.PatchOptions)
+		return h.dynamicClient.Resource(h.gvr).Namespace(namespace).Patch(h.ctx, obj.GetName(), patchType, patchData, h.Options.PatchOptions)
 	}
-	return h.dynamicClient.Resource(gvr).Patch(h.ctx, obj.GetName(), patchType, patchData, h.Options.PatchOptions)
+	return h.dynamicClient.Resource(h.gvr).Patch(h.ctx, obj.GetName(), patchType, patchData, h.Options.PatchOptions)
 }
