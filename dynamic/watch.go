@@ -5,7 +5,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
 )
 
@@ -108,12 +107,10 @@ func (h *Handler) WatchByField(field string, addFunc, modifyFunc, deleteFunc fun
 func (h *Handler) watchUnstructuredObj(listOptions metav1.ListOptions,
 	addFunc, modifyFunc, deleteFunc func(obj interface{})) (err error) {
 
-	var gvr schema.GroupVersionResource
-	var isNamespaced bool
-	if gvr, err = utilrestmapper.GVKToGVR(h.restMapper, h.gvk); err != nil {
+	if h.gvr, err = utilrestmapper.GVKToGVR(h.restMapper, h.gvk); err != nil {
 		return err
 	}
-	if isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, h.gvk); err != nil {
+	if h.isNamespaced, err = utilrestmapper.IsNamespaced(h.restMapper, h.gvk); err != nil {
 		return err
 	}
 
@@ -121,12 +118,12 @@ func (h *Handler) watchUnstructuredObj(listOptions metav1.ListOptions,
 	// If event channel is closed, it means the server has closed the connection,
 	// reconnect to kubernetes API server.
 	for {
-		if isNamespaced {
-			if watcher, err = h.dynamicClient.Resource(gvr).Namespace(h.namespace).Watch(h.ctx, listOptions); err != nil {
+		if h.isNamespaced {
+			if watcher, err = h.dynamicClient.Resource(h.gvr).Namespace(h.namespace).Watch(h.ctx, listOptions); err != nil {
 				return err
 			}
 		} else {
-			if watcher, err = h.dynamicClient.Resource(gvr).Watch(h.ctx, listOptions); err != nil {
+			if watcher, err = h.dynamicClient.Resource(h.gvr).Watch(h.ctx, listOptions); err != nil {
 				return err
 			}
 		}
@@ -143,13 +140,13 @@ func (h *Handler) watchUnstructuredObj(listOptions metav1.ListOptions,
 			case watch.Deleted:
 				deleteFunc(event.Object)
 			case watch.Bookmark:
-				log.Debugf("watch %s: bookmark", gvr.Resource)
+				log.Debugf("watch %s: bookmark", h.gvr.Resource)
 			case watch.Error:
-				log.Debugf("watch %s: error", gvr.Resource)
+				log.Debugf("watch %s: error", h.gvr.Resource)
 			}
 		}
 		// If event channel is closed, it means the server has closed the connection
-		log.Debugf("watch %s: reconnect to kubernetes", gvr.Resource)
+		log.Debugf("watch %s: reconnect to kubernetes", h.gvr.Resource)
 		watcher.Stop()
 	}
 }
