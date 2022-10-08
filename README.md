@@ -167,3 +167,5 @@ Its a typed handler that use typed client(clientset) to create/update/apply/patc
 - [ ] Admission Webhook: validating admission webhook, mutating admission webhook.
 - [ ] AutoVersion() find appropriate resource version for your kubernetes cluster and return a dynamic.Handler to create/update/apply/patch/delete/get/list/watch current k8s object, for example: cronjob version is v1beta1 in k8s v1.19.x.
 - [ ] ForVersion()
+- [ ] Create()/Update()/Apply() support metav1.Object
+- [ ] Typed handler and dynamc handler add function NewWithOptions() and NewWithOptionsOrDie() to create new Handler with custom options, such like QPS, Burst, RateLimter that defined in rest.Config, etc.
