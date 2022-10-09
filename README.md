@@ -54,7 +54,7 @@ For furthermore examples of how to use this library, see [examples](./examples).
 
 ## Installation
 
-`go get github.com/forbearing/k8s@v0.12.2`
+`go get github.com/forbearing/k8s@v0.12.3`
 
 ## Documents
 
