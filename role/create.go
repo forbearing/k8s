@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates role from type string, []byte, *rbacv1.Role,
-// rbacv1.Role, runtime.Object, *unstructured.Unstructured,
+// rbacv1.Role, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*rbacv1.Role, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*rbacv1.Role, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates role from yaml file.
+// CreateFromFile creates role from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*rbacv1.Role, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*rbacv1.Role, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates role from bytes.
+// CreateFromBytes creates role from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.Role, error) {
 	roleJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.Role, error) {
 	return h.createRole(role)
 }
 
-// CreateFromObject creates role from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.Role, error) {
+// CreateFromObject creates role from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*rbacv1.Role, error) {
 	role, ok := obj.(*rbacv1.Role)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.Role")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*rbacv1.Role, error) 
 
 // createRole
 func (h *Handler) createRole(role *rbacv1.Role) (*rbacv1.Role, error) {
-	var namespace string
-	if len(role.Namespace) != 0 {
-		namespace = role.Namespace
-	} else {
+	namespace := role.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	role.ResourceVersion = ""

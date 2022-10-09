@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates ingress from type string, []byte, *networkingv1.Ingress,
-// networkingv1.Ingress, runtime.Object, *unstructured.Unstructured,
+// networkingv1.Ingress, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*networkingv1.Ingress, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*networkingv1.Ingress, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates ingress from yaml file.
+// UpdateFromFile updates ingress from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*networkingv1.Ingress, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*networkingv1.Ingress, error)
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates ingress from bytes.
+// UpdateFromBytes updates ingress from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*networkingv1.Ingress, error) {
 	ingJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*networkingv1.Ingress, error) {
 	return h.updateIngress(ing)
 }
 
-// UpdateFromObject updates ingress from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*networkingv1.Ingress, error) {
+// UpdateFromObject updates ingress from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*networkingv1.Ingress, error) {
 	ing, ok := obj.(*networkingv1.Ingress)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *networkingv1.Ingress")
@@ -91,10 +92,8 @@ func (h *Handler) UpdateFromMap(u map[string]interface{}) (*networkingv1.Ingress
 
 // updateIngress
 func (h *Handler) updateIngress(ing *networkingv1.Ingress) (*networkingv1.Ingress, error) {
-	var namespace string
-	if len(ing.Namespace) != 0 {
-		namespace = ing.Namespace
-	} else {
+	namespace := ing.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	ing.ResourceVersion = ""

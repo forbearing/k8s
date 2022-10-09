@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets configmap from type string, []byte, *corev1.ConfigMap,
-// corev1.ConfigMap, runtime.Object, *unstructured.Unstructured,
+// corev1.ConfigMap, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*corev1.ConfigMap, error) {
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
@@ -45,7 +46,7 @@ func (h *Handler) GetByName(name string) (*corev1.ConfigMap, error) {
 	return h.clientset.CoreV1().ConfigMaps(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 }
 
-// GetFromFile gets configmap from yaml file.
+// GetFromFile gets configmap from yaml or json file.
 func (h *Handler) GetFromFile(filename string) (*corev1.ConfigMap, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) GetFromFile(filename string) (*corev1.ConfigMap, error) {
 	return h.GetFromBytes(data)
 }
 
-// GetFromBytes gets configmap from bytes.
+// GetFromBytes gets configmap from bytes data.
 func (h *Handler) GetFromBytes(data []byte) (*corev1.ConfigMap, error) {
 	cmJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) GetFromBytes(data []byte) (*corev1.ConfigMap, error) {
 	return h.getConfigmap(cm)
 }
 
-// GetFromObject gets configmap from runtime.Object.
-func (h *Handler) GetFromObject(obj runtime.Object) (*corev1.ConfigMap, error) {
+// GetFromObject gets configmap from metav1.Object or runtime.Object.
+func (h *Handler) GetFromObject(obj interface{}) (*corev1.ConfigMap, error) {
 	cm, ok := obj.(*corev1.ConfigMap)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.ConfigMap")
@@ -101,10 +102,8 @@ func (h *Handler) GetFromMap(u map[string]interface{}) (*corev1.ConfigMap, error
 // It's necessary to get a new configmap resource from a old configmap resource,
 // because old configmap usually don't have configmap.Status field.
 func (h *Handler) getConfigmap(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
-	var namespace string
-	if len(cm.Namespace) != 0 {
-		namespace = cm.Namespace
-	} else {
+	namespace := cm.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.CoreV1().ConfigMaps(namespace).Get(h.ctx, cm.Name, h.Options.GetOptions)

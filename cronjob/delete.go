@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Delete deletes cronjob from type string, []byte, *batchv1.CronJob,
-// batchv1.CronJob, runtime.Object, *unstructured.Unstructured,
+// batchv1.CronJob, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.DeleteFromObject(val)
 	default:
 		return ErrInvalidDeleteType
@@ -45,7 +46,7 @@ func (h *Handler) DeleteByName(name string) error {
 	return h.clientset.BatchV1().CronJobs(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
 }
 
-// DeleteFromFile deletes cronjob from yaml file.
+// DeleteFromFile deletes cronjob from yaml or json file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,56 +55,54 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteFromBytes deletes cronjob from bytes.
+// DeleteFromBytes deletes cronjob from bytes data.
 func (h *Handler) DeleteFromBytes(data []byte) error {
 	cmJson, err := yaml.ToJSON(data)
 	if err != nil {
 		return err
 	}
 
-	cm := &batchv1.CronJob{}
-	if err = json.Unmarshal(cmJson, cm); err != nil {
+	cj := &batchv1.CronJob{}
+	if err = json.Unmarshal(cmJson, cj); err != nil {
 		return err
 	}
-	return h.deleteCronjob(cm)
+	return h.deleteCronjob(cj)
 }
 
-// DeleteFromObject deletes cronjob from runtime.Object.
-func (h *Handler) DeleteFromObject(obj runtime.Object) error {
-	cm, ok := obj.(*batchv1.CronJob)
+// DeleteFromObject deletes cronjob from metav1.Object or runtime.Object.
+func (h *Handler) DeleteFromObject(obj interface{}) error {
+	cj, ok := obj.(*batchv1.CronJob)
 	if !ok {
 		return fmt.Errorf("object type is not *batchv1.CronJob")
 	}
-	return h.deleteCronjob(cm)
+	return h.deleteCronjob(cj)
 }
 
 // DeleteFromUnstructured deletes cronjob from *unstructured.Unstructured.
 func (h *Handler) DeleteFromUnstructured(u *unstructured.Unstructured) error {
-	cm := &batchv1.CronJob{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), cm)
+	cj := &batchv1.CronJob{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), cj)
 	if err != nil {
 		return err
 	}
-	return h.deleteCronjob(cm)
+	return h.deleteCronjob(cj)
 }
 
 // DeleteFromMap deletes cronjob from map[string]interface{}.
 func (h *Handler) DeleteFromMap(u map[string]interface{}) error {
-	cm := &batchv1.CronJob{}
-	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cm)
+	cj := &batchv1.CronJob{}
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u, cj)
 	if err != nil {
 		return err
 	}
-	return h.deleteCronjob(cm)
+	return h.deleteCronjob(cj)
 }
 
 // deleteCronjob
-func (h *Handler) deleteCronjob(cm *batchv1.CronJob) error {
-	var namespace string
-	if len(cm.Namespace) != 0 {
-		namespace = cm.Namespace
-	} else {
+func (h *Handler) deleteCronjob(cj *batchv1.CronJob) error {
+	namespace := cj.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
-	return h.clientset.BatchV1().CronJobs(namespace).Delete(h.ctx, cm.Name, h.Options.DeleteOptions)
+	return h.clientset.BatchV1().CronJobs(namespace).Delete(h.ctx, cj.Name, h.Options.DeleteOptions)
 }

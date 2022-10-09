@@ -6,6 +6,7 @@ import (
 	"os"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -83,7 +84,7 @@ func (h *Handler) Patch(original *appsv1.ReplicaSet, patch interface{}, patchOpt
 		}
 		return h.diffMergePatch(original, modified, patchOptions...)
 
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		modified, ok := patch.(*appsv1.ReplicaSet)
 		if !ok {
 			return nil, errors.New("patch data type is not *appsv1.ReplicaSet")
@@ -112,10 +113,8 @@ func (h *Handler) strategicMergePatch(original *appsv1.ReplicaSet, patchData []b
 		return original, nil
 	}
 
-	var namespace string
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
+	namespace := original.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().ReplicaSets(namespace).
@@ -137,10 +136,8 @@ func (h *Handler) jsonMergePatch(original *appsv1.ReplicaSet, patchData []byte) 
 		return original, nil
 	}
 
-	var namespace string
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
+	namespace := original.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().ReplicaSets(namespace).
@@ -155,10 +152,8 @@ func (h *Handler) jsonMergePatch(original *appsv1.ReplicaSet, patchData []byte) 
 //     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
 //     https://tools.ietf.org/html/rfc7386
 func (h *Handler) jsonPatch(original *appsv1.ReplicaSet, patchData []byte) (*appsv1.ReplicaSet, error) {
-	var namespace string
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
+	namespace := original.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().ReplicaSets(namespace).Patch(h.ctx,
@@ -190,10 +185,8 @@ func (h *Handler) diffMergePatch(original, modified *appsv1.ReplicaSet, patchOpt
 		return original, nil
 	}
 
-	var namespace string
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
+	namespace := original.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	if len(patchOptions) != 0 && patchOptions[0] == types.MergePatchType {

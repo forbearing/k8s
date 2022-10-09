@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates statefulset from type string, []byte, *appsv1.StatefulSet,
-// appsv1.StatefulSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.StatefulSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*appsv1.StatefulSet, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*appsv1.StatefulSet, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates statefulset from yaml file.
+// CreateFromFile creates statefulset from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*appsv1.StatefulSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*appsv1.StatefulSet, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates statefulset from bytes.
+// CreateFromBytes creates statefulset from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*appsv1.StatefulSet, error) {
 	stsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*appsv1.StatefulSet, error) {
 	return h.createStatefulset(sts)
 }
 
-// CreateFromObject creates statefulset from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*appsv1.StatefulSet, error) {
+// CreateFromObject creates statefulset from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*appsv1.StatefulSet, error) {
 	sts, ok := obj.(*appsv1.StatefulSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.StatefulSet")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*appsv1.StatefulSet, 
 
 // createStatefulset
 func (h *Handler) createStatefulset(sts *appsv1.StatefulSet) (*appsv1.StatefulSet, error) {
-	var namespace string
-	if len(sts.Namespace) != 0 {
-		namespace = sts.Namespace
-	} else {
+	namespace := sts.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	sts.ResourceVersion = ""

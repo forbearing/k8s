@@ -5,12 +5,13 @@ import (
 
 	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies ingressclass from type string, []byte, *networkingv1.IngressClass,
-// networkingv1.IngressClass, runtime.Object, *unstructured.Unstructured,
+// networkingv1.IngressClass, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*networkingv1.IngressClass, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*networkingv1.IngressClass, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies ingressclass from yaml file.
+// ApplyFromFile applies ingressclass from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (ingc *networkingv1.IngressClass, err error) {
 	ingc, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if ingressclass already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (ingc *networkingv1.IngressClas
 	return
 }
 
-// ApplyFromBytes pply ingressclass from bytes.
+// ApplyFromBytes pply ingressclass from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (ingc *networkingv1.IngressClass, err error) {
 	ingc, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (ingc *networkingv1.IngressClass, 
 	return
 }
 
-// ApplyFromObject applies ingressclass from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*networkingv1.IngressClass, error) {
+// ApplyFromObject applies ingressclass from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*networkingv1.IngressClass, error) {
 	ingc, ok := obj.(*networkingv1.IngressClass)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *networkingv1.IngressClass")

@@ -5,12 +5,13 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies statefulset from type string, []byte, *appsv1.StatefulSet,
-// appsv1.StatefulSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.StatefulSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*appsv1.StatefulSet, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*appsv1.StatefulSet, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies statefulset from yaml file.
+// ApplyFromFile applies statefulset from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (sts *appsv1.StatefulSet, err error) {
 	sts, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if statefulset already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (sts *appsv1.StatefulSet, err e
 	return
 }
 
-// ApplyFromBytes pply statefulset from bytes.
+// ApplyFromBytes pply statefulset from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (sts *appsv1.StatefulSet, err error) {
 	sts, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (sts *appsv1.StatefulSet, err erro
 	return
 }
 
-// ApplyFromObject applies statefulset from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.StatefulSet, error) {
+// ApplyFromObject applies statefulset from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*appsv1.StatefulSet, error) {
 	sts, ok := obj.(*appsv1.StatefulSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.StatefulSet")

@@ -133,7 +133,7 @@ func (h *Handler) WaitReady(name string) error {
 
 	select {
 	case sig := <-sigCh:
-		return fmt.Errorf("canceled by signal: %v", sig.String())
+		return fmt.Errorf("cancelled by signal: %s", sig.String())
 	case err := <-errCh:
 		return err
 	}

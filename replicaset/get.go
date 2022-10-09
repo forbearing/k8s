@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets replicaset from type string, []byte, *appsv1.ReplicaSet,
-// appsv1.ReplicaSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.ReplicaSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*appsv1.ReplicaSet, error) {
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
@@ -45,7 +46,7 @@ func (h *Handler) GetByName(name string) (*appsv1.ReplicaSet, error) {
 	return h.clientset.AppsV1().ReplicaSets(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 }
 
-// GetFromFile gets replicaset from yaml file.
+// GetFromFile gets replicaset from yaml or json file.
 func (h *Handler) GetFromFile(filename string) (*appsv1.ReplicaSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) GetFromFile(filename string) (*appsv1.ReplicaSet, error) {
 	return h.GetFromBytes(data)
 }
 
-// GetFromBytes gets replicaset from bytes.
+// GetFromBytes gets replicaset from bytes data.
 func (h *Handler) GetFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
 	rsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) GetFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
 	return h.getReplicaset(rs)
 }
 
-// GetFromObject gets replicaset from runtime.Object.
-func (h *Handler) GetFromObject(obj runtime.Object) (*appsv1.ReplicaSet, error) {
+// GetFromObject gets replicaset from metav1.Object or runtime.Object.
+func (h *Handler) GetFromObject(obj interface{}) (*appsv1.ReplicaSet, error) {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.ReplicaSet")
@@ -101,10 +102,8 @@ func (h *Handler) GetFromMap(u map[string]interface{}) (*appsv1.ReplicaSet, erro
 // It's necessary to get a new replicaset resource from a old replicaset resource,
 // because old replicaset usually don't have replicaset.Status field.
 func (h *Handler) getReplicaset(rs *appsv1.ReplicaSet) (*appsv1.ReplicaSet, error) {
-	var namespace string
-	if len(rs.Namespace) != 0 {
-		namespace = rs.Namespace
-	} else {
+	namespace := rs.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().ReplicaSets(namespace).Get(h.ctx, rs.Name, h.Options.GetOptions)

@@ -5,12 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies pod from type string, []byte, *corev1.pod, corev1.pod,
-// runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
+// metav1.Object, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.Pod, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*corev1.Pod, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies pod from yaml file.
+// ApplyFromFile applies pod from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (pod *corev1.Pod, err error) {
 	pod, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) {
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (pod *corev1.Pod, err error) {
 	return
 }
 
-// ApplyFromBytes applies pod from bytes.
+// ApplyFromBytes applies pod from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (pod *corev1.Pod, err error) {
 	pod, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (pod *corev1.Pod, err error) {
 	return
 }
 
-// ApplyFromObject applies deployment from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Pod, error) {
+// ApplyFromObject applies deployment from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*corev1.Pod, error) {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.Pod")

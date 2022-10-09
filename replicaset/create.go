@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates replicaset from type string, []byte, *appsv1.ReplicaSet,
-// appsv1.ReplicaSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.ReplicaSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*appsv1.ReplicaSet, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*appsv1.ReplicaSet, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates replicaset from yaml file.
+// CreateFromFile creates replicaset from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*appsv1.ReplicaSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*appsv1.ReplicaSet, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates replicaset from bytes.
+// CreateFromBytes creates replicaset from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
 	rsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
 	return h.createReplicaset(rs)
 }
 
-// CreateFromObject creates replicaset from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*appsv1.ReplicaSet, error) {
+// CreateFromObject creates replicaset from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*appsv1.ReplicaSet, error) {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.ReplicaSet")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*appsv1.ReplicaSet, e
 
 // createReplicaset
 func (h *Handler) createReplicaset(rs *appsv1.ReplicaSet) (*appsv1.ReplicaSet, error) {
-	var namespace string
-	if len(rs.Namespace) != 0 {
-		namespace = rs.Namespace
-	} else {
+	namespace := rs.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	rs.ResourceVersion = ""

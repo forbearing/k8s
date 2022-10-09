@@ -5,12 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies node from type string, []byte, *corev1.Node,
-// corev1.Node, runtime.Object, *unstructured.Unstructured,
+// corev1.Node, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.Node, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*corev1.Node, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies node from yaml file.
+// ApplyFromFile applies node from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (node *corev1.Node, err error) {
 	node, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if node already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (node *corev1.Node, err error) 
 	return
 }
 
-// ApplyFromBytes pply node from bytes.
+// ApplyFromBytes pply node from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (node *corev1.Node, err error) {
 	node, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (node *corev1.Node, err error) {
 	return
 }
 
-// ApplyFromObject applies node from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Node, error) {
+// ApplyFromObject applies node from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*corev1.Node, error) {
 	node, ok := obj.(*corev1.Node)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.Node")

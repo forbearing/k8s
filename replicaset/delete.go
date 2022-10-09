@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Delete deletes replicaset from type string, []byte, *appsv1.ReplicaSet,
-// appsv1.ReplicaSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.ReplicaSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.DeleteFromObject(val)
 	default:
 		return ErrInvalidDeleteType
@@ -45,7 +46,7 @@ func (h *Handler) DeleteByName(name string) error {
 	return h.clientset.AppsV1().ReplicaSets(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
 }
 
-// DeleteFromFile deletes replicaset from yaml file.
+// DeleteFromFile deletes replicaset from yaml or json file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteFromBytes deletes replicaset from bytes.
+// DeleteFromBytes deletes replicaset from bytes data.
 func (h *Handler) DeleteFromBytes(data []byte) error {
 	rsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	return h.deleteReplicaset(rs)
 }
 
-// DeleteFromObject deletes replicaset from runtime.Object.
-func (h *Handler) DeleteFromObject(obj runtime.Object) error {
+// DeleteFromObject deletes replicaset from metav1.Object or runtime.Object.
+func (h *Handler) DeleteFromObject(obj interface{}) error {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
 		return fmt.Errorf("object type is not *appsv1.ReplicaSet")
@@ -99,10 +100,8 @@ func (h *Handler) DeleteFromMap(u map[string]interface{}) error {
 
 // deleteReplicaset
 func (h *Handler) deleteReplicaset(rs *appsv1.ReplicaSet) error {
-	var namespace string
-	if len(rs.Namespace) != 0 {
-		namespace = rs.Namespace
-	} else {
+	namespace := rs.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().ReplicaSets(namespace).Delete(h.ctx, rs.Name, h.Options.DeleteOptions)

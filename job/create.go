@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates job from type string, []byte, *batchv1.Job,
-// batchv1.Job, runtime.Object, *unstructured.Unstructured,
+// batchv1.Job, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*batchv1.Job, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*batchv1.Job, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates job from yaml file.
+// CreateFromFile creates job from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*batchv1.Job, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*batchv1.Job, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates job from bytes.
+// CreateFromBytes creates job from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*batchv1.Job, error) {
 	jobJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*batchv1.Job, error) {
 	return h.createJob(job)
 }
 
-// CreateFromObject creates job from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*batchv1.Job, error) {
+// CreateFromObject creates job from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*batchv1.Job, error) {
 	job, ok := obj.(*batchv1.Job)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *batchv1.Job")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*batchv1.Job, error) 
 
 // createJob
 func (h *Handler) createJob(job *batchv1.Job) (*batchv1.Job, error) {
-	var namespace string
-	if len(job.Namespace) != 0 {
-		namespace = job.Namespace
-	} else {
+	namespace := job.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	job.ResourceVersion = ""

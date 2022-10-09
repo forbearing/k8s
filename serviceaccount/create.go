@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates serviceaccount from type string, []byte, *corev1.ServiceAccount,
-// corev1.ServiceAccount, runtime.Object, *unstructured.Unstructured,
+// corev1.ServiceAccount, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*corev1.ServiceAccount, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*corev1.ServiceAccount, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates serviceaccount from yaml file.
+// CreateFromFile creates serviceaccount from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*corev1.ServiceAccount, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*corev1.ServiceAccount, error
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates serviceaccount from bytes.
+// CreateFromBytes creates serviceaccount from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*corev1.ServiceAccount, error) {
 	saJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.ServiceAccount, error) {
 	return h.createSA(sa)
 }
 
-// CreateFromObject creates serviceaccount from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.ServiceAccount, error) {
+// CreateFromObject creates serviceaccount from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*corev1.ServiceAccount, error) {
 	sa, ok := obj.(*corev1.ServiceAccount)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.ServiceAccount")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*corev1.ServiceAccoun
 
 // createSA
 func (h *Handler) createSA(sa *corev1.ServiceAccount) (*corev1.ServiceAccount, error) {
-	var namespace string
-	if len(sa.Namespace) != 0 {
-		namespace = sa.Namespace
-	} else {
+	namespace := sa.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	sa.ResourceVersion = ""

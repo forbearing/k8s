@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates clusterrolebinding from type string, []byte,
-// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, runtime.Object,
+// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, metav1.Object, runtime.Object,
 // *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates clusterrolebinding from yaml file.
+// UpdateFromFile updates clusterrolebinding from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*rbacv1.ClusterRoleBinding, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*rbacv1.ClusterRoleBinding, e
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates clusterrolebinding from bytes.
+// UpdateFromBytes updates clusterrolebinding from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.ClusterRoleBinding, error) {
 	crbJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.ClusterRoleBinding, erro
 	return h.updateCRB(crb)
 }
 
-// UpdateFromObject updates clusterrolebinding from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.ClusterRoleBinding, error) {
+// UpdateFromObject updates clusterrolebinding from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	crb, ok := obj.(*rbacv1.ClusterRoleBinding)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.ClusterRoleBinding")

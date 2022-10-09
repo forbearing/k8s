@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets clusterrole from type string, []byte, *rbacv1.ClusterRole,
-// rbacv1.ClusterRole, runtime.Object, *unstructured.Unstructured,
+// rbacv1.ClusterRole, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*rbacv1.ClusterRole, error) {
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
@@ -45,7 +46,7 @@ func (h *Handler) GetByName(name string) (*rbacv1.ClusterRole, error) {
 	return h.clientset.RbacV1().ClusterRoles().Get(h.ctx, name, h.Options.GetOptions)
 }
 
-// GetFromFile gets clusterrole from yaml file.
+// GetFromFile gets clusterrole from yaml or json file.
 func (h *Handler) GetFromFile(filename string) (*rbacv1.ClusterRole, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) GetFromFile(filename string) (*rbacv1.ClusterRole, error) {
 	return h.GetFromBytes(data)
 }
 
-// GetFromBytes gets clusterrole from bytes.
+// GetFromBytes gets clusterrole from bytes data.
 func (h *Handler) GetFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 	crJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) GetFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 	return h.getCR(cr)
 }
 
-// GetFromObject gets clusterrole from runtime.Object.
-func (h *Handler) GetFromObject(obj runtime.Object) (*rbacv1.ClusterRole, error) {
+// GetFromObject gets clusterrole from metav1.Object or runtime.Object.
+func (h *Handler) GetFromObject(obj interface{}) (*rbacv1.ClusterRole, error) {
 	cr, ok := obj.(*rbacv1.ClusterRole)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.ClusterRole")

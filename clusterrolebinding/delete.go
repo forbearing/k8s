@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Delete deletes clusterrolebinding from type string, []byte,
-// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, runtime.Object,
+// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, metav1.Object, runtime.Object,
 // *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.DeleteFromObject(val)
 	default:
 		return ErrInvalidDeleteType
@@ -45,7 +46,7 @@ func (h *Handler) DeleteByName(name string) error {
 	return h.clientset.RbacV1().ClusterRoleBindings().Delete(h.ctx, name, h.Options.DeleteOptions)
 }
 
-// DeleteFromFile deletes clusterrolebinding from yaml file.
+// DeleteFromFile deletes clusterrolebinding from yaml or json file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteFromBytes deletes clusterrolebinding from bytes.
+// DeleteFromBytes deletes clusterrolebinding from bytes data.
 func (h *Handler) DeleteFromBytes(data []byte) error {
 	crbJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	return h.deleteCRB(crb)
 }
 
-// DeleteFromObject deletes clusterrolebinding from runtime.Object.
-func (h *Handler) DeleteFromObject(obj runtime.Object) error {
+// DeleteFromObject deletes clusterrolebinding from metav1.Object or runtime.Object.
+func (h *Handler) DeleteFromObject(obj interface{}) error {
 	crb, ok := obj.(*rbacv1.ClusterRoleBinding)
 	if !ok {
 		return fmt.Errorf("object type is not *rbacv1.ClusterRoleBinding")

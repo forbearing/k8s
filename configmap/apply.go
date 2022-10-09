@@ -5,12 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies configmap from type string, []byte, *corev1.ConfigMap,
-// corev1.ConfigMap, runtime.Object, *unstructured.Unstructured,
+// corev1.ConfigMap, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.ConfigMap, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*corev1.ConfigMap, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies configmap from yaml file.
+// ApplyFromFile applies configmap from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (cm *corev1.ConfigMap, err error) {
 	cm, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if configmap already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (cm *corev1.ConfigMap, err erro
 	return
 }
 
-// ApplyFromBytes pply configmap from bytes.
+// ApplyFromBytes pply configmap from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (cm *corev1.ConfigMap, err error) {
 	cm, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (cm *corev1.ConfigMap, err error) 
 	return
 }
 
-// ApplyFromObject applies configmap from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.ConfigMap, error) {
+// ApplyFromObject applies configmap from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*corev1.ConfigMap, error) {
 	cm, ok := obj.(*corev1.ConfigMap)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.ConfigMap")

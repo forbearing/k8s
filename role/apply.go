@@ -5,12 +5,13 @@ import (
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies role from type string, []byte, *rbacv1.Role,
-// rbacv1.Role, runtime.Object, *unstructured.Unstructured,
+// rbacv1.Role, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*rbacv1.Role, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*rbacv1.Role, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies role from yaml file.
+// ApplyFromFile applies role from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (role *rbacv1.Role, err error) {
 	role, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if role already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (role *rbacv1.Role, err error) 
 	return
 }
 
-// ApplyFromBytes pply role from bytes.
+// ApplyFromBytes pply role from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (role *rbacv1.Role, err error) {
 	role, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (role *rbacv1.Role, err error) {
 	return
 }
 
-// ApplyFromObject applies role from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.Role, error) {
+// ApplyFromObject applies role from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*rbacv1.Role, error) {
 	role, ok := obj.(*rbacv1.Role)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.Role")

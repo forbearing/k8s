@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates ingressclass from type string, []byte, *networkingv1.IngressClass,
-// networkingv1.IngressClass, runtime.Object, *unstructured.Unstructured,
+// networkingv1.IngressClass, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*networkingv1.IngressClass, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*networkingv1.IngressClass, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates ingressclass from yaml file.
+// CreateFromFile creates ingressclass from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*networkingv1.IngressClass, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*networkingv1.IngressClass, e
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates ingressclass from bytes.
+// CreateFromBytes creates ingressclass from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.IngressClass, error) {
 	ingcJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.IngressClass, erro
 	return h.createIngressclass(ingc)
 }
 
-// CreateFromObject creates ingressclass from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*networkingv1.IngressClass, error) {
+// CreateFromObject creates ingressclass from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*networkingv1.IngressClass, error) {
 	ingc, ok := obj.(*networkingv1.IngressClass)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *networkingv1.IngressClass")

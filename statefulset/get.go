@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets statefulset from type string, []byte, *appsv1.StatefulSet,
-// appsv1.StatefulSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.StatefulSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*appsv1.StatefulSet, error) {
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
@@ -45,7 +46,7 @@ func (h *Handler) GetByName(name string) (*appsv1.StatefulSet, error) {
 	return h.clientset.AppsV1().StatefulSets(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 }
 
-// GetFromFile gets statefulset from yaml file.
+// GetFromFile gets statefulset from yaml or json file.
 func (h *Handler) GetFromFile(filename string) (*appsv1.StatefulSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) GetFromFile(filename string) (*appsv1.StatefulSet, error) {
 	return h.GetFromBytes(data)
 }
 
-// GetFromBytes gets statefulset from bytes.
+// GetFromBytes gets statefulset from bytes data.
 func (h *Handler) GetFromBytes(data []byte) (*appsv1.StatefulSet, error) {
 	stsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) GetFromBytes(data []byte) (*appsv1.StatefulSet, error) {
 	return h.getStatefulset(sts)
 }
 
-// GetFromObject gets statefulset from runtime.Object.
-func (h *Handler) GetFromObject(obj runtime.Object) (*appsv1.StatefulSet, error) {
+// GetFromObject gets statefulset from metav1.Object or runtime.Object.
+func (h *Handler) GetFromObject(obj interface{}) (*appsv1.StatefulSet, error) {
 	sts, ok := obj.(*appsv1.StatefulSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.StatefulSet")
@@ -101,10 +102,8 @@ func (h *Handler) GetFromMap(u map[string]interface{}) (*appsv1.StatefulSet, err
 // It's necessary to get a new statefulset resource from a old statefulset resource,
 // because old statefulset usually don't have statefulset.Status field.
 func (h *Handler) getStatefulset(sts *appsv1.StatefulSet) (*appsv1.StatefulSet, error) {
-	var namespace string
-	if len(sts.Namespace) != 0 {
-		namespace = sts.Namespace
-	} else {
+	namespace := sts.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().StatefulSets(namespace).Get(h.ctx, sts.Name, h.Options.GetOptions)

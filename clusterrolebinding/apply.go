@@ -5,12 +5,13 @@ import (
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies clusterrolebinding from type string, []byte,
-// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, runtime.Object,
+// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, metav1.Object, runtime.Object,
 // *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies clusterrolebinding from yaml file.
+// ApplyFromFile applies clusterrolebinding from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (crb *rbacv1.ClusterRoleBinding, err error) {
 	crb, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if clusterrolebinding already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (crb *rbacv1.ClusterRoleBinding
 	return
 }
 
-// ApplyFromBytes pply clusterrolebinding from bytes.
+// ApplyFromBytes pply clusterrolebinding from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (crb *rbacv1.ClusterRoleBinding, err error) {
 	crb, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (crb *rbacv1.ClusterRoleBinding, e
 	return
 }
 
-// ApplyFromObject applies clusterrolebinding from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.ClusterRoleBinding, error) {
+// ApplyFromObject applies clusterrolebinding from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	crb, ok := obj.(*rbacv1.ClusterRoleBinding)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.ClusterRoleBinding")

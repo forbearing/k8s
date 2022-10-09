@@ -5,12 +5,13 @@ import (
 
 	storagev1 "k8s.io/api/storage/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies storageclass from type string, []byte, *storagev1.StorageClass,
-// storagev1.StorageClass, runtime.Object, *unstructured.Unstructured,
+// storagev1.StorageClass, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*storagev1.StorageClass, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*storagev1.StorageClass, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies storageclass from yaml file.
+// ApplyFromFile applies storageclass from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (sc *storagev1.StorageClass, err error) {
 	sc, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if storageclass already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (sc *storagev1.StorageClass, er
 	return
 }
 
-// ApplyFromBytes pply storageclass from bytes.
+// ApplyFromBytes pply storageclass from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (sc *storagev1.StorageClass, err error) {
 	sc, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (sc *storagev1.StorageClass, err e
 	return
 }
 
-// ApplyFromObject applies storageclass from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*storagev1.StorageClass, error) {
+// ApplyFromObject applies storageclass from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*storagev1.StorageClass, error) {
 	sc, ok := obj.(*storagev1.StorageClass)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *storagev1.StorageClass")

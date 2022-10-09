@@ -5,12 +5,13 @@ import (
 
 	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies ingress from type string, []byte, *networkingv1.Ingress,
-// networkingv1.Ingress, runtime.Object, *unstructured.Unstructured,
+// networkingv1.Ingress, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*networkingv1.Ingress, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*networkingv1.Ingress, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies ingress from yaml file.
+// ApplyFromFile applies ingress from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (ing *networkingv1.Ingress, err error) {
 	ing, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if ingress already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (ing *networkingv1.Ingress, err
 	return
 }
 
-// ApplyFromBytes pply ingress from bytes.
+// ApplyFromBytes pply ingress from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (ing *networkingv1.Ingress, err error) {
 	ing, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (ing *networkingv1.Ingress, err er
 	return
 }
 
-// ApplyFromObject applies ingress from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*networkingv1.Ingress, error) {
+// ApplyFromObject applies ingress from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*networkingv1.Ingress, error) {
 	ing, ok := obj.(*networkingv1.Ingress)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *networkingv1.Ingress")

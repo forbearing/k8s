@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates networkpolicy from type string, []byte, *networkingv1.NetworkPolicy,
-// networkingv1.NetworkPolicy, runtime.Object, *unstructured.Unstructured,
+// networkingv1.NetworkPolicy, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates networkpolicy from yaml file.
+// CreateFromFile creates networkpolicy from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*networkingv1.NetworkPolicy, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*networkingv1.NetworkPolicy, 
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates networkpolicy from bytes.
+// CreateFromBytes creates networkpolicy from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.NetworkPolicy, error) {
 	netpolJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.NetworkPolicy, err
 	return h.createNetpol(netpol)
 }
 
-// CreateFromObject creates networkpolicy from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*networkingv1.NetworkPolicy, error) {
+// CreateFromObject creates networkpolicy from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 	netpol, ok := obj.(*networkingv1.NetworkPolicy)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *networkingv1.NetworkPolicy")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*networkingv1.Network
 
 // createNetpol
 func (h *Handler) createNetpol(netpol *networkingv1.NetworkPolicy) (*networkingv1.NetworkPolicy, error) {
-	var namespace string
-	if len(netpol.Namespace) != 0 {
-		namespace = netpol.Namespace
-	} else {
+	namespace := netpol.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	netpol.ResourceVersion = ""

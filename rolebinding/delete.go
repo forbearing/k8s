@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Delete deletes rolebinding from type string, []byte, *rbacv1.RoleBinding,
-// rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured,
+// rbacv1.RoleBinding, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.DeleteFromObject(val)
 	default:
 		return ErrInvalidDeleteType
@@ -45,7 +46,7 @@ func (h *Handler) DeleteByName(name string) error {
 	return h.clientset.RbacV1().RoleBindings(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
 }
 
-// DeleteFromFile deletes rolebinding from yaml file.
+// DeleteFromFile deletes rolebinding from yaml or json file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteFromBytes deletes rolebinding from bytes.
+// DeleteFromBytes deletes rolebinding from bytes data.
 func (h *Handler) DeleteFromBytes(data []byte) error {
 	rbJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	return h.deleteRolebinding(rb)
 }
 
-// DeleteFromObject deletes rolebinding from runtime.Object.
-func (h *Handler) DeleteFromObject(obj runtime.Object) error {
+// DeleteFromObject deletes rolebinding from metav1.Object or runtime.Object.
+func (h *Handler) DeleteFromObject(obj interface{}) error {
 	rb, ok := obj.(*rbacv1.RoleBinding)
 	if !ok {
 		return fmt.Errorf("object type is not *rbacv1.RoleBinding")
@@ -99,10 +100,8 @@ func (h *Handler) DeleteFromMap(u map[string]interface{}) error {
 
 // deleteRolebinding
 func (h *Handler) deleteRolebinding(rb *rbacv1.RoleBinding) error {
-	var namespace string
-	if len(rb.Namespace) != 0 {
-		namespace = rb.Namespace
-	} else {
+	namespace := rb.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.RbacV1().RoleBindings(namespace).Delete(h.ctx, rb.Name, h.Options.DeleteOptions)

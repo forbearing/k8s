@@ -12,7 +12,7 @@ import (
 )
 
 // Create creates clusterrolebinding from type string, []byte,
-// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, runtime.Object,
+// *rbacv1.ClusterRoleBinding, rbacv1.ClusterRoleBinding, metav1.Object, runtime.Object,
 // *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	switch val := obj.(type) {
@@ -30,14 +30,14 @@ func (h *Handler) Create(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates clusterrolebinding from yaml file.
+// CreateFromFile creates clusterrolebinding from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*rbacv1.ClusterRoleBinding, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +46,7 @@ func (h *Handler) CreateFromFile(filename string) (*rbacv1.ClusterRoleBinding, e
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates clusterrolebinding from bytes.
+// CreateFromBytes creates clusterrolebinding from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.ClusterRoleBinding, error) {
 	crbJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +60,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.ClusterRoleBinding, erro
 	return h.createCRB(crb)
 }
 
-// CreateFromObject creates clusterrolebinding from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.ClusterRoleBinding, error) {
+// CreateFromObject creates clusterrolebinding from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*rbacv1.ClusterRoleBinding, error) {
 	crb, ok := obj.(*rbacv1.ClusterRoleBinding)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.ClusterRoleBinding")

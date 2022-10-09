@@ -6,6 +6,7 @@ import (
 	"os"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -83,7 +84,7 @@ func (h *Handler) Patch(original *rbacv1.Role, patch interface{}, patchOptions .
 		}
 		return h.diffMergePatch(original, modified, patchOptions...)
 
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		modified, ok := patch.(*rbacv1.Role)
 		if !ok {
 			return nil, errors.New("patch data type is not *rbacv1.Role")
@@ -112,10 +113,8 @@ func (h *Handler) strategicMergePatch(original *rbacv1.Role, patchData []byte) (
 		return original, nil
 	}
 
-	var namespace string
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
+	namespace := original.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.RbacV1().Roles(namespace).
@@ -137,10 +136,8 @@ func (h *Handler) jsonMergePatch(original *rbacv1.Role, patchData []byte) (*rbac
 		return original, nil
 	}
 
-	var namespace string
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
+	namespace := original.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.RbacV1().Roles(namespace).
@@ -155,10 +152,8 @@ func (h *Handler) jsonMergePatch(original *rbacv1.Role, patchData []byte) (*rbac
 //     https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/#before-you-begin
 //     https://tools.ietf.org/html/rfc7386
 func (h *Handler) jsonPatch(original *rbacv1.Role, patchData []byte) (*rbacv1.Role, error) {
-	var namespace string
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
+	namespace := original.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.RbacV1().Roles(namespace).Patch(h.ctx,
@@ -190,10 +185,8 @@ func (h *Handler) diffMergePatch(original, modified *rbacv1.Role, patchOptions .
 		return original, nil
 	}
 
-	var namespace string
-	if len(original.Namespace) != 0 {
-		namespace = original.Namespace
-	} else {
+	namespace := original.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	if len(patchOptions) != 0 && patchOptions[0] == types.MergePatchType {

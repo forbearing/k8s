@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates clusterrole from type string, []byte, *rbacv1.ClusterRole,
-// rbacv1.ClusterRole, runtime.Object, *unstructured.Unstructured,
+// rbacv1.ClusterRole, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*rbacv1.ClusterRole, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*rbacv1.ClusterRole, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates clusterrole from yaml file.
+// UpdateFromFile updates clusterrole from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*rbacv1.ClusterRole, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*rbacv1.ClusterRole, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates clusterrole from bytes.
+// UpdateFromBytes updates clusterrole from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 	crJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.ClusterRole, error) {
 	return h.updateCR(cr)
 }
 
-// UpdateFromObject updates clusterrole from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.ClusterRole, error) {
+// UpdateFromObject updates clusterrole from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*rbacv1.ClusterRole, error) {
 	cr, ok := obj.(*rbacv1.ClusterRole)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.ClusterRole")

@@ -5,12 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies persistentvolumeclaim from type string, []byte, *corev1.PersistentVolumeClaim,
-// corev1.PersistentVolumeClaim, runtime.Object, *unstructured.Unstructured,
+// corev1.PersistentVolumeClaim, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.PersistentVolumeClaim, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*corev1.PersistentVolumeClaim, error) 
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies persistentvolumeclaim from yaml file.
+// ApplyFromFile applies persistentvolumeclaim from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (pvc *corev1.PersistentVolumeClaim, err error) {
 	pvc, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if persistentvolumeclaim already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (pvc *corev1.PersistentVolumeCl
 	return
 }
 
-// ApplyFromBytes pply persistentvolumeclaim from bytes.
+// ApplyFromBytes pply persistentvolumeclaim from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (pvc *corev1.PersistentVolumeClaim, err error) {
 	pvc, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (pvc *corev1.PersistentVolumeClaim
 	return
 }
 
-// ApplyFromObject applies persistentvolumeclaim from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.PersistentVolumeClaim, error) {
+// ApplyFromObject applies persistentvolumeclaim from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*corev1.PersistentVolumeClaim, error) {
 	pvc, ok := obj.(*corev1.PersistentVolumeClaim)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.PersistentVolumeClaim")

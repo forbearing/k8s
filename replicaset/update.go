@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates replicaset from type string, []byte, *appsv1.ReplicaSet,
-// appsv1.ReplicaSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.ReplicaSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*appsv1.ReplicaSet, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*appsv1.ReplicaSet, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates replicaset from yaml file.
+// UpdateFromFile updates replicaset from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*appsv1.ReplicaSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*appsv1.ReplicaSet, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates replicaset from bytes.
+// UpdateFromBytes updates replicaset from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
 	rsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*appsv1.ReplicaSet, error) {
 	return h.updateReplicaset(rs)
 }
 
-// UpdateFromObject updates replicaset from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*appsv1.ReplicaSet, error) {
+// UpdateFromObject updates replicaset from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*appsv1.ReplicaSet, error) {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.ReplicaSet")
@@ -91,10 +92,8 @@ func (h *Handler) UpdateFromMap(u map[string]interface{}) (*appsv1.ReplicaSet, e
 
 // updateReplicaset
 func (h *Handler) updateReplicaset(rs *appsv1.ReplicaSet) (*appsv1.ReplicaSet, error) {
-	var namespace string
-	if len(rs.Namespace) != 0 {
-		namespace = rs.Namespace
-	} else {
+	namespace := rs.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	rs.ResourceVersion = ""

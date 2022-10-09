@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates role from type string, []byte, *rbacv1.Role,
-// rbacv1.Role, runtime.Object, *unstructured.Unstructured,
+// rbacv1.Role, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*rbacv1.Role, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*rbacv1.Role, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates role from yaml file.
+// UpdateFromFile updates role from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*rbacv1.Role, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*rbacv1.Role, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates role from bytes.
+// UpdateFromBytes updates role from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.Role, error) {
 	roleJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.Role, error) {
 	return h.updateRole(role)
 }
 
-// UpdateFromObject updates role from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.Role, error) {
+// UpdateFromObject updates role from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*rbacv1.Role, error) {
 	role, ok := obj.(*rbacv1.Role)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.Role")
@@ -91,10 +92,8 @@ func (h *Handler) UpdateFromMap(u map[string]interface{}) (*rbacv1.Role, error) 
 
 // updateRole
 func (h *Handler) updateRole(role *rbacv1.Role) (*rbacv1.Role, error) {
-	var namespace string
-	if len(role.Namespace) != 0 {
-		namespace = role.Namespace
-	} else {
+	namespace := role.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	role.ResourceVersion = ""

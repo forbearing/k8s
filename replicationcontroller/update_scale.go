@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Scale set replicationcontroller replicas from type string, []byte, *corev1.ReplicationController,
-// corev1.ReplicationController, runtime.Object, *unstructured.Unstructured,
+// corev1.ReplicationController, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call ScaleByName instead of ScaleFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Scale(obj interface{}, replicas int32) (*corev1.ReplicationCon
 		return h.ScaleFromUnstructured(&val, replicas)
 	case map[string]interface{}:
 		return h.ScaleFromMap(val, replicas)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ScaleFromObject(val, replicas)
 	default:
 		return nil, ErrInvalidScaleType
@@ -53,7 +54,7 @@ func (h *Handler) ScaleByName(name string, replicas int32) (*corev1.ReplicationC
 	return h.Update(copiedRC)
 }
 
-// ScaleFromFile scale replicationcontroller from yaml file.
+// ScaleFromFile scale replicationcontroller from yaml or json file.
 func (h *Handler) ScaleFromFile(filename string, replicas int32) (*corev1.ReplicationController, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -62,7 +63,7 @@ func (h *Handler) ScaleFromFile(filename string, replicas int32) (*corev1.Replic
 	return h.ScaleFromBytes(data, replicas)
 }
 
-// ScaleFromBytes scale replicationcontroller from bytes.
+// ScaleFromBytes scale replicationcontroller from bytes data.
 func (h *Handler) ScaleFromBytes(data []byte, replicas int32) (*corev1.ReplicationController, error) {
 	rcJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -76,8 +77,8 @@ func (h *Handler) ScaleFromBytes(data []byte, replicas int32) (*corev1.Replicati
 	return h.ScaleByName(rc.Name, replicas)
 }
 
-// ScaleFromObject scale replicationcontroller from runtime.Object.
-func (h *Handler) ScaleFromObject(obj runtime.Object, replicas int32) (*corev1.ReplicationController, error) {
+// ScaleFromObject scale replicationcontroller from metav1.Object or runtime.Object.
+func (h *Handler) ScaleFromObject(obj interface{}, replicas int32) (*corev1.ReplicationController, error) {
 	rc, ok := obj.(*corev1.ReplicationController)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.ReplicationController")

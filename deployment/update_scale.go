@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Scale set deployment replicas from type string, []byte, *appsv1.Deployment,
-// appsv1.Deployment, runtime.Object, *unstructured.Unstructured,
+// appsv1.Deployment, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call ScaleByName instead of ScaleFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Scale(obj interface{}, replicas int32) (*appsv1.Deployment, er
 		return h.ScaleFromUnstructured(&val, replicas)
 	case map[string]interface{}:
 		return h.ScaleFromMap(val, replicas)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ScaleFromObject(val, replicas)
 	default:
 		return nil, ErrInvalidScaleType
@@ -58,7 +59,7 @@ func (h *Handler) ScaleByName(name string, replicas int32) (*appsv1.Deployment, 
 	//return nil, err
 }
 
-// ScaleFromFile scale deployment from yaml file.
+// ScaleFromFile scale deployment from yaml or json file.
 func (h *Handler) ScaleFromFile(filename string, replicas int32) (*appsv1.Deployment, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -67,7 +68,7 @@ func (h *Handler) ScaleFromFile(filename string, replicas int32) (*appsv1.Deploy
 	return h.ScaleFromBytes(data, replicas)
 }
 
-// ScaleFromBytes scale deployment from bytes.
+// ScaleFromBytes scale deployment from bytes data.
 func (h *Handler) ScaleFromBytes(data []byte, replicas int32) (*appsv1.Deployment, error) {
 	deployJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -81,8 +82,8 @@ func (h *Handler) ScaleFromBytes(data []byte, replicas int32) (*appsv1.Deploymen
 	return h.ScaleByName(deploy.Name, replicas)
 }
 
-// ScaleFromObject scale deployment from runtime.Object.
-func (h *Handler) ScaleFromObject(obj runtime.Object, replicas int32) (*appsv1.Deployment, error) {
+// ScaleFromObject scale deployment from metav1.Object or runtime.Object.
+func (h *Handler) ScaleFromObject(obj interface{}, replicas int32) (*appsv1.Deployment, error) {
 	deploy, ok := obj.(*appsv1.Deployment)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.Deployment")

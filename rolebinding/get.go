@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets rolebinding from type string, []byte, *rbacv1.RoleBinding,
-// rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured,
+// rbacv1.RoleBinding, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*rbacv1.RoleBinding, error) {
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
@@ -45,7 +46,7 @@ func (h *Handler) GetByName(name string) (*rbacv1.RoleBinding, error) {
 	return h.clientset.RbacV1().RoleBindings(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 }
 
-// GetFromFile gets rolebinding from yaml file.
+// GetFromFile gets rolebinding from yaml or json file.
 func (h *Handler) GetFromFile(filename string) (*rbacv1.RoleBinding, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) GetFromFile(filename string) (*rbacv1.RoleBinding, error) {
 	return h.GetFromBytes(data)
 }
 
-// GetFromBytes gets rolebinding from bytes.
+// GetFromBytes gets rolebinding from bytes data.
 func (h *Handler) GetFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
 	rbJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) GetFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
 	return h.getRolebinding(rb)
 }
 
-// GetFromObject gets rolebinding from runtime.Object.
-func (h *Handler) GetFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error) {
+// GetFromObject gets rolebinding from metav1.Object or runtime.Object.
+func (h *Handler) GetFromObject(obj interface{}) (*rbacv1.RoleBinding, error) {
 	rb, ok := obj.(*rbacv1.RoleBinding)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.RoleBinding")
@@ -101,10 +102,8 @@ func (h *Handler) GetFromMap(u map[string]interface{}) (*rbacv1.RoleBinding, err
 // It's necessary to get a new rolebinding resource from a old rolebinding resource,
 // because old rolebinding usually don't have rolebinding.Status field.
 func (h *Handler) getRolebinding(rb *rbacv1.RoleBinding) (*rbacv1.RoleBinding, error) {
-	var namespace string
-	if len(rb.Namespace) != 0 {
-		namespace = rb.Namespace
-	} else {
+	namespace := rb.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.RbacV1().RoleBindings(namespace).Get(h.ctx, rb.Name, h.Options.GetOptions)

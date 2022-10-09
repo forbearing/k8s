@@ -6,6 +6,7 @@ import (
 	"os"
 
 	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -74,7 +75,7 @@ func (h *Handler) Patch(original *unstructured.Unstructured, patch interface{}, 
 	case map[string]interface{}:
 		return h.diffMergePatch(original, &unstructured.Unstructured{Object: val}, patchOptions...)
 
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		modified, ok := patch.(*unstructured.Unstructured)
 		if !ok {
 			return nil, errors.New("patch data type is not *unstructured.Unstructured")
@@ -181,11 +182,9 @@ func (h *Handler) patchUnstructured(obj *unstructured.Unstructured, patchData []
 		return nil, err
 	}
 
-	var namespace string
 	if h.isNamespaced {
-		if len(obj.GetNamespace()) != 0 {
-			namespace = obj.GetNamespace()
-		} else {
+		namespace := obj.GetNamespace()
+		if len(namespace) == 0 {
 			namespace = h.namespace
 		}
 		return h.dynamicClient.Resource(h.gvr).Namespace(namespace).Patch(h.ctx, obj.GetName(), patchType, patchData, h.Options.PatchOptions)

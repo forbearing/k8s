@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets daemonset from type string, []byte, *appsv1.DaemonSet,
-// appsv1.DaemonSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.DaemonSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*appsv1.DaemonSet, error) {
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
@@ -45,7 +46,7 @@ func (h *Handler) GetByName(name string) (*appsv1.DaemonSet, error) {
 	return h.clientset.AppsV1().DaemonSets(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 }
 
-// GetFromFile gets daemonset from yaml file.
+// GetFromFile gets daemonset from yaml or json file.
 func (h *Handler) GetFromFile(filename string) (*appsv1.DaemonSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) GetFromFile(filename string) (*appsv1.DaemonSet, error) {
 	return h.GetFromBytes(data)
 }
 
-// GetFromBytes gets daemonset from bytes.
+// GetFromBytes gets daemonset from bytes data.
 func (h *Handler) GetFromBytes(data []byte) (*appsv1.DaemonSet, error) {
 	dsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) GetFromBytes(data []byte) (*appsv1.DaemonSet, error) {
 	return h.getDaemonset(ds)
 }
 
-// GetFromObject gets daemonset from runtime.Object.
-func (h *Handler) GetFromObject(obj runtime.Object) (*appsv1.DaemonSet, error) {
+// GetFromObject gets daemonset from metav1.Object or runtime.Object.
+func (h *Handler) GetFromObject(obj interface{}) (*appsv1.DaemonSet, error) {
 	ds, ok := obj.(*appsv1.DaemonSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.DaemonSet")
@@ -101,10 +102,8 @@ func (h *Handler) GetFromMap(u map[string]interface{}) (*appsv1.DaemonSet, error
 // It's necessary to get a new daemonset resource from a old daemonset resource,
 // because old daemonset usually don't have daemonset.Status field.
 func (h *Handler) getDaemonset(ds *appsv1.DaemonSet) (*appsv1.DaemonSet, error) {
-	var namespace string
-	if len(ds.Namespace) != 0 {
-		namespace = ds.Namespace
-	} else {
+	namespace := ds.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().DaemonSets(namespace).Get(h.ctx, ds.Name, h.Options.GetOptions)

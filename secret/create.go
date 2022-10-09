@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates secret from type string, []byte, *corev1.Secret,
-// corev1.Secret, runtime.Object, *unstructured.Unstructured,
+// corev1.Secret, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*corev1.Secret, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*corev1.Secret, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates secret from yaml file.
+// CreateFromFile creates secret from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*corev1.Secret, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*corev1.Secret, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates secret from bytes.
+// CreateFromBytes creates secret from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*corev1.Secret, error) {
 	secretJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.Secret, error) {
 	return h.createSecret(secret)
 }
 
-// CreateFromObject creates secret from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Secret, error) {
+// CreateFromObject creates secret from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*corev1.Secret, error) {
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.Secret")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*corev1.Secret, error
 
 // createSecret
 func (h *Handler) createSecret(secret *corev1.Secret) (*corev1.Secret, error) {
-	var namespace string
-	if len(secret.Namespace) != 0 {
-		namespace = secret.Namespace
-	} else {
+	namespace := secret.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	secret.ResourceVersion = ""

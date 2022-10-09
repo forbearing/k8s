@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets deployment from type string, []byte, *appsv1.Deployment,
-// appsv1.Deployment, runtime.Object, *unstructured.Unstructured,
+// appsv1.Deployment, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*appsv1.Deployment, error) {
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
@@ -45,7 +46,7 @@ func (h *Handler) GetByName(name string) (*appsv1.Deployment, error) {
 	return h.clientset.AppsV1().Deployments(h.namespace).Get(h.ctx, name, h.Options.GetOptions)
 }
 
-// GetFromFile gets deployment from yaml file.
+// GetFromFile gets deployment from yaml or json file.
 func (h *Handler) GetFromFile(filename string) (*appsv1.Deployment, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) GetFromFile(filename string) (*appsv1.Deployment, error) {
 	return h.GetFromBytes(data)
 }
 
-// GetFromBytes gets deployment from bytes.
+// GetFromBytes gets deployment from bytes data.
 func (h *Handler) GetFromBytes(data []byte) (*appsv1.Deployment, error) {
 	deployJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) GetFromBytes(data []byte) (*appsv1.Deployment, error) {
 	return h.getDeployment(deploy)
 }
 
-// GetFromObject gets deployment from runtime.Object.
-func (h *Handler) GetFromObject(obj runtime.Object) (*appsv1.Deployment, error) {
+// GetFromObject gets deployment from metav1.Object or runtime.Object.
+func (h *Handler) GetFromObject(obj interface{}) (*appsv1.Deployment, error) {
 	deploy, ok := obj.(*appsv1.Deployment)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.Deployment")
@@ -101,10 +102,8 @@ func (h *Handler) GetFromMap(u map[string]interface{}) (*appsv1.Deployment, erro
 // It's necessary to get a new deployment resource from a old deployment resource,
 // because old deployment usually don't have deployment.Status field.
 func (h *Handler) getDeployment(deploy *appsv1.Deployment) (*appsv1.Deployment, error) {
-	var namespace string
-	if len(deploy.Namespace) != 0 {
-		namespace = deploy.Namespace
-	} else {
+	namespace := deploy.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.AppsV1().Deployments(namespace).Get(h.ctx, deploy.Name, h.Options.GetOptions)

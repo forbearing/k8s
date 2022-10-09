@@ -5,12 +5,13 @@ import (
 
 	networkingv1 "k8s.io/api/networking/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies networkpolicy from type string, []byte, *networkingv1.NetworkPolicy,
-// networkingv1.NetworkPolicy, runtime.Object, *unstructured.Unstructured,
+// networkingv1.NetworkPolicy, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies networkpolicy from yaml file.
+// ApplyFromFile applies networkpolicy from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (netpol *networkingv1.NetworkPolicy, err error) {
 	netpol, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if networkpolicy already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (netpol *networkingv1.NetworkPo
 	return
 }
 
-// ApplyFromBytes pply networkpolicy from bytes.
+// ApplyFromBytes pply networkpolicy from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (netpol *networkingv1.NetworkPolicy, err error) {
 	netpol, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (netpol *networkingv1.NetworkPolic
 	return
 }
 
-// ApplyFromObject applies networkpolicy from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*networkingv1.NetworkPolicy, error) {
+// ApplyFromObject applies networkpolicy from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*networkingv1.NetworkPolicy, error) {
 	netpol, ok := obj.(*networkingv1.NetworkPolicy)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *networkingv1.NetworkPolicy")

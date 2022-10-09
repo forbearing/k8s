@@ -5,12 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies secret from type string, []byte, *corev1.Secret,
-// corev1.Secret, runtime.Object, *unstructured.Unstructured,
+// corev1.Secret, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.Secret, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*corev1.Secret, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies secret from yaml file.
+// ApplyFromFile applies secret from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (secret *corev1.Secret, err error) {
 	secret, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if secret already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (secret *corev1.Secret, err err
 	return
 }
 
-// ApplyFromBytes pply secret from bytes.
+// ApplyFromBytes pply secret from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (secret *corev1.Secret, err error) {
 	secret, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (secret *corev1.Secret, err error)
 	return
 }
 
-// ApplyFromObject applies secret from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Secret, error) {
+// ApplyFromObject applies secret from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*corev1.Secret, error) {
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.Secret")

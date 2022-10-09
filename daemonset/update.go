@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates daemonset from type string, []byte, *appsv1.DaemonSet,
-// appsv1.DaemonSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.DaemonSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*appsv1.DaemonSet, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*appsv1.DaemonSet, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates daemonset from yaml file.
+// UpdateFromFile updates daemonset from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*appsv1.DaemonSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*appsv1.DaemonSet, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates daemonset from bytes.
+// UpdateFromBytes updates daemonset from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*appsv1.DaemonSet, error) {
 	dsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*appsv1.DaemonSet, error) {
 	return h.updateDaemonset(ds)
 }
 
-// UpdateFromObject updates daemonset from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*appsv1.DaemonSet, error) {
+// UpdateFromObject updates daemonset from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*appsv1.DaemonSet, error) {
 	ds, ok := obj.(*appsv1.DaemonSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.DaemonSet")
@@ -91,10 +92,8 @@ func (h *Handler) UpdateFromMap(u map[string]interface{}) (*appsv1.DaemonSet, er
 
 // updateDaemonset
 func (h *Handler) updateDaemonset(ds *appsv1.DaemonSet) (*appsv1.DaemonSet, error) {
-	var namespace string
-	if len(ds.Namespace) != 0 {
-		namespace = ds.Namespace
-	} else {
+	namespace := ds.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	ds.ResourceVersion = ""

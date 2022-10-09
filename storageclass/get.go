@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	storagev1 "k8s.io/api/storage/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Get gets storageclass from type string, []byte, *storagev1.StorageClass,
-// storagev1.StorageClass, runtime.Object, *unstructured.Unstructured,
+// storagev1.StorageClass, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call GetByName instead of GetFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Get(obj interface{}) (*storagev1.StorageClass, error) {
 		return h.GetFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.GetFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.GetFromObject(val)
 	default:
 		return nil, ErrInvalidGetType
@@ -45,7 +46,7 @@ func (h *Handler) GetByName(name string) (*storagev1.StorageClass, error) {
 	return h.clientset.StorageV1().StorageClasses().Get(h.ctx, name, h.Options.GetOptions)
 }
 
-// GetFromFile gets storageclass from yaml file.
+// GetFromFile gets storageclass from yaml or json file.
 func (h *Handler) GetFromFile(filename string) (*storagev1.StorageClass, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) GetFromFile(filename string) (*storagev1.StorageClass, error) 
 	return h.GetFromBytes(data)
 }
 
-// GetFromBytes gets storageclass from bytes.
+// GetFromBytes gets storageclass from bytes data.
 func (h *Handler) GetFromBytes(data []byte) (*storagev1.StorageClass, error) {
 	scJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) GetFromBytes(data []byte) (*storagev1.StorageClass, error) {
 	return h.getSC(sc)
 }
 
-// GetFromObject gets storageclass from runtime.Object.
-func (h *Handler) GetFromObject(obj runtime.Object) (*storagev1.StorageClass, error) {
+// GetFromObject gets storageclass from metav1.Object or runtime.Object.
+func (h *Handler) GetFromObject(obj interface{}) (*storagev1.StorageClass, error) {
 	sc, ok := obj.(*storagev1.StorageClass)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *storagev1.StorageClass")

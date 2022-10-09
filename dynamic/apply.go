@@ -5,12 +5,13 @@ import (
 	"io/ioutil"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// Apply applies unstructured k8s resource from type string, []byte,
+// Apply applies unstructured k8s resource from type string, []byte, metav1.Object,
 // runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
 //
@@ -30,14 +31,14 @@ func (h *Handler) Apply(obj interface{}) (*unstructured.Unstructured, error) {
 		return h.applyUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies unstructured k8s resource from yaml file.
+// ApplyFromFile applies unstructured k8s resource from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (*unstructured.Unstructured, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) ApplyFromFile(filename string) (*unstructured.Unstructured, er
 	return h.ApplyFromBytes(data)
 }
 
-// ApplyFromBytes applies unstructured k8s resource from bytes.
+// ApplyFromBytes applies unstructured k8s resource from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (*unstructured.Unstructured, error) {
 	unstructJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (*unstructured.Unstructured, error
 	return h.applyUnstructured(unstructObj)
 }
 
-// ApplyFromObject applies unstructured k8s resource from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*unstructured.Unstructured, error) {
+// ApplyFromObject applies unstructured k8s resource from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*unstructured.Unstructured, error) {
 	unstructMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
 	if err != nil {
 		return nil, err

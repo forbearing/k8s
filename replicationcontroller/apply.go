@@ -5,12 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies replicationcontroller from type string, []byte,
-// *corev1.ReplicationController, corev1.ReplicationController, runtime.Object,
+// *corev1.ReplicationController, corev1.ReplicationController, metav1.Object, runtime.Object,
 // *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.ReplicationController, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*corev1.ReplicationController, error) 
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies replicationcontroller from yaml file.
+// ApplyFromFile applies replicationcontroller from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (rc *corev1.ReplicationController, err error) {
 	rc, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if replicationcontroller already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (rc *corev1.ReplicationControll
 	return
 }
 
-// ApplyFromBytes pply replicationcontroller from bytes.
+// ApplyFromBytes pply replicationcontroller from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (rc *corev1.ReplicationController, err error) {
 	rc, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (rc *corev1.ReplicationController,
 	return
 }
 
-// ApplyFromObject applies replicationcontroller from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.ReplicationController, error) {
+// ApplyFromObject applies replicationcontroller from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*corev1.ReplicationController, error) {
 	rc, ok := obj.(*corev1.ReplicationController)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.ReplicationController")

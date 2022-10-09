@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Delete deletes configmap from type string, []byte, *corev1.ConfigMap,
-// corev1.ConfigMap, runtime.Object, *unstructured.Unstructured,
+// corev1.ConfigMap, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call DeleteByName instead of DeleteFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.DeleteFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.DeleteFromObject(val)
 	default:
 		return ErrInvalidDeleteType
@@ -45,7 +46,7 @@ func (h *Handler) DeleteByName(name string) error {
 	return h.clientset.CoreV1().ConfigMaps(h.namespace).Delete(h.ctx, name, h.Options.DeleteOptions)
 }
 
-// DeleteFromFile deletes configmap from yaml file.
+// DeleteFromFile deletes configmap from yaml or json file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +55,7 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteFromBytes deletes configmap from bytes.
+// DeleteFromBytes deletes configmap from bytes data.
 func (h *Handler) DeleteFromBytes(data []byte) error {
 	cmJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -68,8 +69,8 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	return h.deleteConfigmap(cm)
 }
 
-// DeleteFromObject deletes configmap from runtime.Object.
-func (h *Handler) DeleteFromObject(obj runtime.Object) error {
+// DeleteFromObject deletes configmap from metav1.Object or runtime.Object.
+func (h *Handler) DeleteFromObject(obj interface{}) error {
 	cm, ok := obj.(*corev1.ConfigMap)
 	if !ok {
 		return fmt.Errorf("object type is not *corev1.ConfigMap")
@@ -99,10 +100,8 @@ func (h *Handler) DeleteFromMap(u map[string]interface{}) error {
 
 // deleteConfigmap
 func (h *Handler) deleteConfigmap(cm *corev1.ConfigMap) error {
-	var namespace string
-	if len(cm.Namespace) != 0 {
-		namespace = cm.Namespace
-	} else {
+	namespace := cm.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.clientset.CoreV1().ConfigMaps(namespace).Delete(h.ctx, cm.Name, h.Options.DeleteOptions)

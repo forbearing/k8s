@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates node from type string, []byte, *corev1.Node,
-// corev1.Node, runtime.Object, *unstructured.Unstructured,
+// corev1.Node, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*corev1.Node, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*corev1.Node, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates node from yaml file.
+// CreateFromFile creates node from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*corev1.Node, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*corev1.Node, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates node from bytes.
+// CreateFromBytes creates node from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*corev1.Node, error) {
 	nodeJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.Node, error) {
 	return h.createNode(node)
 }
 
-// CreateFromObject creates node from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Node, error) {
+// CreateFromObject creates node from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*corev1.Node, error) {
 	node, ok := obj.(*corev1.Node)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.Node")

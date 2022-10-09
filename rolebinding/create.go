@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates rolebinding from type string, []byte, *rbacv1.RoleBinding,
-// rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured,
+// rbacv1.RoleBinding, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*rbacv1.RoleBinding, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*rbacv1.RoleBinding, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates rolebinding from yaml file.
+// CreateFromFile creates rolebinding from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*rbacv1.RoleBinding, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*rbacv1.RoleBinding, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates rolebinding from bytes.
+// CreateFromBytes creates rolebinding from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
 	rbJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
 	return h.createRolebinding(rb)
 }
 
-// CreateFromObject creates rolebinding from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error) {
+// CreateFromObject creates rolebinding from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*rbacv1.RoleBinding, error) {
 	rb, ok := obj.(*rbacv1.RoleBinding)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.RoleBinding")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*rbacv1.RoleBinding, 
 
 // createRolebinding
 func (h *Handler) createRolebinding(rb *rbacv1.RoleBinding) (*rbacv1.RoleBinding, error) {
-	var namespace string
-	if len(rb.Namespace) != 0 {
-		namespace = rb.Namespace
-	} else {
+	namespace := rb.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	rb.ResourceVersion = ""

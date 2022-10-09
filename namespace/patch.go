@@ -6,6 +6,7 @@ import (
 	"os"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -83,7 +84,7 @@ func (h *Handler) Patch(original *corev1.Namespace, patch interface{}, patchOpti
 		}
 		return h.diffMergePatch(original, modified, patchOptions...)
 
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		modified, ok := patch.(*corev1.Namespace)
 		if !ok {
 			return nil, errors.New("patch data type is not *corev1.Namespace")

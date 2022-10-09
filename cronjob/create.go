@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	batchv1 "k8s.io/api/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates cronjob from type string, []byte, *batchv1.CronJob,
-// batchv1.CronJob, runtime.Object, *unstructured.Unstructured,
+// batchv1.CronJob, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*batchv1.CronJob, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*batchv1.CronJob, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates cronjob from yaml file.
+// CreateFromFile creates cronjob from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*batchv1.CronJob, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*batchv1.CronJob, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates cronjob from bytes.
+// CreateFromBytes creates cronjob from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*batchv1.CronJob, error) {
 	cjJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*batchv1.CronJob, error) {
 	return h.createCronjob(cj)
 }
 
-// CreateFromObject creates cronjob from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*batchv1.CronJob, error) {
+// CreateFromObject creates cronjob from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*batchv1.CronJob, error) {
 	cj, ok := obj.(*batchv1.CronJob)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *batchv1.CronJob")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*batchv1.CronJob, err
 
 // createCronjob
 func (h *Handler) createCronjob(cj *batchv1.CronJob) (*batchv1.CronJob, error) {
-	var namespace string
-	if len(cj.Namespace) != 0 {
-		namespace = cj.Namespace
-	} else {
+	namespace := cj.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	cj.ResourceVersion = ""

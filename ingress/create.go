@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	networkingv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates ingress from type string, []byte, *networkingv1.Ingress,
-// networkingv1.Ingress, runtime.Object, *unstructured.Unstructured,
+// networkingv1.Ingress, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*networkingv1.Ingress, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*networkingv1.Ingress, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates ingress from yaml file.
+// CreateFromFile creates ingress from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*networkingv1.Ingress, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*networkingv1.Ingress, error)
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates ingress from bytes.
+// CreateFromBytes creates ingress from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.Ingress, error) {
 	ingJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*networkingv1.Ingress, error) {
 	return h.createIngress(ing)
 }
 
-// CreateFromObject creates ingress from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*networkingv1.Ingress, error) {
+// CreateFromObject creates ingress from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*networkingv1.Ingress, error) {
 	ing, ok := obj.(*networkingv1.Ingress)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *networkingv1.Ingress")
@@ -91,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*networkingv1.Ingress
 
 // createIngress
 func (h *Handler) createIngress(ing *networkingv1.Ingress) (*networkingv1.Ingress, error) {
-	var namespace string
-	if len(ing.Namespace) != 0 {
-		namespace = ing.Namespace
-	} else {
+	namespace := ing.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	ing.ResourceVersion = ""

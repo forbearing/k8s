@@ -6,6 +6,7 @@ import (
 	"os"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -83,7 +84,7 @@ func (h *Handler) Patch(original *rbacv1.ClusterRoleBinding, patch interface{}, 
 		}
 		return h.diffMergePatch(original, modified, patchOptions...)
 
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		modified, ok := patch.(*rbacv1.ClusterRoleBinding)
 		if !ok {
 			return nil, errors.New("patch data type is not *rbacv1.ClusterRoleBinding")

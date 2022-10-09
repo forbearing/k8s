@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates configmap from type string, []byte, *corev1.ConfigMap,
-// corev1.ConfigMap, runtime.Object, *unstructured.Unstructured,
+// corev1.ConfigMap, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*corev1.ConfigMap, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*corev1.ConfigMap, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates configmap from yaml file.
+// UpdateFromFile updates configmap from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*corev1.ConfigMap, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*corev1.ConfigMap, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates configmap from bytes.
+// UpdateFromBytes updates configmap from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*corev1.ConfigMap, error) {
 	cmJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.ConfigMap, error) {
 	return h.updateConfigmap(cm)
 }
 
-// UpdateFromObject updates configmap from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.ConfigMap, error) {
+// UpdateFromObject updates configmap from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*corev1.ConfigMap, error) {
 	cm, ok := obj.(*corev1.ConfigMap)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.ConfigMap")
@@ -91,10 +92,8 @@ func (h *Handler) UpdateFromMap(u map[string]interface{}) (*corev1.ConfigMap, er
 
 // updateConfigmap
 func (h *Handler) updateConfigmap(cm *corev1.ConfigMap) (*corev1.ConfigMap, error) {
-	var namespace string
-	if len(cm.Namespace) != 0 {
-		namespace = cm.Namespace
-	} else {
+	namespace := cm.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	cm.ResourceVersion = ""

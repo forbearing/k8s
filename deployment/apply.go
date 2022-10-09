@@ -22,7 +22,7 @@ import (
 )
 
 // Apply applies deployment from type string, []byte, *appsv1.Deployment,
-// appsv1.Deployment, runtime.Object, *unstructured.Unstructured,
+// appsv1.Deployment, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*appsv1.Deployment, error) {
 	switch val := obj.(type) {
@@ -40,14 +40,14 @@ func (h *Handler) Apply(obj interface{}) (*appsv1.Deployment, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies deployment from yaml file.
+// ApplyFromFile applies deployment from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (deploy *appsv1.Deployment, err error) {
 	deploy, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if deployment already exist, update it.
@@ -56,7 +56,7 @@ func (h *Handler) ApplyFromFile(filename string) (deploy *appsv1.Deployment, err
 	return
 }
 
-// ApplyFromBytes pply deployment from bytes.
+// ApplyFromBytes pply deployment from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (deploy *appsv1.Deployment, err error) {
 	deploy, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -65,8 +65,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (deploy *appsv1.Deployment, err er
 	return
 }
 
-// ApplyFromObject applies deployment from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*appsv1.Deployment, error) {
+// ApplyFromObject applies deployment from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*appsv1.Deployment, error) {
 	deploy, ok := obj.(*appsv1.Deployment)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.Deployment")
@@ -212,11 +212,6 @@ func (h *Handler) __Apply(filename string) (deploy *appsv1.Deployment, err error
 			return nil, err
 		}
 	}
-	//if err != io.EOF {
-	//    log.Error("not io.EOF")
-	//    log.Error(err)
-	//    return nil, err
-	//}
 
 	if err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredObj.UnstructuredContent(), deploy); err != nil {
 		log.Error("FromUnstructured error")

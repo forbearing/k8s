@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates namespace from type string, []byte, *corev1.Namespace,
-// corev1.Namespace, runtime.Object, *unstructured.Unstructured,
+// corev1.Namespace, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*corev1.Namespace, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*corev1.Namespace, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates namespace from yaml file.
+// UpdateFromFile updates namespace from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*corev1.Namespace, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*corev1.Namespace, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates namespace from bytes.
+// UpdateFromBytes updates namespace from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*corev1.Namespace, error) {
 	nsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.Namespace, error) {
 	return h.updateNamespace(ns)
 }
 
-// UpdateFromObject updates namespace from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.Namespace, error) {
+// UpdateFromObject updates namespace from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*corev1.Namespace, error) {
 	ns, ok := obj.(*corev1.Namespace)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.Namespace")

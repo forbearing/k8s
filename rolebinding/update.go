@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates rolebinding from type string, []byte, *rbacv1.RoleBinding,
-// rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured,
+// rbacv1.RoleBinding, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*rbacv1.RoleBinding, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*rbacv1.RoleBinding, error) {
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates rolebinding from yaml file.
+// UpdateFromFile updates rolebinding from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*rbacv1.RoleBinding, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*rbacv1.RoleBinding, error) {
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates rolebinding from bytes.
+// UpdateFromBytes updates rolebinding from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
 	rbJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*rbacv1.RoleBinding, error) {
 	return h.updateRolebinding(rb)
 }
 
-// UpdateFromObject updates rolebinding from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error) {
+// UpdateFromObject updates rolebinding from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*rbacv1.RoleBinding, error) {
 	rb, ok := obj.(*rbacv1.RoleBinding)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.RoleBinding")
@@ -91,10 +92,8 @@ func (h *Handler) UpdateFromMap(u map[string]interface{}) (*rbacv1.RoleBinding, 
 
 // updateRolebinding
 func (h *Handler) updateRolebinding(rb *rbacv1.RoleBinding) (*rbacv1.RoleBinding, error) {
-	var namespace string
-	if len(rb.Namespace) != 0 {
-		namespace = rb.Namespace
-	} else {
+	namespace := rb.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	rb.ResourceVersion = ""

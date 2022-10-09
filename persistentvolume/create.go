@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates persistentvolume from type string, []byte, *corev1.PersistentVolume,
-// corev1.PersistentVolume, runtime.Object, *unstructured.Unstructured,
+// corev1.PersistentVolume, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*corev1.PersistentVolume, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*corev1.PersistentVolume, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates persistentvolume from yaml file.
+// CreateFromFile creates persistentvolume from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*corev1.PersistentVolume, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*corev1.PersistentVolume, err
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates persistentvolume from bytes.
+// CreateFromBytes creates persistentvolume from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*corev1.PersistentVolume, error) {
 	pvJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.PersistentVolume, error)
 	return h.createPV(pv)
 }
 
-// CreateFromObject creates persistentvolume from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.PersistentVolume, error) {
+// CreateFromObject creates persistentvolume from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*corev1.PersistentVolume, error) {
 	pv, ok := obj.(*corev1.PersistentVolume)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.PersistentVolume")

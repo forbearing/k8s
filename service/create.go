@@ -6,13 +6,15 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates service from type string, []byte, *corev1.Service,
-// corev1.Service, runtime.Object or map[string]interface{}.
+// corev1.Service, metav1.Object, runtime.Object, *unstructured.Unstructured,
+// unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*corev1.Service, error) {
 	switch val := obj.(type) {
 	case string:
@@ -29,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*corev1.Service, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates service from yaml file.
+// CreateFromFile creates service from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*corev1.Service, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -45,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*corev1.Service, error) {
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates service from bytes.
+// CreateFromBytes creates service from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*corev1.Service, error) {
 	svcJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -59,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*corev1.Service, error) {
 	return h.createService(svc)
 }
 
-// CreateFromObject creates service from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*corev1.Service, error) {
+// CreateFromObject creates service from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*corev1.Service, error) {
 	svc, ok := obj.(*corev1.Service)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.Service")
@@ -90,10 +92,8 @@ func (h *Handler) CreateFromMap(u map[string]interface{}) (*corev1.Service, erro
 
 // createService
 func (h *Handler) createService(svc *corev1.Service) (*corev1.Service, error) {
-	var namespace string
-	if len(svc.Namespace) != 0 {
-		namespace = svc.Namespace
-	} else {
+	namespace := svc.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	svc.ResourceVersion = ""

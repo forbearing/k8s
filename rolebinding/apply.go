@@ -5,12 +5,13 @@ import (
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies rolebinding from type string, []byte, *rbacv1.RoleBinding,
-// rbacv1.RoleBinding, runtime.Object, *unstructured.Unstructured,
+// rbacv1.RoleBinding, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*rbacv1.RoleBinding, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*rbacv1.RoleBinding, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies rolebinding from yaml file.
+// ApplyFromFile applies rolebinding from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (rb *rbacv1.RoleBinding, err error) {
 	rb, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if rolebinding already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (rb *rbacv1.RoleBinding, err er
 	return
 }
 
-// ApplyFromBytes pply rolebinding from bytes.
+// ApplyFromBytes pply rolebinding from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (rb *rbacv1.RoleBinding, err error) {
 	rb, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (rb *rbacv1.RoleBinding, err error
 	return
 }
 
-// ApplyFromObject applies rolebinding from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*rbacv1.RoleBinding, error) {
+// ApplyFromObject applies rolebinding from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*rbacv1.RoleBinding, error) {
 	rb, ok := obj.(*rbacv1.RoleBinding)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *rbacv1.RoleBinding")

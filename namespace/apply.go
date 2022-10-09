@@ -5,12 +5,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies namespace from type string, []byte, *corev1.Namespace,
-// corev1.Namespace, runtime.Object, *unstructured.Unstructured,
+// corev1.Namespace, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*corev1.Namespace, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*corev1.Namespace, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies namespace from yaml file.
+// ApplyFromFile applies namespace from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (ns *corev1.Namespace, err error) {
 	ns, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if namespace already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (ns *corev1.Namespace, err erro
 	return
 }
 
-// ApplyFromBytes pply namespace from bytes.
+// ApplyFromBytes pply namespace from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (ns *corev1.Namespace, err error) {
 	ns, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (ns *corev1.Namespace, err error) 
 	return
 }
 
-// ApplyFromObject applies namespace from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*corev1.Namespace, error) {
+// ApplyFromObject applies namespace from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*corev1.Namespace, error) {
 	ns, ok := obj.(*corev1.Namespace)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.Namespace")

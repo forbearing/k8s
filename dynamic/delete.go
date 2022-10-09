@@ -6,12 +6,13 @@ import (
 
 	"github.com/forbearing/k8s/types"
 	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// Delete deletes unstructured k8s resource from type string, []byte,
+// Delete deletes unstructured k8s resource from type string, []byte, metav1.Object,
 // runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
 //
@@ -34,7 +35,7 @@ func (h *Handler) Delete(obj interface{}) error {
 		return h.deleteUnstructured(&val)
 	case map[string]interface{}:
 		return h.DeleteFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.DeleteFromObject(val)
 	default:
 		return ErrInvalidDeleteType
@@ -59,7 +60,7 @@ func (h *Handler) DeleteByName(name string) error {
 	return h.dynamicClient.Resource(h.gvr).Delete(h.ctx, name, h.Options.DeleteOptions)
 }
 
-// DeleteFromFile deletes unstructured k8s resource from yaml file.
+// DeleteFromFile deletes unstructured k8s resource from yaml or json file.
 func (h *Handler) DeleteFromFile(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -68,7 +69,7 @@ func (h *Handler) DeleteFromFile(filename string) error {
 	return h.DeleteFromBytes(data)
 }
 
-// DeleteFromBytes deletes unstructured k8s resource from bytes.
+// DeleteFromBytes deletes unstructured k8s resource from bytes data.
 func (h *Handler) DeleteFromBytes(data []byte) error {
 	unstructJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -82,8 +83,8 @@ func (h *Handler) DeleteFromBytes(data []byte) error {
 	return h.deleteUnstructured(unstructObj)
 }
 
-// DeleteFromObject deletes unstructured k8s resource from runtime.Object.
-func (h *Handler) DeleteFromObject(obj runtime.Object) error {
+// DeleteFromObject deletes unstructured k8s resource from metav1.Object or runtime.Object.
+func (h *Handler) DeleteFromObject(obj interface{}) error {
 	unstructMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
 	if err != nil {
 		return err
@@ -113,10 +114,8 @@ func (h *Handler) deleteUnstructured(obj *unstructured.Unstructured) error {
 	}
 
 	if h.isNamespaced {
-		var namespace string
-		if len(obj.GetNamespace()) != 0 {
-			namespace = obj.GetNamespace()
-		} else {
+		namespace := obj.GetNamespace()
+		if len(namespace) == 0 {
 			namespace = h.namespace
 		}
 		return h.dynamicClient.Resource(h.gvr).Namespace(namespace).Delete(h.ctx, obj.GetName(), h.Options.DeleteOptions)

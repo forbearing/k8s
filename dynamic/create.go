@@ -6,12 +6,13 @@ import (
 
 	"github.com/forbearing/k8s/types"
 	utilrestmapper "github.com/forbearing/k8s/util/restmapper"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// Create creates unstructured k8s resource from type string, []byte,
+// Create creates unstructured k8s resource from type string, []byte, metav1.Object,
 // runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
 //
@@ -31,14 +32,14 @@ func (h *Handler) Create(obj interface{}) (*unstructured.Unstructured, error) {
 		return h.createUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates unstructured k8s resource from yaml file.
+// CreateFromFile creates unstructured k8s resource from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*unstructured.Unstructured, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -47,7 +48,7 @@ func (h *Handler) CreateFromFile(filename string) (*unstructured.Unstructured, e
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates unstructured k8s resource from bytes.
+// CreateFromBytes creates unstructured k8s resource from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*unstructured.Unstructured, error) {
 	unstructJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -61,8 +62,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*unstructured.Unstructured, erro
 	return h.createUnstructured(unstructObj)
 }
 
-// CreateFromObject creates unstructured k8s resource from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*unstructured.Unstructured, error) {
+// CreateFromObject creates unstructured k8s resource from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*unstructured.Unstructured, error) {
 	unstructMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
 	if err != nil {
 		return nil, err
@@ -94,10 +95,8 @@ func (h *Handler) createUnstructured(obj *unstructured.Unstructured) (*unstructu
 	obj.SetUID("")
 	obj.SetResourceVersion("")
 	if h.isNamespaced {
-		var namespace string
-		if len(obj.GetNamespace()) != 0 {
-			namespace = obj.GetNamespace()
-		} else {
+		namespace := obj.GetNamespace()
+		if len(namespace) == 0 {
 			namespace = h.namespace
 		}
 		return h.dynamicClient.Resource(h.gvr).Namespace(namespace).Create(h.ctx, obj, h.Options.CreateOptions)

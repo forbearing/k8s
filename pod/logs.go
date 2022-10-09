@@ -7,13 +7,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Log get pod logs from type string, []byte, *corev1.pod, corev1.pod,
-// runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
+// metav1.Object, runtime.Object, *unstructured.Unstructured, unstructured.Unstructured
 // or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call LogByName instead of LogFromFile.
@@ -34,7 +35,7 @@ func (h *Handler) Log(obj interface{}, logOptions *LogOptions) error {
 		return h.LogFromUnstructured(&val, logOptions)
 	case map[string]interface{}:
 		return h.LogFromMap(val, logOptions)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.LogFromObject(val, logOptions)
 	default:
 		return ErrInvalidLogType
@@ -46,7 +47,7 @@ func (h *Handler) LogByName(name string, logOption *LogOptions) error {
 	return h.getLog(h.namespace, name, logOption)
 }
 
-// LogFromFile get pod logs from yaml file.
+// LogFromFile get pod logs from yaml or json file.
 func (h *Handler) LogFromFile(filename string, logOptions *LogOptions) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -55,7 +56,7 @@ func (h *Handler) LogFromFile(filename string, logOptions *LogOptions) error {
 	return h.LogFromBytes(data, logOptions)
 }
 
-// LogFromBytes get pod logs from bytes.
+// LogFromBytes get pod logs from bytes data.
 func (h *Handler) LogFromBytes(data []byte, logOptions *LogOptions) error {
 	podJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -69,8 +70,8 @@ func (h *Handler) LogFromBytes(data []byte, logOptions *LogOptions) error {
 	return h.logPod(pod, logOptions)
 }
 
-// LogFromObject get logs from runtime.Object.
-func (h *Handler) LogFromObject(obj runtime.Object, logOptions *LogOptions) error {
+// LogFromObject get logs from metav1.Object or runtime.Object.
+func (h *Handler) LogFromObject(obj interface{}, logOptions *LogOptions) error {
 	pod, ok := obj.(*corev1.Pod)
 	if !ok {
 		return fmt.Errorf("object type is not *corev1.Pod")
@@ -104,10 +105,8 @@ func (h *Handler) logPod(pod *corev1.Pod, logOptions *LogOptions) error {
 		return fmt.Errorf("pod/%s is not ready", pod.Name)
 	}
 
-	var namespace string
-	if len(pod.Namespace) != 0 {
-		namespace = pod.Namespace
-	} else {
+	namespace := pod.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	return h.getLog(namespace, pod.Name, logOptions)

@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	storagev1 "k8s.io/api/storage/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Create creates storageclass from type string, []byte, *storagev1.StorageClass,
-// storagev1.StorageClass, runtime.Object, *unstructured.Unstructured,
+// storagev1.StorageClass, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Create(obj interface{}) (*storagev1.StorageClass, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Create(obj interface{}) (*storagev1.StorageClass, error) {
 		return h.CreateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.CreateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.CreateFromObject(val)
 	default:
 		return nil, ErrInvalidCreateType
 	}
 }
 
-// CreateFromFile creates storageclass from yaml file.
+// CreateFromFile creates storageclass from yaml or json file.
 func (h *Handler) CreateFromFile(filename string) (*storagev1.StorageClass, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) CreateFromFile(filename string) (*storagev1.StorageClass, erro
 	return h.CreateFromBytes(data)
 }
 
-// CreateFromBytes creates storageclass from bytes.
+// CreateFromBytes creates storageclass from bytes data.
 func (h *Handler) CreateFromBytes(data []byte) (*storagev1.StorageClass, error) {
 	scJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) CreateFromBytes(data []byte) (*storagev1.StorageClass, error) 
 	return h.createSC(sc)
 }
 
-// CreateFromObject creates storageclass from runtime.Object.
-func (h *Handler) CreateFromObject(obj runtime.Object) (*storagev1.StorageClass, error) {
+// CreateFromObject creates storageclass from metav1.Object or runtime.Object.
+func (h *Handler) CreateFromObject(obj interface{}) (*storagev1.StorageClass, error) {
 	sc, ok := obj.(*storagev1.StorageClass)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *storagev1.StorageClass")

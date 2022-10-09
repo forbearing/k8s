@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	appsv1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Scale set replicaset replicas from type string, []byte, *appsv1.ReplicaSet,
-// appsv1.ReplicaSet, runtime.Object, *unstructured.Unstructured,
+// appsv1.ReplicaSet, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 //
 // If passed parameter type is string, it will simply call ScaleByName instead of ScaleFromFile.
@@ -33,7 +34,7 @@ func (h *Handler) Scale(obj interface{}, replicas int32) (*appsv1.ReplicaSet, er
 		return h.ScaleFromUnstructured(&val, replicas)
 	case map[string]interface{}:
 		return h.ScaleFromMap(val, replicas)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ScaleFromObject(val, replicas)
 	default:
 		return nil, ErrInvalidScaleType
@@ -53,7 +54,7 @@ func (h *Handler) ScaleByName(name string, replicas int32) (*appsv1.ReplicaSet, 
 	return h.Update(copiedRS)
 }
 
-// ScaleFromFile scale replicaset from yaml file.
+// ScaleFromFile scale replicaset from yaml or json file.
 func (h *Handler) ScaleFromFile(filename string, replicas int32) (*appsv1.ReplicaSet, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -62,7 +63,7 @@ func (h *Handler) ScaleFromFile(filename string, replicas int32) (*appsv1.Replic
 	return h.ScaleFromBytes(data, replicas)
 }
 
-// ScaleFromBytes scale replicaset from bytes.
+// ScaleFromBytes scale replicaset from bytes data.
 func (h *Handler) ScaleFromBytes(data []byte, replicas int32) (*appsv1.ReplicaSet, error) {
 	rsJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -76,8 +77,8 @@ func (h *Handler) ScaleFromBytes(data []byte, replicas int32) (*appsv1.ReplicaSe
 	return h.ScaleByName(rs.Name, replicas)
 }
 
-// ScaleFromObject scale replicaset from runtime.Object.
-func (h *Handler) ScaleFromObject(obj runtime.Object, replicas int32) (*appsv1.ReplicaSet, error) {
+// ScaleFromObject scale replicaset from metav1.Object or runtime.Object.
+func (h *Handler) ScaleFromObject(obj interface{}, replicas int32) (*appsv1.ReplicaSet, error) {
 	rs, ok := obj.(*appsv1.ReplicaSet)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *appsv1.ReplicaSet")

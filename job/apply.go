@@ -5,12 +5,13 @@ import (
 
 	batchv1 "k8s.io/api/batch/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // Apply applies job from type string, []byte, *batchv1.Job,
-// batchv1.Job, runtime.Object, *unstructured.Unstructured,
+// batchv1.Job, metav1.Object, runtime.Object, *unstructured.Unstructured,
 // unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Apply(obj interface{}) (*batchv1.Job, error) {
 	switch val := obj.(type) {
@@ -28,14 +29,14 @@ func (h *Handler) Apply(obj interface{}) (*batchv1.Job, error) {
 		return h.ApplyFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.ApplyFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.ApplyFromObject(val)
 	default:
 		return nil, ErrInvalidApplyType
 	}
 }
 
-// ApplyFromFile applies job from yaml file.
+// ApplyFromFile applies job from yaml or json file.
 func (h *Handler) ApplyFromFile(filename string) (job *batchv1.Job, err error) {
 	job, err = h.CreateFromFile(filename)
 	if k8serrors.IsAlreadyExists(err) { // if job already exist, update it.
@@ -44,7 +45,7 @@ func (h *Handler) ApplyFromFile(filename string) (job *batchv1.Job, err error) {
 	return
 }
 
-// ApplyFromBytes pply job from bytes.
+// ApplyFromBytes pply job from bytes data.
 func (h *Handler) ApplyFromBytes(data []byte) (job *batchv1.Job, err error) {
 	job, err = h.CreateFromBytes(data)
 	if k8serrors.IsAlreadyExists(err) {
@@ -53,8 +54,8 @@ func (h *Handler) ApplyFromBytes(data []byte) (job *batchv1.Job, err error) {
 	return
 }
 
-// ApplyFromObject applies job from runtime.Object.
-func (h *Handler) ApplyFromObject(obj runtime.Object) (*batchv1.Job, error) {
+// ApplyFromObject applies job from metav1.Object or runtime.Object.
+func (h *Handler) ApplyFromObject(obj interface{}) (*batchv1.Job, error) {
 	job, ok := obj.(*batchv1.Job)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *batchv1.Job")

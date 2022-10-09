@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
 // Update updates replicationcontroller from type string, []byte,
-// *corev1.ReplicationController, corev1.ReplicationController, runtime.Object,
+// *corev1.ReplicationController, corev1.ReplicationController, metav1.Object, runtime.Object,
 // *unstructured.Unstructured, unstructured.Unstructured or map[string]interface{}.
 func (h *Handler) Update(obj interface{}) (*corev1.ReplicationController, error) {
 	switch val := obj.(type) {
@@ -30,14 +31,14 @@ func (h *Handler) Update(obj interface{}) (*corev1.ReplicationController, error)
 		return h.UpdateFromUnstructured(&val)
 	case map[string]interface{}:
 		return h.UpdateFromMap(val)
-	case runtime.Object:
+	case metav1.Object, runtime.Object:
 		return h.UpdateFromObject(val)
 	default:
 		return nil, ErrInvalidUpdateType
 	}
 }
 
-// UpdateFromFile updates replicationcontroller from yaml file.
+// UpdateFromFile updates replicationcontroller from yaml or json file.
 func (h *Handler) UpdateFromFile(filename string) (*corev1.ReplicationController, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -46,7 +47,7 @@ func (h *Handler) UpdateFromFile(filename string) (*corev1.ReplicationController
 	return h.UpdateFromBytes(data)
 }
 
-// UpdateFromBytes updates replicationcontroller from bytes.
+// UpdateFromBytes updates replicationcontroller from bytes data.
 func (h *Handler) UpdateFromBytes(data []byte) (*corev1.ReplicationController, error) {
 	rcJson, err := yaml.ToJSON(data)
 	if err != nil {
@@ -60,8 +61,8 @@ func (h *Handler) UpdateFromBytes(data []byte) (*corev1.ReplicationController, e
 	return h.updateRS(rc)
 }
 
-// UpdateFromObject updates replicationcontroller from runtime.Object.
-func (h *Handler) UpdateFromObject(obj runtime.Object) (*corev1.ReplicationController, error) {
+// UpdateFromObject updates replicationcontroller from metav1.Object or runtime.Object.
+func (h *Handler) UpdateFromObject(obj interface{}) (*corev1.ReplicationController, error) {
 	rc, ok := obj.(*corev1.ReplicationController)
 	if !ok {
 		return nil, fmt.Errorf("object type is not *corev1.ReplicationController")
@@ -91,10 +92,8 @@ func (h *Handler) UpdateFromMap(u map[string]interface{}) (*corev1.ReplicationCo
 
 // updateRS
 func (h *Handler) updateRS(rc *corev1.ReplicationController) (*corev1.ReplicationController, error) {
-	var namespace string
-	if len(rc.Namespace) != 0 {
-		namespace = rc.Namespace
-	} else {
+	namespace := rc.GetNamespace()
+	if len(namespace) == 0 {
 		namespace = h.namespace
 	}
 	rc.ResourceVersion = ""
