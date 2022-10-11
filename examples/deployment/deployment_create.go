@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/forbearing/k8s/deployment"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -45,29 +46,35 @@ func Deployment_Create() {
 	checkErr("create deployment from runtime.Object", deploy5.Name, err)
 	handler.Delete(name)
 
-	// 6. create deployment from *unstructured.Unstructured
-	deploy6, err := handler.Create(&unstructured.Unstructured{Object: unstructData})
-	checkErr("create deployment from *unstructured.Unstructured", deploy6.Name, err)
-	handler.Delete(unstructName)
+	// 6. create deployment from metav1.Object.
+	deploy6, err := handler.Create(metav1.Object(deploy5))
+	checkErr("create deployment from metav1.Object", deploy6.Name, err)
+	handler.Delete(name)
 
-	// 7. create deployment from unstructured.Unstructured
-	deploy7, err := handler.Create(unstructured.Unstructured{Object: unstructData})
+	// 7. create deployment from *unstructured.Unstructured
+	deploy7, err := handler.Create(&unstructured.Unstructured{Object: unstructData})
 	checkErr("create deployment from *unstructured.Unstructured", deploy7.Name, err)
 	handler.Delete(unstructName)
 
-	// 8. create deployment from map[string]interface{}.
-	deploy8, err := handler.Create(unstructData)
-	checkErr("create deployment from map[string]interface{}", deploy8.Name, err)
+	// 8. create deployment from unstructured.Unstructured
+	deploy8, err := handler.Create(unstructured.Unstructured{Object: unstructData})
+	checkErr("create deployment from *unstructured.Unstructured", deploy8.Name, err)
+	handler.Delete(unstructName)
+
+	// 9. create deployment from map[string]interface{}.
+	deploy9, err := handler.Create(unstructData)
+	checkErr("create deployment from map[string]interface{}", deploy9.Name, err)
 	handler.Delete(unstructData)
 
 	// Output:
 
-	//2022/09/05 16:51:23 create deployment from file success: mydep
-	//2022/09/05 16:51:23 create deployment from bytes success: mydep
-	//2022/09/05 16:51:23 create deployment from *appsv1.Deployment success: mydep
-	//2022/09/05 16:51:23 create deployment from appsv1.Deployment success: mydep
-	//2022/09/05 16:51:23 create deployment from runtime.Object success: mydep
-	//2022/09/05 16:51:23 create deployment from *unstructured.Unstructured success: mydep-unstruct
-	//2022/09/05 16:51:24 create deployment from *unstructured.Unstructured success: mydep-unstruct
-	//2022/09/05 16:51:24 create deployment from map[string]interface{} success: mydep-unstruct
+	//2022/10/08 22:20:24 create deployment from file success: mydep
+	//2022/10/08 22:20:24 create deployment from bytes success: mydep
+	//2022/10/08 22:20:24 create deployment from *appsv1.Deployment success: mydep
+	//2022/10/08 22:20:24 create deployment from appsv1.Deployment success: mydep
+	//2022/10/08 22:20:24 create deployment from runtime.Object success: mydep
+	//2022/10/08 22:20:24 create deployment from metav1.Object success: mydep
+	//2022/10/08 22:20:25 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/10/08 22:20:25 create deployment from *unstructured.Unstructured success: mydep-unstruct
+	//2022/10/08 22:20:26 create deployment from map[string]interface{} success: mydep-unstruct
 }
