@@ -169,3 +169,4 @@ Its a typed handler that use typed client(clientset) to create/update/apply/patc
 - [ ] ForVersion()
 - [ ] Create()/Update()/Apply() support metav1.Object
 - [ ] Typed handler and dynamc handler add function NewWithOptions() and NewWithOptionsOrDie() to create new Handler with custom options, such like QPS, Burst, RateLimter that defined in rest.Config, etc.
+- [ ] Add WithCustomBackoff(), WithCustomeHttpClient(), WithCustomeRetry(), WithCustomLogger() to generate a OptionFunc as the handler's options. before: deployment.New(ctx, kubeconfig, namespace) -> deployment.New(ctx, kubeconfig, namespace, options ...OptionFunc)
